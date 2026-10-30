@@ -122,6 +122,8 @@ Assumptions:
 - **DES-062**: MUST install only skills and prompts listed in the `src/resources` manifest.
 - **DES-063**: MUST create missing destination directories before copying skill or prompt files.
 - **DES-064**: MUST continue installation for remaining enabled CLIs after an adapter installation failure.
+- **DES-065**: MUST implement the `show` report in a dedicated `src/skills/show.py` module exposing table rendering and a home-directory override.
+- **DES-066**: MUST render every `show` table with aligned ASCII borders and word-wrapped cell content.
 
 Logical structure after initialization; archive-provided additional files are not enumerated:
 
@@ -177,8 +179,15 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-031**: MUST print an informational message and exit with code 0 when `install` finds no enabled CLI.
 - **REQ-032**: MUST print an error and exit with code 1 when any enabled CLI installation fails.
 - **REQ-033**: MUST provide command-specific help for `enable`, `disable`, and `install` with `--help`.
-- **REQ-034**: MUST print the full help template containing `enable`, `disable`, and `install` when invoked without parameters or with `--help` alone.
+- **REQ-034**: MUST print the full help template containing `enable`, `disable`, `install`, and `show` when invoked without parameters or with `--help` alone.
 - **REQ-035**: MUST terminate installation for a CLI with an error when a manifest-listed source path is missing.
+- **REQ-036**: MUST provide command-specific help for `show` when invoked as `show --help`.
+- **REQ-037**: MUST print every manifest skill and prompt as a table when invoked as `show`.
+- **REQ-038**: MUST print a CLI configuration table listing every supported CLI with its enabled state and skills and prompts installation paths when invoked as `show`.
+- **REQ-039**: MUST print an installation status table with one row per packaged skill or prompt and supported CLI when invoked as `show`.
+- **REQ-040**: MUST report each installation status row by scanning the CLI destination directories and comparing packaged paths and file contents.
+- **REQ-041**: MUST report prompt installation as unsupported in the installation status table when a CLI declares no prompts destination.
+- **REQ-042**: MUST print the complete `show` report and exit with code 0 when invoked as `show`.
 
 Full help template: substitute `skills` for `%PROGRAM%` and the installed version for `x.y.z`; retain all other text and spacing.
 
@@ -196,6 +205,9 @@ Installation Commands:
   enable <cli name>  - Enable skill and prompt installation for a supported CLI.
   disable <cli name> - Disable skill and prompt installation for a supported CLI.
   install            - Install skills and prompts for every enabled CLI.
+
+Reporting Commands:
+  show               - Show packaged resources, CLI configuration, and installation status.
 
 Commands:
   ...

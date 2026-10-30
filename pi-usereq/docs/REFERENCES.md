@@ -11,6 +11,7 @@
         ├── core.py
         ├── installer.py
         ├── settings.py
+        ├── show.py
         └── targets.py
 ```
 
@@ -116,7 +117,7 @@ missing `name` or `description` are omitted.
 
 ---
 
-# core.py | Python | 240L | 13 symbols | 13 imports | 6 comments
+# core.py | Python | 260L | 14 symbols | 14 imports | 7 comments
 > Path: `src/skills/core.py`
 
 ## Imports
@@ -133,32 +134,33 @@ from urllib.request import Request, urlopen
 from . import __version__
 from .installer import install_enabled
 from .settings import load_config, save_config
+from .show import build_show
 from .targets import TARGETS, resolve_target
 ```
 
 ## Definitions
 
-- var `ENDPOINT = "https://api.github.com/repos/Ogekuri/SKILLs/releases/latest"` (L19)
-- var `UPGRADE = ["uv", "tool", "install", "skills", "--force", "--from", "git+https://github.com/Ogekuri/SKILLs.git"]` (L20)
-- var `UNINSTALL = ["uv", "tool", "uninstall", "skills"]` (L21)
-### fn `def cache_path() -> Path` (L40-43)
+- var `ENDPOINT = "https://api.github.com/repos/Ogekuri/SKILLs/releases/latest"` (L20)
+- var `UPGRADE = ["uv", "tool", "install", "skills", "--force", "--from", "git+https://github.com/Ogekuri/SKILLs.git"]` (L21)
+- var `UNINSTALL = ["uv", "tool", "uninstall", "skills"]` (L22)
+### fn `def cache_path() -> Path` (L44-47)
 
-### fn `def _human(timestamp: float | None) -> str | None` `priv` (L44-47)
+### fn `def _human(timestamp: float | None) -> str | None` `priv` (L48-51)
 
-### fn `def _version(value: str) -> tuple[int, int, int]` `priv` (L48-54)
+### fn `def _version(value: str) -> tuple[int, int, int]` `priv` (L52-58)
 
-### fn `def check_version(force: bool = False) -> None` (L55-102)
+### fn `def check_version(force: bool = False) -> None` (L59-106)
 
-### fn `def _manage(command: list[str]) -> int` `priv` (L103-113)
+### fn `def _manage(command: list[str]) -> int` `priv` (L107-117)
 
-### fn `def _unsupported(name: str) -> str` `priv` (L114-124)
+### fn `def _unsupported(name: str) -> str` `priv` (L118-128)
 - @brief Build an unsupported-CLI diagnostic message.
 - @details Lists the canonical CLI names accepted by the adapter registry.
 - @param name {str} Unsupported CLI name from the command line.
 - @return {str} Human-readable diagnostic message.
 - @satisfies REQ-026
 
-### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L125-150)
+### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L129-154)
 - @brief Enable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, appends the canonical CLI name when absent, and persists the configuration. Re-enabling an enabled CLI leaves configuration unchanged.
 - @param name {str} CLI name from the command line.
@@ -167,7 +169,7 @@ from .targets import TARGETS, resolve_target
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-024 REQ-026 REQ-027 REQ-028
 
-### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L151-177)
+### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L155-181)
 - @brief Disable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, removes the canonical CLI name when present, and persists the configuration. Disabling an already disabled CLI is a successful no-op.
 - @param name {str} CLI name from the command line.
@@ -176,31 +178,40 @@ from .targets import TARGETS, resolve_target
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-025 REQ-026 REQ-027 REQ-028
 
-### fn `def _install(home: Path | None = None) -> int` `priv` (L178-202)
+### fn `def _install(home: Path | None = None) -> int` `priv` (L182-206)
 - @brief Install bundled resources for all enabled CLIs.
 - @details Delegates installation to `install_enabled`, prints per-CLI skill and prompt counts, prints an informational message when no CLI is enabled, and reports collected failures.
 - @param home {Path | None} Optional home-directory override.
 - @return {int} Exit code: 0 when no failure occurs; 1 when any failure occurs.
 - @satisfies REQ-029 REQ-030 REQ-031 REQ-032
 
-### fn `def main(argv: list[str] | None = None) -> int` (L203-241)
+### fn `def _show(home: Path | None = None) -> int` `priv` (L207-219)
+- @brief Print packaged resources, CLI configuration, and installation status.
+- @details Delegates report rendering to `build_show` and prints the result.
+- @param home {Path | None} Optional home-directory override.
+- @return {int} Exit code 0 after printing the report.
+- @throws {OSError} When bundled resources or the configuration cannot be read.
+- @satisfies REQ-037 REQ-038 REQ-039 REQ-042
+
+### fn `def main(argv: list[str] | None = None) -> int` (L220-261)
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`ENDPOINT`|var|pub|19||
-|`UPGRADE`|var|pub|20||
-|`UNINSTALL`|var|pub|21||
-|`cache_path`|fn|pub|40-43|def cache_path() -> Path|
-|`_human`|fn|priv|44-47|def _human(timestamp: float | None) -> str | None|
-|`_version`|fn|priv|48-54|def _version(value: str) -> tuple[int, int, int]|
-|`check_version`|fn|pub|55-102|def check_version(force: bool = False) -> None|
-|`_manage`|fn|priv|103-113|def _manage(command: list[str]) -> int|
-|`_unsupported`|fn|priv|114-124|def _unsupported(name: str) -> str|
-|`_enable`|fn|priv|125-150|def _enable(name: str, home: Path | None = None) -> int|
-|`_disable`|fn|priv|151-177|def _disable(name: str, home: Path | None = None) -> int|
-|`_install`|fn|priv|178-202|def _install(home: Path | None = None) -> int|
-|`main`|fn|pub|203-241|def main(argv: list[str] | None = None) -> int|
+|`ENDPOINT`|var|pub|20||
+|`UPGRADE`|var|pub|21||
+|`UNINSTALL`|var|pub|22||
+|`cache_path`|fn|pub|44-47|def cache_path() -> Path|
+|`_human`|fn|priv|48-51|def _human(timestamp: float | None) -> str | None|
+|`_version`|fn|priv|52-58|def _version(value: str) -> tuple[int, int, int]|
+|`check_version`|fn|pub|59-106|def check_version(force: bool = False) -> None|
+|`_manage`|fn|priv|107-117|def _manage(command: list[str]) -> int|
+|`_unsupported`|fn|priv|118-128|def _unsupported(name: str) -> str|
+|`_enable`|fn|priv|129-154|def _enable(name: str, home: Path | None = None) -> int|
+|`_disable`|fn|priv|155-181|def _disable(name: str, home: Path | None = None) -> int|
+|`_install`|fn|priv|182-206|def _install(home: Path | None = None) -> int|
+|`_show`|fn|priv|207-219|def _show(home: Path | None = None) -> int|
+|`main`|fn|pub|220-261|def main(argv: list[str] | None = None) -> int|
 
 
 ---
@@ -352,6 +363,130 @@ from typing import Any
 |`_unique_strings`|fn|priv|36-55|def _unique_strings(value: Any) -> list[str]|
 |`load_config`|fn|pub|56-83|def load_config(home: Path | None = None) -> dict[str, Any]|
 |`save_config`|fn|pub|84-106|def save_config(config: dict[str, Any], home: Path | None...|
+
+
+---
+
+# show.py | Python | 293L | 14 symbols | 6 imports | 14 comments
+> Path: `src/skills/show.py`
+- @brief Render packaged resource inventory, CLI configuration, and installation status.
+- @details Builds three deterministic ASCII tables: bundled skills and prompts from
+the manifest, every supported CLI with enabled state and destination
+paths, and a per-resource per-CLI installation status derived from
+destination-directory scans.
+- @satisfies DES-065 DES-066 REQ-037 REQ-038 REQ-039 REQ-040 REQ-041
+
+## Imports
+```
+from __future__ import annotations
+from pathlib import Path
+from typing import Any, Iterable, Sequence
+from .catalog import RESOURCES_ROOT, build_catalog
+from .settings import load_config
+from .targets import TARGETS
+```
+
+## Definitions
+
+- var `MAX_CELL_WIDTH = 48` (L21)
+- @brief Maximum rendered width of one table cell in characters.
+- var `STATUS_OK = "OK"` (L23)
+- @brief Status value for a resource whose destination files match the package.
+- var `STATUS_MISSING = "MISSING"` (L25)
+- @brief Status value for a resource with missing destination directories or files.
+- var `STATUS_STALE = "STALE"` (L27)
+- @brief Status value for a resource whose destination files differ from the package.
+- var `STATUS_UNSUPPORTED = "UNSUPPORTED"` (L29)
+- @brief Status value for prompt installation on a CLI without prompts support.
+### fn `def _wrap(text: str, width: int) -> list[str]` `priv` (L32-65)
+- @brief Wrap one cell value into fixed-width lines on word boundaries.
+- @details Collapses whitespace, splits overlong tokens into `width`-sized chunks, and greedily packs words without exceeding `width`.
+- @param text {str} Cell value to wrap.
+- @param width {int} Maximum line width in characters; MUST be positive.
+- @return {list[str]} Rendered lines; `[""]` for an empty value.
+- @satisfies DES-066
+
+### fn `def render_table(` (L66-69)
+
+### fn `def render(cells: Sequence[str]) -> list[str]` (L91-109)
+- @brief Render an ASCII grid table with aligned and wrapped cells.
+- @details Column widths are the longest cell capped by `max_width`; every
+row is emitted between `+---+` borders and multi-line cells are
+padded to the row height.
+- @param headers {Sequence[str]} Column header labels.
+- @param rows {Iterable[Sequence[str]]} Row cell values; short rows are padded.
+- @param max_width {int} Maximum column width in characters.
+- @return {str} Rendered table text without trailing newline.
+- @satisfies DES-066
+
+### fn `def _resource_rows(` `priv` (L117-118)
+
+### fn `def _cli_rows(` `priv` (L141-143)
+- @brief Build inventory rows from manifest catalog entries.
+- @details Emits skills before prompts, preserving manifest entry order.
+- @param catalog {dict[str, list[dict[str, str]]]} Manifest catalog.
+- @return {list[tuple[str, str, str, str]]} `(type, name, file, description)` rows.
+- @satisfies REQ-037
+
+### fn `def _files_match(source: Path, destination: Path) -> str` `priv` (L170-188)
+- @brief Build CLI configuration rows from the adapter registry.
+- @brief Compare one packaged file with its installed destination file.
+- @details Reports registry order, enabled state, skills destination, and
+prompts destination or `UNSUPPORTED` for prompt-less adapters.
+- @param config {dict[str, object]} Normalized user configuration.
+- @param home {Path | None} Optional home-directory override.
+- @param source {Path} Packaged file path.
+- @param destination {Path} Installed destination file path.
+- @return {list[tuple[str, str, str, str]]} `(cli, enabled, skills path,
+prompts path)` rows.
+- @return {str} `OK` for identical bytes, `MISSING` for absent destination, `STALE` for differing bytes or unreadable content.
+- @satisfies REQ-038
+- @satisfies REQ-040
+
+### fn `def _skill_status(source: Path, destination: Path) -> str` `priv` (L189-212)
+- @brief Compare a packaged skill directory with its installed copy.
+- @details Every packaged regular file must exist in the destination with identical bytes.
+- @param source {Path} Packaged skill directory.
+- @param destination {Path} Installed skill destination directory.
+- @return {str} `OK` when all files match; `MISSING` when the package or a destination file is absent; `STALE` on content mismatch.
+- @satisfies REQ-040
+
+### fn `def _install_rows(` `priv` (L213-216)
+
+### fn `def build_show(home: Path | None = None) -> str` (L260-294)
+- @brief Build per-resource per-CLI installation status rows.
+- @brief Build the complete `show` report text.
+- @details Scans adapter destination directories for each manifest skill or
+prompt and reports the enabled state of the owning CLI.
+- @details Renders the packaged-resource inventory, CLI configuration, and installation status tables in this order.
+- @param catalog {dict[str, list[dict[str, str]]]} Manifest catalog.
+- @param config {dict[str, object]} Normalized user configuration.
+- @param home {Path | None} Optional home-directory override.
+- @param home {Path | None} Optional home-directory override for deterministic destination resolution.
+- @return {list[tuple[str, str, str, str, str]]} `(type, name, cli, enabled,
+installed)` rows.
+- @return {str} Report text with three titled tables separated by blank lines.
+- @throws {OSError} When the manifest or bundled resources cannot be read.
+- @satisfies REQ-039 REQ-040 REQ-041
+- @satisfies DES-065 REQ-037 REQ-038 REQ-039 REQ-042
+
+## Symbol Index
+|Symbol|Kind|Vis|Lines|Sig|
+|---|---|---|---|---|
+|`MAX_CELL_WIDTH`|var|pub|21||
+|`STATUS_OK`|var|pub|23||
+|`STATUS_MISSING`|var|pub|25||
+|`STATUS_STALE`|var|pub|27||
+|`STATUS_UNSUPPORTED`|var|pub|29||
+|`_wrap`|fn|priv|32-65|def _wrap(text: str, width: int) -> list[str]|
+|`render_table`|fn|pub|66-69|def render_table(|
+|`render`|fn|pub|91-109|def render(cells: Sequence[str]) -> list[str]|
+|`_resource_rows`|fn|priv|117-118|def _resource_rows(|
+|`_cli_rows`|fn|priv|141-143|def _cli_rows(|
+|`_files_match`|fn|priv|170-188|def _files_match(source: Path, destination: Path) -> str|
+|`_skill_status`|fn|priv|189-212|def _skill_status(source: Path, destination: Path) -> str|
+|`_install_rows`|fn|priv|213-216|def _install_rows(|
+|`build_show`|fn|pub|260-294|def build_show(home: Path | None = None) -> str|
 
 
 ---

@@ -4,7 +4,7 @@
 
 | ID | Type | Parent Process | Role | Entrypoint(s) | Defining File(s) |
 |---|---|---|---|---|---|
-| `PROC:main` | process | — | `skills` CLI: dispatch management, enable/disable, and installation commands; run automatic release check | `main()` [`src/skills/core.py`]; module trigger `sys.exit(main())` [`src/skills/__main__.py`]; re-export `from .core import main` [`src/skills/__init__.py`] | `src/skills/core.py`, `src/skills/settings.py`, `src/skills/targets.py`, `src/skills/installer.py`, `src/skills/catalog.py`, `src/skills/__main__.py`, `src/skills/__init__.py` |
+| `PROC:main` | process | — | `skills` CLI: dispatch management, enable/disable, installation, and show commands; run automatic release check | `main()` [`src/skills/core.py`]; module trigger `sys.exit(main())` [`src/skills/__main__.py`]; re-export `from .core import main` [`src/skills/__init__.py`] | `src/skills/core.py`, `src/skills/settings.py`, `src/skills/targets.py`, `src/skills/installer.py`, `src/skills/catalog.py`, `src/skills/show.py`, `src/skills/__main__.py`, `src/skills/__init__.py` |
 | `PROC:uv` | process | `PROC:main` | child process executing external `uv` tool for `--upgrade` / `--uninstall` | external `uv` executable (no internal entrypoint) | `src/skills/core.py` (spawn site) |
 
 ## Execution Units
@@ -71,6 +71,32 @@
               - `resolve_home(home)`: resolve explicit or platform home [`src/skills/targets.py`]
         - `save_config(config, home)`: persist installed prompt records and enabled CLI names (per successful target) [`src/skills/settings.py`]
           - `config_path(home)`: resolve configuration file path [`src/skills/settings.py`]
+    - `_show(home)`: print packaged resources, CLI configuration, and installation status (`show` branch) [`src/skills/core.py`]
+      - `build_show(home)`: render the three `show` tables [`src/skills/show.py`]
+        - `build_catalog()`: load manifest skill and prompt entries [`src/skills/catalog.py`]
+          - `_discover_skills(root)`: collect sorted `SKILL.md` paths [`src/skills/catalog.py`]
+          - `_parse_frontmatter(text)`: extract `name` and `description` per skill [`src/skills/catalog.py`]
+          - `_discover_prompts(root)`: collect sorted prompt candidate paths [`src/skills/catalog.py`]
+          - `_parse_frontmatter(text)`: extract `name` and `description` per prompt [`src/skills/catalog.py`]
+        - `load_config(home)`: load normalized user configuration [`src/skills/settings.py`]
+          - `config_path(home)`: resolve configuration file path [`src/skills/settings.py`]
+          - `_unique_strings(value)`: normalize enabled names and prompt filename lists [`src/skills/settings.py`]
+        - `_resource_rows(catalog)`: build packaged resource inventory rows [`src/skills/show.py`]
+        - `render_table(...)`: render wrapped ASCII inventory table [`src/skills/show.py`]
+          - `_wrap(text, width)`: wrap cell text to column width [`src/skills/show.py`]
+        - `_cli_rows(config, home)`: build CLI enabled-state and destination-path rows [`src/skills/show.py`]
+          - `skills_dir(home)`: resolve adapter skill destination [`src/skills/targets.py`]
+            - `resolve_home(home)`: resolve explicit or platform home [`src/skills/targets.py`]
+          - `prompts_dir(home)`: resolve adapter prompt destination or `None` when unsupported [`src/skills/targets.py`]
+            - `resolve_home(home)`: resolve explicit or platform home [`src/skills/targets.py`]
+        - `render_table(...)`: render wrapped CLI configuration table [`src/skills/show.py`]
+          - `_wrap(text, width)`: wrap cell text to column width [`src/skills/show.py`]
+        - `_install_rows(catalog, config, home)`: build per-resource per-CLI status rows [`src/skills/show.py`]
+          - `_skill_status(source, destination)`: compare packaged skill tree with installed copy [`src/skills/show.py`]
+            - `_files_match(source, destination)`: compare packaged and installed file bytes [`src/skills/show.py`]
+          - `_files_match(source, destination)`: compare packaged and installed prompt bytes [`src/skills/show.py`]
+        - `render_table(...)`: render wrapped installation status table [`src/skills/show.py`]
+          - `_wrap(text, width)`: wrap cell text to column width [`src/skills/show.py`]
 - **External Boundaries**:
   - stdout/stderr `print()` (help template, version, status/error messages) [`src/skills/core.py`]
   - cache read: `Path.open` + `json.load` [`src/skills/core.py`]
@@ -84,6 +110,8 @@
   - manifest discovery: `importlib.resources.files`, `Path.rglob`, `Path.read_text` [`src/skills/catalog.py`]
   - skill synchronization: `shutil.copytree`, `Path.mkdir`, `Path.rglob`, `Path.rmdir`, `Path.unlink` [`src/skills/targets.py`]
   - prompt synchronization: `shutil.copy2`, `Path.mkdir`, `Path.unlink` [`src/skills/targets.py`]
+  - installation scan: `Path.is_dir`, `Path.is_file`, `Path.rglob`, `Path.read_bytes` [`src/skills/show.py`]
+  - table rendering: `str.ljust` [`src/skills/show.py`]
 
 ### `PROC:uv`
 

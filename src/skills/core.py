@@ -14,6 +14,7 @@ from urllib.request import Request, urlopen
 from . import __version__
 from .installer import install_enabled
 from .settings import load_config, save_config
+from .show import build_show
 from .targets import TARGETS, resolve_target
 
 ENDPOINT = "https://api.github.com/repos/Ogekuri/SKILLs/releases/latest"
@@ -32,6 +33,9 @@ Installation Commands:
   enable <cli name>  - Enable skill and prompt installation for a supported CLI.
   disable <cli name> - Disable skill and prompt installation for a supported CLI.
   install            - Install skills and prompts for every enabled CLI.
+
+Reporting Commands:
+  show               - Show packaged resources, CLI configuration, and installation status.
 
 Commands:
   ..."""
@@ -200,6 +204,19 @@ def _install(home: Path | None = None) -> int:
     return 1 if errors else 0
 
 
+def _show(home: Path | None = None) -> int:
+    """
+    @brief Print packaged resources, CLI configuration, and installation status.
+    @details Delegates report rendering to `build_show` and prints the result.
+    @param home {Path | None} Optional home-directory override.
+    @return {int} Exit code 0 after printing the report.
+    @throws {OSError} When bundled resources or the configuration cannot be read.
+    @satisfies REQ-037 REQ-038 REQ-039 REQ-042
+    """
+    print(build_show(home))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)
@@ -216,6 +233,7 @@ def main(argv: list[str] | None = None) -> int:
             "enable": "Enable skill and prompt installation for a supported CLI.",
             "disable": "Disable skill and prompt installation for a supported CLI.",
             "install": "Install skills and prompts for every enabled CLI.",
+            "show": "Show packaged resources, CLI configuration, and installation status.",
         }
         if command in descriptions:
             print(f"{command} - {descriptions[command]}")
@@ -236,5 +254,7 @@ def main(argv: list[str] | None = None) -> int:
         return _disable(args[1])
     if args == ["install"]:
         return _install()
+    if args == ["show"]:
+        return _show()
     print(f"Unknown command or options: {' '.join(args)}", file=sys.stderr)
     return 2
