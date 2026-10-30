@@ -6,7 +6,7 @@
 #### Todo List ✓
 - [x] Initial alpha release
 - [x] Alpha developments
-- [x] Testing and bug fixes
+- [ ] Testing and bug fixes
 - [ ] Beta stage release
 
 ### Beta Stage
