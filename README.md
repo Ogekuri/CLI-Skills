@@ -53,6 +53,31 @@ Bundled skills:
 - `prompt-skill-architect` - create, review, and optimize LLM agent prompts and skills.
 
 
+## Skill Support Layout
+
+Each packaged skill keeps `SKILL.md` at its root and organizes support files by purpose:
+
+```text
+<skill-name>/
+├── SKILL.md
+├── scripts/
+│   └── <script-name>.sh
+├── references/
+│   ├── images/
+│   │   └── <picture-name>.png
+│   └── <reference-template-name>.md
+├── images/
+│   └── <picture-name>.svg
+└── assets/
+    └── <data-or-configuration-name>.json
+```
+
+- `scripts/` contains shell and Python scripts.
+- `references/` contains Markdown support files; `references/images/` contains images referenced by those files.
+- `assets/` contains data and configuration files.
+- `images/` contains vector or raster images referenced by `SKILL.md`.
+
+
 ## Quick Start
 
 Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).

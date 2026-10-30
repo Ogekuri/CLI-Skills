@@ -144,6 +144,25 @@ For a skill targeting Pi, OpenClaw, or another Agent Skills-compatible host:
 - Do not disable model invocation when automatic selection is required. Do not invent an `always-on` field or assume that permissions declared in metadata are enforced.
 - Avoid host-specific tool names, path substitutions, and dispatch fields in a shared artifact unless documented adapters are necessary.
 - Resolve bundled resources relative to the skill directory, not the process working directory. Verify that referenced files exist and are packaged.
+- Keep `SKILL.md` as the only file at the skill root and organize support files under canonical subdirectories: `scripts/` for shell and Python scripts, `references/` for Markdown support files, `assets/` for data and configuration files, and `images/` for images referenced by `SKILL.md`.
+- Place images referenced by Markdown files under `references/` in `references/images/`.
+- Follow this canonical support layout; omit unused subdirectories:
+
+```text
+<skill-name>/
+├── SKILL.md
+├── scripts/
+│   └── <script-name>.sh
+├── references/
+│   ├── images/
+│   │   └── <picture-name>.png
+│   └── <reference-template-name>.md
+├── images/
+│   └── <picture-name>.svg
+└── assets/
+    └── <data-or-configuration-name>.json
+```
+
 - Aim for a main file below 500 lines and approximately 5000 tokens. Keep core instructions self-contained; load optional reference material only when needed.
 - Keep installation separate from authoring. A standalone `SKILL.md` saved at a requested destination is a deliverable, not proof of discovery or activation.
 

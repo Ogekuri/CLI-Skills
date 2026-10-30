@@ -124,6 +124,30 @@ Assumptions:
 - **DES-064**: MUST continue installation for remaining enabled CLIs after an adapter installation failure.
 - **DES-065**: MUST implement the `show` report in a dedicated `src/skills/show.py` module exposing table rendering and a home-directory override.
 - **DES-066**: MUST render every `show` table with aligned ASCII borders and word-wrapped cell content.
+- **DES-067**: MUST organize every skill support file under exactly one canonical subdirectory of the skill directory: `scripts`, `references`, `assets`, or `images`.
+- **DES-068**: MUST place shell and Python scripts for a skill under its `scripts` subdirectory.
+- **DES-069**: MUST place Markdown support files for a skill under its `references` subdirectory.
+- **DES-070**: MUST place images referenced by Markdown files under `references/images` within the skill directory.
+- **DES-071**: MUST place data and configuration files for a skill under its `assets` subdirectory.
+- **DES-072**: MUST place vector or raster images referenced by `SKILL.md` under the skill `images` subdirectory.
+- **DES-073**: MUST reject a bundled skill whose layout violates DES-067 through DES-072 during catalog generation.
+
+Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
+
+```text
+<skill-name>/
+├── SKILL.md
+├── scripts/
+│   └── <script-name>.sh
+├── references/
+│   ├── images/
+│   │   └── <picture-name>.png
+│   └── <reference-template-name>.md
+├── images/
+│   └── <picture-name>.svg
+└── assets/
+    └── <data-or-configuration-name>.json
+```
 
 Logical structure after initialization; archive-provided additional files are not enumerated:
 

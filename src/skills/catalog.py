@@ -5,9 +5,11 @@
          scans `src/resources/skills` for `SKILL.md` files and
          `src/resources/prompts` for frontmatter files, extracts frontmatter
          `name` and `description`, and emits entries sorted by relative path.
-         Single maintenance path guaranteeing each manifest description equals
-         its source frontmatter `description` string (exact match).
-@satisfies DES-021 DES-022 DES-023 DES-024
+         Validates every skill directory against the canonical support layout
+         before accepting its metadata. Single maintenance path guaranteeing
+         each manifest description equals its source frontmatter `description`
+         string (exact match).
+@satisfies DES-021 DES-022 DES-023 DES-024 DES-067 DES-068 DES-069 DES-070 DES-071 DES-072 DES-073
 """
 
 from __future__ import annotations
@@ -18,6 +20,51 @@ from pathlib import Path
 
 RESOURCES_ROOT = Path(str(ires.files("resources")))
 MANIFEST_PATH = RESOURCES_ROOT / "manifest.json"
+## @brief Canonical skill support subdirectory names allowed at the skill root.
+## @details Any other root directory or non-`SKILL.md` root file violates DES-067.
+SKILL_SUPPORT_DIRECTORIES = ("scripts", "references", "assets", "images")
+## @brief Canonical nested subdirectory names allowed directly under `references`.
+## @details Any other nested directory under `references` violates DES-069 and DES-070.
+REFERENCE_SUPPORT_DIRECTORIES = ("images",)
+
+
+class SkillLayoutError(ValueError):
+    """
+    @brief Signal a bundled skill layout that violates the canonical support layout.
+    @details Raised by `validate_skill_layout` when a skill root contains an
+             entry outside the canonical support subdirectories or when
+             `references` contains a non-canonical subdirectory.
+    @satisfies DES-073
+    """
+
+
+def validate_skill_layout(skill_dir: Path) -> None:
+    """
+    @brief Validate a bundled skill directory against the canonical support layout.
+    @details Accepts `SKILL.md` plus the canonical support subdirectories at the
+             skill root; accepts only `images` as a nested directory directly
+             under `references`. Non-canonical root files and directories are
+             rejected. Complexity O(E) where E is the number of root entries
+             plus direct `references` entries.
+    @param skill_dir {Path} Packaged skill directory containing `SKILL.md`.
+    @return {None}
+    @throws {SkillLayoutError} When a root entry or a nested `references`
+            directory violates DES-067 through DES-072.
+    @satisfies DES-067 DES-068 DES-069 DES-070 DES-071 DES-072 DES-073
+    @pre `skill_dir` MUST be an existing directory.
+    @post The directory layout is canonical or an exception is raised.
+    """
+    for entry in sorted(skill_dir.iterdir()):
+        if entry.name == "SKILL.md" and entry.is_file():
+            continue
+        if entry.is_dir() and entry.name in SKILL_SUPPORT_DIRECTORIES:
+            continue
+        raise SkillLayoutError(f"Invalid skill entry: {entry}")
+    references = skill_dir / "references"
+    if references.is_dir():
+        for entry in sorted(references.iterdir()):
+            if entry.is_dir() and entry.name not in REFERENCE_SUPPORT_DIRECTORIES:
+                raise SkillLayoutError(f"Invalid references entry: {entry}")
 
 
 def _parse_frontmatter(text: str) -> dict[str, str]:
@@ -85,16 +132,20 @@ def build_catalog(
 ) -> dict[str, list[dict[str, str]]]:
     """
     @brief Build the skills and prompts catalog dictionary.
-    @details Scans skills and prompts directories, extracts frontmatter
-             metadata, and emits entries sorted by relative path. Entries
-             missing `name` or `description` are omitted.
+    @details Validates each skill directory layout, then scans skills and prompts
+             directories, extracts frontmatter metadata, and emits entries
+             sorted by relative path. Entries missing `name` or `description`
+             are omitted.
     @param resources_root {Path} Resources root directory to scan.
     @return {Dict[str, List[Dict[str, str]]]} Catalog with `skills` and
             `prompts` lists; each entry contains `file`, `name`, `description`.
-    @satisfies DES-021 DES-022 DES-023 DES-024
+    @throws {SkillLayoutError} When a discovered skill directory violates the
+            canonical support layout.
+    @satisfies DES-021 DES-022 DES-023 DES-024 DES-067 DES-068 DES-069 DES-070 DES-071 DES-072 DES-073
     """
     catalog: dict[str, list[dict[str, str]]] = {"skills": [], "prompts": []}
     for path in _discover_skills(resources_root):
+        validate_skill_layout(path.parent)
         meta = _parse_frontmatter(path.read_text(encoding="utf-8"))
         if "name" in meta and "description" in meta:
             catalog["skills"].append(

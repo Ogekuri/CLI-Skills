@@ -3,8 +3,9 @@
 @brief Orchestrate skill and prompt installation for enabled CLI targets.
 @details Builds the bundled resource catalog, resolves manifest skill
          directories and prompt files, invokes the configured CLI adapters,
-         updates prompt records, and aggregates per-CLI outcomes.
-@satisfies PRJ-009 REQ-029 REQ-030 REQ-032 REQ-035 DES-055 DES-059 DES-060 DES-061 DES-062 DES-064
+         updates prompt records, and aggregates per-CLI outcomes. Rejects a
+         non-canonical skill support layout through the catalog builder.
+@satisfies PRJ-009 REQ-029 REQ-030 REQ-032 REQ-035 DES-055 DES-059 DES-060 DES-061 DES-062 DES-064 DES-073
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-from .catalog import RESOURCES_ROOT, build_catalog
+from .catalog import RESOURCES_ROOT, SkillLayoutError, build_catalog
 from .settings import load_config, save_config
 from .targets import CliTarget, resolve_target
 
@@ -153,7 +154,7 @@ def install_enabled(
     @param home {Path | None} Optional home-directory override.
     @return {tuple[list[InstallSummary], list[str]]} Installation summaries and
             failure diagnostics; both empty when no CLI is enabled.
-    @satisfies REQ-029 REQ-030 REQ-031 REQ-032 DES-064
+    @satisfies REQ-029 REQ-030 REQ-031 REQ-032 DES-064 DES-073
     """
     config = load_config(home)
     enabled = config["enabled"]
@@ -161,7 +162,7 @@ def install_enabled(
         return [], []
     try:
         catalog = build_catalog()
-    except OSError as exc:
+    except (OSError, SkillLayoutError) as exc:
         return [], [f"catalog: {exc}"]
     summaries: list[InstallSummary] = []
     errors: list[str] = []

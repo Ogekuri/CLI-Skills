@@ -49,16 +49,18 @@ import sys
 
 ---
 
-# catalog.py | Python | 139L | 7 symbols | 4 imports | 6 comments
+# catalog.py | Python | 190L | 11 symbols | 4 imports | 12 comments
 > Path: `src/skills/catalog.py`
 - @brief Generate the skills and prompts manifest for `src/resources`.
 - @details Deterministic generator for `src/resources/manifest.json`. Recursively
 scans `src/resources/skills` for `SKILL.md` files and
 `src/resources/prompts` for frontmatter files, extracts frontmatter
 `name` and `description`, and emits entries sorted by relative path.
-Single maintenance path guaranteeing each manifest description equals
-its source frontmatter `description` string (exact match).
-- @satisfies DES-021 DES-022 DES-023 DES-024
+Validates every skill directory against the canonical support layout
+before accepting its metadata. Single maintenance path guaranteeing
+each manifest description equals its source frontmatter `description`
+string (exact match).
+- @satisfies DES-021 DES-022 DES-023 DES-024 DES-067 DES-068 DES-069 DES-070 DES-071 DES-072 DES-073
 
 ## Imports
 ```
@@ -70,49 +72,77 @@ from pathlib import Path
 
 ## Definitions
 
-- var `RESOURCES_ROOT = Path(str(ires.files("resources")))` (L19)
-- var `MANIFEST_PATH = RESOURCES_ROOT / "manifest.json"` (L20)
-### fn `def _parse_frontmatter(text: str) -> dict[str, str]` `priv` (L23-55)
+- var `RESOURCES_ROOT = Path(str(ires.files("resources")))` (L21)
+- var `MANIFEST_PATH = RESOURCES_ROOT / "manifest.json"` (L22)
+- var `SKILL_SUPPORT_DIRECTORIES = ("scripts", "references", "assets", "images")` (L25)
+- @brief Canonical skill support subdirectory names allowed at the skill root.
+- @details Any other root directory or non-`SKILL.md` root file violates DES-067.
+- var `REFERENCE_SUPPORT_DIRECTORIES = ("images",)` (L28)
+- @brief Canonical nested subdirectory names allowed directly under `references`.
+- @details Any other nested directory under `references` violates DES-069 and DES-070.
+### class `class SkillLayoutError(ValueError)` : ValueError (L31-40)
+- @brief Signal a bundled skill layout that violates the canonical support layout.
+- @details Raised by `validate_skill_layout` when a skill root contains an entry outside the canonical support subdirectories or when `references` contains a non-canonical subdirectory.
+- @satisfies DES-073
+
+### fn `def validate_skill_layout(skill_dir: Path) -> None` (L41-69)
+- @brief Validate a bundled skill directory against the canonical support layout.
+- @details Accepts `SKILL.md` plus the canonical support subdirectories at the skill root; accepts only `images` as a nested directory directly under `references`. Non-canonical root files and directories are rejected. Complexity O(E) where E is the number of root entries plus direct `references` entries.
+- @param skill_dir {Path} Packaged skill directory containing `SKILL.md`.
+- @return {None}
+- @throws {SkillLayoutError} When a root entry or a nested `references` directory violates DES-067 through DES-072.
+- @satisfies DES-067 DES-068 DES-069 DES-070 DES-071 DES-072 DES-073
+- @pre `skill_dir` MUST be an existing directory.
+- @post The directory layout is canonical or an exception is raised.
+
+### fn `def _parse_frontmatter(text: str) -> dict[str, str]` `priv` (L70-102)
 - @brief Parse `name` and `description` from a YAML frontmatter block.
 - @details Reads key/value lines up to the closing `---` delimiter, strips surrounding YAML quotes from scalar values, and returns only the `name` and `description` keys when present.
 - @param text {str} Raw file text (UTF-8).
 - @return {Dict[str, str]} Frontmatter `name`/`description` mapping; empty when the block or keys are absent.
 - @pre `text` must be a non-empty string.
 
-### fn `def _discover_skills(root: Path) -> list[Path]` `priv` (L56-68)
+### fn `def _discover_skills(root: Path) -> list[Path]` `priv` (L103-115)
 - @brief Discover `SKILL.md` files under `root/skills`.
 - @details Recursively collects every file named `SKILL.md`, sorted by path.
 - @param root {Path} Resources root directory.
 - @return {List[Path]} Sorted `SKILL.md` file paths.
 
-### fn `def _discover_prompts(root: Path) -> list[Path]` `priv` (L69-82)
+### fn `def _discover_prompts(root: Path) -> list[Path]` `priv` (L116-129)
 - @brief Discover candidate prompt files under `root/prompts`.
 - @details Recursively collects every regular file, sorted by path. Frontmatter filtering is applied by `build_catalog`.
 - @param root {Path} Resources root directory.
 - @return {List[Path]} Sorted candidate prompt file paths.
 
-### fn `def build_catalog(` (L83-84)
+### fn `def build_catalog(` (L130-131)
 
-### fn `def write_catalog(` (L120-122)
+### fn `def write_catalog(` (L171-173)
 - @brief Build the skills and prompts catalog dictionary.
-- @details Scans skills and prompts directories, extracts frontmatter
-metadata, and emits entries sorted by relative path. Entries
-missing `name` or `description` are omitted.
+- @details Validates each skill directory layout, then scans skills and prompts
+directories, extracts frontmatter metadata, and emits entries
+sorted by relative path. Entries missing `name` or `description`
+are omitted.
 - @param resources_root {Path} Resources root directory to scan.
 - @return {Dict[str, List[Dict[str, str]]]} Catalog with `skills` and
 `prompts` lists; each entry contains `file`, `name`, `description`.
-- @satisfies DES-021 DES-022 DES-023 DES-024
+- @throws {SkillLayoutError} When a discovered skill directory violates the
+canonical support layout.
+- @satisfies DES-021 DES-022 DES-023 DES-024 DES-067 DES-068 DES-069 DES-070 DES-071 DES-072 DES-073
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`RESOURCES_ROOT`|var|pub|19||
-|`MANIFEST_PATH`|var|pub|20||
-|`_parse_frontmatter`|fn|priv|23-55|def _parse_frontmatter(text: str) -> dict[str, str]|
-|`_discover_skills`|fn|priv|56-68|def _discover_skills(root: Path) -> list[Path]|
-|`_discover_prompts`|fn|priv|69-82|def _discover_prompts(root: Path) -> list[Path]|
-|`build_catalog`|fn|pub|83-84|def build_catalog(|
-|`write_catalog`|fn|pub|120-122|def write_catalog(|
+|`RESOURCES_ROOT`|var|pub|21||
+|`MANIFEST_PATH`|var|pub|22||
+|`SKILL_SUPPORT_DIRECTORIES`|var|pub|25||
+|`REFERENCE_SUPPORT_DIRECTORIES`|var|pub|28||
+|`SkillLayoutError`|class|pub|31-40|class SkillLayoutError(ValueError)|
+|`validate_skill_layout`|fn|pub|41-69|def validate_skill_layout(skill_dir: Path) -> None|
+|`_parse_frontmatter`|fn|priv|70-102|def _parse_frontmatter(text: str) -> dict[str, str]|
+|`_discover_skills`|fn|priv|103-115|def _discover_skills(root: Path) -> list[Path]|
+|`_discover_prompts`|fn|priv|116-129|def _discover_prompts(root: Path) -> list[Path]|
+|`build_catalog`|fn|pub|130-131|def build_catalog(|
+|`write_catalog`|fn|pub|171-173|def write_catalog(|
 
 
 ---
@@ -216,13 +246,14 @@ from .targets import TARGETS, resolve_target
 
 ---
 
-# installer.py | Python | 185L | 6 symbols | 7 imports | 11 comments
+# installer.py | Python | 186L | 6 symbols | 7 imports | 11 comments
 > Path: `src/skills/installer.py`
 - @brief Orchestrate skill and prompt installation for enabled CLI targets.
 - @details Builds the bundled resource catalog, resolves manifest skill
 directories and prompt files, invokes the configured CLI adapters,
-updates prompt records, and aggregates per-CLI outcomes.
-- @satisfies PRJ-009 REQ-029 REQ-030 REQ-032 REQ-035 DES-055 DES-059 DES-060 DES-061 DES-062 DES-064
+updates prompt records, and aggregates per-CLI outcomes. Rejects a
+non-canonical skill support layout through the catalog builder.
+- @satisfies PRJ-009 REQ-029 REQ-030 REQ-032 REQ-035 DES-055 DES-059 DES-060 DES-061 DES-062 DES-064 DES-073
 
 ## Imports
 ```
@@ -230,26 +261,26 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
-from .catalog import RESOURCES_ROOT, build_catalog
+from .catalog import RESOURCES_ROOT, SkillLayoutError, build_catalog
 from .settings import load_config, save_config
 from .targets import CliTarget, resolve_target
 ```
 
 ## Definitions
 
-### class `class InstallError(RuntimeError)` : RuntimeError (L21-29)
+### class `class InstallError(RuntimeError)` : RuntimeError (L22-30)
 - @brief Signal a manifest or packaged-resource installation failure.
 - @details Raised when a manifest-listed source path is missing, duplicated, or otherwise not installable.
 - @satisfies REQ-035
 
-### class `class InstallSummary` `@dataclass(frozen=True)` (L31-48)
+### class `class InstallSummary` `@dataclass(frozen=True)` (L32-49)
 - @brief Summarize one CLI installation result.
 - @details Carries the canonical CLI name, installed skill count, installed prompt count, and installed prompt filenames for persistence.
 - @satisfies REQ-030 DES-060
 
-### fn `def _skill_directories(` `priv` (L49-51)
+### fn `def _skill_directories(` `priv` (L50-52)
 
-### fn `def _prompt_files(` `priv` (L79-81)
+### fn `def _prompt_files(` `priv` (L80-82)
 - @brief Resolve manifest skill entries to packaged skill directories.
 - @details Validates each entry file path, deduplicates by directory name, and
 returns directories sorted by name.
@@ -260,7 +291,7 @@ returns directories sorted by name.
 missing.
 - @satisfies DES-055 DES-062 REQ-035
 
-### fn `def install_target(` (L110-115)
+### fn `def install_target(` (L111-116)
 - @brief Resolve manifest prompt entries to packaged prompt files.
 - @details Validates each entry file path and rejects duplicate destination
 filenames that would overwrite each other.
@@ -271,7 +302,7 @@ filenames that would overwrite each other.
 entries share the same destination filename.
 - @satisfies DES-059 DES-062 REQ-035
 
-### fn `def install_enabled(` (L144-145)
+### fn `def install_enabled(` (L145-146)
 - @brief Install manifest skills and prompts for one CLI target.
 - @details Resolves manifest sources, delegates skill synchronization and
 prompt-file replacement to the adapter, and returns installed
@@ -289,12 +320,12 @@ counts and prompt filenames.
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`InstallError`|class|pub|21-29|class InstallError(RuntimeError)|
-|`InstallSummary`|class|pub|31-48|class InstallSummary|
-|`_skill_directories`|fn|priv|49-51|def _skill_directories(|
-|`_prompt_files`|fn|priv|79-81|def _prompt_files(|
-|`install_target`|fn|pub|110-115|def install_target(|
-|`install_enabled`|fn|pub|144-145|def install_enabled(|
+|`InstallError`|class|pub|22-30|class InstallError(RuntimeError)|
+|`InstallSummary`|class|pub|32-49|class InstallSummary|
+|`_skill_directories`|fn|priv|50-52|def _skill_directories(|
+|`_prompt_files`|fn|priv|80-82|def _prompt_files(|
+|`install_target`|fn|pub|111-116|def install_target(|
+|`install_enabled`|fn|pub|145-146|def install_enabled(|
 
 
 ---
