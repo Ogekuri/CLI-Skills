@@ -2,11 +2,24 @@
 ```
 .
 └── src
+    ├── resources
+    │   └── __init__.py
     └── skills
         ├── __init__.py
         ├── __main__.py
         └── core.py
 ```
+
+# __init__.py | Python | 8L | 0 symbols | 0 imports | 1 comments
+> Path: `src/resources/__init__.py`
+- @brief Mark `resources` as the bundled skills and prompts distribution package.
+- @details Provides an importable namespace for the `src/resources` data tree so
+setuptools packages it with the `skills` distribution and downstream
+LLM agents can resolve bundled artifacts via `importlib.resources`.
+- @satisfies PRJ-006 PRJ-007 DES-020
+
+
+---
 
 # __init__.py | Python | 13L | 0 symbols | 1 imports | 7 comments
 > Path: `src/skills/__init__.py`

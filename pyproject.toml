@@ -41,8 +41,10 @@ package-dir = {"" = "src"}
 include-package-data = true
 
 [tool.setuptools.packages.find]
+namespaces = true
 where = ["src"]
-include = ["skills", "skills.*"]
+include = ["skills", "skills.*", "resources", "resources.*"]
 
 [tool.setuptools.package-data]
 skills = ["*.py"]
+resources = ["**/*"]

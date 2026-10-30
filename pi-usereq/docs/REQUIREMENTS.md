@@ -13,7 +13,7 @@
 
 ### 1.2 Project Scope
 
-Python CLI application `skills` provides management commands and online release checks and is distributed using Astral uv and uvx. This specification derives exclusively from the user request.
+Python CLI application `skills` provides management commands, online release checks, and bundled LLM agent skills and prompts, and is distributed using Astral uv and uvx. This specification derives exclusively from the user request.
 
 Assumptions:
 
@@ -31,6 +31,8 @@ Assumptions:
 - **PRJ-003**: MUST support local execution through `scripts/skills.sh`.
 - **PRJ-004**: MUST support installation using Astral uv and on-the-fly execution using uvx.
 - **PRJ-005**: MUST check online for newer releases using a local idle-time cache.
+- **PRJ-006**: MUST distribute LLM agent skills and prompts together with the `skills` program under `src/resources`.
+- **PRJ-007**: MUST maintain skills under `src/resources/skills` and prompts under `src/resources/prompts`.
 
 ### 2.2 Project Constraints
 
@@ -60,6 +62,13 @@ Assumptions:
 - **DES-011**: MUST store the last successful check timestamp in human-readable form in the JSON cache.
 - **DES-012**: MUST store the idle-time expiration timestamp as an epoch value in the JSON cache.
 - **DES-013**: MUST store the idle-time expiration timestamp in human-readable form in the JSON cache.
+- **DES-014**: MUST author every skill and prompt in English.
+- **DES-015**: MUST write and optimize every skill and prompt for LLM agents following the guidance in `src/resources/skills/prompt-skill-architect/SKILL.md`.
+- **DES-016**: MUST load `src/resources/skills/prompt-skill-architect/SKILL.md` into context before creating, verifying, or modifying any skill or prompt.
+- **DES-017**: MUST represent each skill as a directory containing a `SKILL.md` file and related files.
+- **DES-018**: MUST begin every `SKILL.md` with YAML frontmatter declaring the skill `name`.
+- **DES-019**: MUST declare a `description` in every `SKILL.md` frontmatter stating the skill capability and an unambiguous use trigger.
+- **DES-020**: MUST include the `src/resources` directory tree in the `skills` distribution package.
 
 Logical structure after initialization; archive-provided additional files are not enumerated:
 
