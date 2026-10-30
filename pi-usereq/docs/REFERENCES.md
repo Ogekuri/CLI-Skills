@@ -398,13 +398,13 @@ from typing import Any
 
 ---
 
-# show.py | Python | 293L | 14 symbols | 6 imports | 14 comments
+# show.py | Python | 297L | 14 symbols | 6 imports | 14 comments
 > Path: `src/skills/show.py`
 - @brief Render packaged resource inventory, CLI configuration, and installation status.
 - @details Builds three deterministic ASCII tables: bundled skills and prompts from
-the manifest, every supported CLI with enabled state and destination
-paths, and a per-resource per-CLI installation status derived from
-destination-directory scans.
+the manifest, every supported CLI with enabled state and home-relative
+skills path, and a per-resource per-enabled-CLI installation status
+derived from destination-directory scans.
 - @satisfies DES-065 DES-066 REQ-037 REQ-038 REQ-039 REQ-040 REQ-041
 
 ## Imports
@@ -414,7 +414,7 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 from .catalog import RESOURCES_ROOT, build_catalog
 from .settings import load_config
-from .targets import TARGETS
+from .targets import TARGETS, resolve_home
 ```
 
 ## Definitions
@@ -459,11 +459,12 @@ padded to the row height.
 - @return {list[tuple[str, str, str, str]]} `(type, name, file, description)` rows.
 - @satisfies REQ-037
 
-### fn `def _files_match(source: Path, destination: Path) -> str` `priv` (L170-188)
+### fn `def _files_match(source: Path, destination: Path) -> str` `priv` (L172-190)
 - @brief Build CLI configuration rows from the adapter registry.
 - @brief Compare one packaged file with its installed destination file.
-- @details Reports registry order, enabled state, skills destination, and
-prompts destination or `UNSUPPORTED` for prompt-less adapters.
+- @details Reports registry order, enabled state, home-relative skills
+destination, and prompts destination or `UNSUPPORTED` for
+prompt-less adapters.
 - @param config {dict[str, object]} Normalized user configuration.
 - @param home {Path | None} Optional home-directory override.
 - @param source {Path} Packaged file path.
@@ -474,7 +475,7 @@ prompts path)` rows.
 - @satisfies REQ-038
 - @satisfies REQ-040
 
-### fn `def _skill_status(source: Path, destination: Path) -> str` `priv` (L189-212)
+### fn `def _skill_status(source: Path, destination: Path) -> str` `priv` (L191-214)
 - @brief Compare a packaged skill directory with its installed copy.
 - @details Every packaged regular file must exist in the destination with identical bytes.
 - @param source {Path} Packaged skill directory.
@@ -482,13 +483,14 @@ prompts path)` rows.
 - @return {str} `OK` when all files match; `MISSING` when the package or a destination file is absent; `STALE` on content mismatch.
 - @satisfies REQ-040
 
-### fn `def _install_rows(` `priv` (L213-216)
+### fn `def _install_rows(` `priv` (L215-218)
 
-### fn `def build_show(home: Path | None = None) -> str` (L260-294)
-- @brief Build per-resource per-CLI installation status rows.
+### fn `def build_show(home: Path | None = None) -> str` (L264-298)
+- @brief Build per-resource per-enabled-CLI installation status rows.
 - @brief Build the complete `show` report text.
 - @details Scans adapter destination directories for each manifest skill or
-prompt and reports the enabled state of the owning CLI.
+prompt and emits rows only for CLIs present in the enabled
+configuration.
 - @details Renders the packaged-resource inventory, CLI configuration, and installation status tables in this order.
 - @param catalog {dict[str, list[dict[str, str]]]} Manifest catalog.
 - @param config {dict[str, object]} Normalized user configuration.
@@ -514,10 +516,10 @@ installed)` rows.
 |`render`|fn|pub|91-109|def render(cells: Sequence[str]) -> list[str]|
 |`_resource_rows`|fn|priv|117-118|def _resource_rows(|
 |`_cli_rows`|fn|priv|141-143|def _cli_rows(|
-|`_files_match`|fn|priv|170-188|def _files_match(source: Path, destination: Path) -> str|
-|`_skill_status`|fn|priv|189-212|def _skill_status(source: Path, destination: Path) -> str|
-|`_install_rows`|fn|priv|213-216|def _install_rows(|
-|`build_show`|fn|pub|260-294|def build_show(home: Path | None = None) -> str|
+|`_files_match`|fn|priv|172-190|def _files_match(source: Path, destination: Path) -> str|
+|`_skill_status`|fn|priv|191-214|def _skill_status(source: Path, destination: Path) -> str|
+|`_install_rows`|fn|priv|215-218|def _install_rows(|
+|`build_show`|fn|pub|264-298|def build_show(home: Path | None = None) -> str|
 
 
 ---

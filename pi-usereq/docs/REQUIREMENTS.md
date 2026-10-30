@@ -207,8 +207,8 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-035**: MUST terminate installation for a CLI with an error when a manifest-listed source path is missing.
 - **REQ-036**: MUST provide command-specific help for `show` when invoked as `show --help`.
 - **REQ-037**: MUST print every manifest skill and prompt as a table when invoked as `show`.
-- **REQ-038**: MUST print a CLI configuration table listing every supported CLI with its enabled state and skills and prompts installation paths when invoked as `show`.
-- **REQ-039**: MUST print an installation status table with one row per packaged skill or prompt and supported CLI when invoked as `show`.
+- **REQ-038**: MUST print a CLI configuration table listing every supported CLI with its enabled state, skills path relative to the user home directory, and prompts installation path when invoked as `show`.
+- **REQ-039**: MUST print an installation status table with one row per packaged skill or prompt and enabled CLI when invoked as `show`.
 - **REQ-040**: MUST report each installation status row by scanning the CLI destination directories and comparing packaged paths and file contents.
 - **REQ-041**: MUST report prompt installation as unsupported in the installation status table when a CLI declares no prompts destination.
 - **REQ-042**: MUST print the complete `show` report and exit with code 0 when invoked as `show`.

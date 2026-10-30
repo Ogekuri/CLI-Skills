@@ -2,9 +2,9 @@
 @file show.py
 @brief Render packaged resource inventory, CLI configuration, and installation status.
 @details Builds three deterministic ASCII tables: bundled skills and prompts from
-         the manifest, every supported CLI with enabled state and destination
-         paths, and a per-resource per-CLI installation status derived from
-         destination-directory scans.
+         the manifest, every supported CLI with enabled state and home-relative
+         skills path, and a per-resource per-enabled-CLI installation status
+         derived from destination-directory scans.
 @satisfies DES-065 DES-066 REQ-037 REQ-038 REQ-039 REQ-040 REQ-041
 """
 
@@ -15,7 +15,7 @@ from typing import Any, Iterable, Sequence
 
 from .catalog import RESOURCES_ROOT, build_catalog
 from .settings import load_config
-from .targets import TARGETS
+from .targets import TARGETS, resolve_home
 
 ## @brief Maximum rendered width of one table cell in characters.
 MAX_CELL_WIDTH = 48
@@ -144,8 +144,9 @@ def _cli_rows(
 ) -> list[tuple[str, str, str, str]]:
     """
     @brief Build CLI configuration rows from the adapter registry.
-    @details Reports registry order, enabled state, skills destination, and
-             prompts destination or `UNSUPPORTED` for prompt-less adapters.
+    @details Reports registry order, enabled state, home-relative skills
+             destination, and prompts destination or `UNSUPPORTED` for
+             prompt-less adapters.
     @param config {dict[str, object]} Normalized user configuration.
     @param home {Path | None} Optional home-directory override.
     @return {list[tuple[str, str, str, str]]} `(cli, enabled, skills path,
@@ -153,6 +154,7 @@ def _cli_rows(
     @satisfies REQ-038
     """
     enabled = set(config.get("enabled", []))
+    root = resolve_home(home)
     rows: list[tuple[str, str, str, str]] = []
     for name, target in TARGETS.items():
         prompts = target.prompts_dir(home)
@@ -160,7 +162,7 @@ def _cli_rows(
             (
                 name,
                 "yes" if name in enabled else "no",
-                str(target.skills_dir(home)),
+                target.skills_dir(home).relative_to(root).as_posix(),
                 str(prompts) if prompts is not None else STATUS_UNSUPPORTED,
             )
         )
@@ -216,9 +218,10 @@ def _install_rows(
     home: Path | None,
 ) -> list[tuple[str, str, str, str, str]]:
     """
-    @brief Build per-resource per-CLI installation status rows.
+    @brief Build per-resource per-enabled-CLI installation status rows.
     @details Scans adapter destination directories for each manifest skill or
-             prompt and reports the enabled state of the owning CLI.
+             prompt and emits rows only for CLIs present in the enabled
+             configuration.
     @param catalog {dict[str, list[dict[str, str]]]} Manifest catalog.
     @param config {dict[str, object]} Normalized user configuration.
     @param home {Path | None} Optional home-directory override.
@@ -227,12 +230,13 @@ def _install_rows(
     @satisfies REQ-039 REQ-040 REQ-041
     """
     enabled = set(config.get("enabled", []))
+    targets = [(name, target) for name, target in TARGETS.items() if name in enabled]
     rows: list[tuple[str, str, str, str, str]] = []
     for kind, key in (("Skill", "skills"), ("Prompt", "prompts")):
         for entry in catalog.get(key, []):
             relative = entry.get("file", "")
             source = RESOURCES_ROOT / relative
-            for name, target in TARGETS.items():
+            for name, target in targets:
                 if kind == "Skill":
                     status = _skill_status(
                         source.parent,
@@ -250,7 +254,7 @@ def _install_rows(
                         kind,
                         entry.get("name", ""),
                         name,
-                        "yes" if name in enabled else "no",
+                        "yes",
                         status,
                     )
                 )
