@@ -21,6 +21,7 @@ Assumptions:
 - A valid latest-release response with no newer version is a negative outcome and uses the requested error notification and one-day delay.
 - On a failed check, the cache preserves the last successful timestamp when available; its idle-time is calculated from the failed attempt so the one-day delay is effective. Before any success, the successful timestamps are null.
 - Cache field names, human-readable timestamp format, version comparison rules, command-specific help content, and exit codes are unspecified and may be selected during implementation.
+- The `astra-uv-project` skill name and routing text are implementation choices; its body is the English rendering of the user-supplied PHASE 0–4 project-scaffold specification.
 
 ## 2. Project Requirements
 
@@ -33,6 +34,7 @@ Assumptions:
 - **PRJ-005**: MUST check online for newer releases using a local idle-time cache.
 - **PRJ-006**: MUST distribute LLM agent skills and prompts together with the `skills` program under `src/resources`.
 - **PRJ-007**: MUST maintain skills under `src/resources/skills` and prompts under `src/resources/prompts`.
+- **PRJ-008**: MUST distribute an `astra-uv-project` skill under `src/resources/skills/astra-uv-project` for creating new Astral uv Python projects from scratch.
 
 ### 2.2 Project Constraints
 
@@ -44,6 +46,7 @@ Assumptions:
 - **CTN-006**: MUST use a hardcoded HTTP/HTTPS timeout of 2 seconds for release checks.
 - **CTN-007**: MUST use a hardcoded standard idle delay of 3600 seconds.
 - **CTN-008**: MUST use a hardcoded negative-outcome idle delay of 86400 seconds.
+- **CTN-009**: MUST treat the `skell.tgz` archive content as an externally maintained input of the `astra-uv-project` skill.
 
 ## 3. Requirements
 
@@ -73,6 +76,28 @@ Assumptions:
 - **DES-022**: MUST record for each manifest entry the file path relative to `src/resources`.
 - **DES-023**: MUST record for each manifest entry the skill or prompt `name` from its frontmatter.
 - **DES-024**: MUST record for each manifest entry the skill or prompt `description` as an exact string match of its frontmatter `description`.
+- **DES-025**: MUST define the `astra-uv-project` skill trigger as creating a new Python project based on Astral uv from scratch.
+- **DES-026**: MUST declare use of the `astra-uv-project` skill on existing projects out of scope.
+- **DES-027**: MUST bundle the project skeleton archive as `assets/skell.tgz` inside the `astra-uv-project` skill directory.
+- **DES-028**: MUST define bootstrap keywords `%AUTHOR%`, `%DESCRIPTION%`, `%PROGRAM%`, `%SHORTNAME%`, `%SRCDIR%`, `%OWNER%`, and `%REPOSITORY%` resolved from the user request or project context.
+- **DES-029**: MUST terminate skill execution and request missing values instead of inventing bootstrap keyword values that cannot be identified unambiguously.
+- **DES-030**: MUST normalize `%PROGRAM%`, `%SHORTNAME%`, and `%SRCDIR%` values to lowercase.
+- **DES-031**: MUST specify extraction of every `assets/skell.tgz` entry, including empty directories, into the target project directory with overwrite of existing files.
+- **DES-032**: MUST specify replacing the seven bootstrap keywords in `.g.conf`, `README.md`, `pyproject.toml`, `uv.lock`, `src/skell/core.py`, `scripts/skell.sh`, and `src/skell/__main__.py` after extraction.
+- **DES-033**: MUST specify renaming `scripts/skell.sh` to `scripts/%SHORTNAME%.sh` and directory `src/skell` to `src/%SHORTNAME%` after keyword substitution.
+- **DES-034**: MUST specify application source generation under `src/%SRCDIR%` following the archive pre-established layout.
+- **DES-035**: MUST specify a Python CLI application named `%PROGRAM%` packaged for Astral uv tool installation and uvx on-the-fly execution.
+- **DES-036**: MUST specify local execution support through `scripts/%SHORTNAME%.sh`.
+- **DES-037**: MUST specify `pyproject.toml` configuration including every file needed by the `.github/workflows/release-uvx.yml` package build.
+- **DES-038**: MUST include the exact English help template listing `--upgrade`, `--uninstall`, `--ver`, `--version`, and `--help` management commands.
+- **DES-039**: MUST specify `--ver` and `--version` printing the installed version as `x.y.z` and forcing an immediate online release check.
+- **DES-040**: MUST specify Linux execution of `uv tool install %PROGRAM% --force --from git+https://github.com/%OWNER%/%REPOSITORY%.git` for `--upgrade` with manual-command printing on other operating systems.
+- **DES-041**: MUST specify Linux execution of `uv tool uninstall %PROGRAM%` for `--uninstall` with manual-command printing on other operating systems.
+- **DES-042**: MUST specify the release endpoint `https://api.github.com/repos/%OWNER%/%REPOSITORY%/releases/latest` with a hardcoded 2-second timeout.
+- **DES-043**: MUST specify the release-check cache file `$HOME/.cache/%PROGRAM%/check_version_idle-time.json` storing last-success and idle-time timestamps in epoch and human-readable forms.
+- **DES-044**: MUST specify the automatic release check before parameter parsing, forced by `--ver` and `--version` and skipped while the cached idle-time is valid.
+- **DES-045**: MUST specify a bright-green available-versus-installed message and a 3600-second cache expiration when a newer version is found.
+- **DES-046**: MUST specify a bright-red error message and an 86400-second cache expiration when a release check fails or finds no newer version.
 
 Logical structure after initialization; archive-provided additional files are not enumerated:
 
