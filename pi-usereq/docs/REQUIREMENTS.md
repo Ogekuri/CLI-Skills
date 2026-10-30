@@ -69,6 +69,10 @@ Assumptions:
 - **DES-018**: MUST begin every `SKILL.md` with YAML frontmatter declaring the skill `name`.
 - **DES-019**: MUST declare a `description` in every `SKILL.md` frontmatter stating the skill capability and an unambiguous use trigger.
 - **DES-020**: MUST include the `src/resources` directory tree in the `skills` distribution package.
+- **DES-021**: MUST maintain a JSON manifest file under `src/resources` listing every skill and prompt in the `src/resources` folders and subfolders.
+- **DES-022**: MUST record for each manifest entry the file path relative to `src/resources`.
+- **DES-023**: MUST record for each manifest entry the skill or prompt `name` from its frontmatter.
+- **DES-024**: MUST record for each manifest entry the skill or prompt `description` as an exact string match of its frontmatter `description`.
 
 Logical structure after initialization; archive-provided additional files are not enumerated:
 

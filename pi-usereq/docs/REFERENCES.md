@@ -7,6 +7,7 @@
     └── skills
         ├── __init__.py
         ├── __main__.py
+        ├── catalog.py
         └── core.py
 ```
 
@@ -40,6 +41,74 @@ from .core import main  # noqa: F401
 from .core import main
 import sys
 ```
+
+
+---
+
+# catalog.py | Python | 139L | 7 symbols | 4 imports | 6 comments
+> Path: `src/skills/catalog.py`
+- @brief Generate the skills and prompts manifest for `src/resources`.
+- @details Deterministic generator for `src/resources/manifest.json`. Recursively
+scans `src/resources/skills` for `SKILL.md` files and
+`src/resources/prompts` for frontmatter files, extracts frontmatter
+`name` and `description`, and emits entries sorted by relative path.
+Single maintenance path guaranteeing each manifest description equals
+its source frontmatter `description` string (exact match).
+- @satisfies DES-021 DES-022 DES-023 DES-024
+
+## Imports
+```
+from __future__ import annotations
+import importlib.resources as ires
+import json
+from pathlib import Path
+```
+
+## Definitions
+
+- var `RESOURCES_ROOT = Path(str(ires.files("resources")))` (L19)
+- var `MANIFEST_PATH = RESOURCES_ROOT / "manifest.json"` (L20)
+### fn `def _parse_frontmatter(text: str) -> dict[str, str]` `priv` (L23-55)
+- @brief Parse `name` and `description` from a YAML frontmatter block.
+- @details Reads key/value lines up to the closing `---` delimiter, strips surrounding YAML quotes from scalar values, and returns only the `name` and `description` keys when present.
+- @param text {str} Raw file text (UTF-8).
+- @return {Dict[str, str]} Frontmatter `name`/`description` mapping; empty when the block or keys are absent.
+- @pre `text` must be a non-empty string.
+
+### fn `def _discover_skills(root: Path) -> list[Path]` `priv` (L56-68)
+- @brief Discover `SKILL.md` files under `root/skills`.
+- @details Recursively collects every file named `SKILL.md`, sorted by path.
+- @param root {Path} Resources root directory.
+- @return {List[Path]} Sorted `SKILL.md` file paths.
+
+### fn `def _discover_prompts(root: Path) -> list[Path]` `priv` (L69-82)
+- @brief Discover candidate prompt files under `root/prompts`.
+- @details Recursively collects every regular file, sorted by path. Frontmatter filtering is applied by `build_catalog`.
+- @param root {Path} Resources root directory.
+- @return {List[Path]} Sorted candidate prompt file paths.
+
+### fn `def build_catalog(` (L83-84)
+
+### fn `def write_catalog(` (L120-122)
+- @brief Build the skills and prompts catalog dictionary.
+- @details Scans skills and prompts directories, extracts frontmatter
+metadata, and emits entries sorted by relative path. Entries
+missing `name` or `description` are omitted.
+- @param resources_root {Path} Resources root directory to scan.
+- @return {Dict[str, List[Dict[str, str]]]} Catalog with `skills` and
+`prompts` lists; each entry contains `file`, `name`, `description`.
+- @satisfies DES-021 DES-022 DES-023 DES-024
+
+## Symbol Index
+|Symbol|Kind|Vis|Lines|Sig|
+|---|---|---|---|---|
+|`RESOURCES_ROOT`|var|pub|19||
+|`MANIFEST_PATH`|var|pub|20||
+|`_parse_frontmatter`|fn|priv|23-55|def _parse_frontmatter(text: str) -> dict[str, str]|
+|`_discover_skills`|fn|priv|56-68|def _discover_skills(root: Path) -> list[Path]|
+|`_discover_prompts`|fn|priv|69-82|def _discover_prompts(root: Path) -> list[Path]|
+|`build_catalog`|fn|pub|83-84|def build_catalog(|
+|`write_catalog`|fn|pub|120-122|def write_catalog(|
 
 
 ---
