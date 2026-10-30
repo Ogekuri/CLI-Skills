@@ -15,15 +15,14 @@ Manage user-level skills and prompt templates for <code>pi</code>, <code>opencla
 
 <p align="center">
   <a href="#feature-highlights">Feature Highlights</a> |
+  <a href="#skill-support-layout">Skill Layout</a> |
   <a href="#quick-start">Quick Start</a> |
   <a href="#commands">Commands</a> |
   <a href="#supported-cli-targets">CLI Targets</a> |
   <a href="#install-behavior">Install Behavior</a> |
-  <a href="#configuration">Configuration</a>
-</p>
-<p align="center">
+  <a href="#configuration">Configuration</a> |
   <a href="#release-checks">Release Checks</a> |
-  <a href="#install-with-astral-uv">Install with Astral uv</a> |
+  <a href="#upgrade-and-uninstall">Upgrade and Uninstall</a> |
   <a href="#live-execution-with-uvx">Live execution with uvx</a> |
   <a href="#local-execution">Local Execution</a> |
   <a href="#development">Development</a> |
@@ -33,7 +32,7 @@ Manage user-level skills and prompt templates for <code>pi</code>, <code>opencla
 <p align="center">
 <br>
 🚧 <strong>DRAFT</strong>: 👾 Alpha Development 👾 - Work in Progress 🏗️ 🚧<br>
-⚠️ <strong>IMPORTANT NOTICE</strong>: Created with <a href="https://github.com/ogekuri/useReq"><strong>useReq/req</strong></a> 🤖✨ ⚠️<br>
+⚠️ <strong>IMPORTANT NOTICE</strong>: Created with <a href="https://github.com/ogekuri/PI-useReq"><strong>useReq/req</strong></a> 🤖✨ ⚠️<br>
 <br>
 <p>
 
@@ -44,6 +43,7 @@ Manage user-level skills and prompt templates for <code>pi</code>, <code>opencla
 - Install manifest-listed prompt templates for `pi` and `claude`.
 - Replace managed skill directories on every install and remove files that are no longer packaged.
 - Enable or disable each target CLI; the selection persists in `~/.config/skills/config.json`.
+- Inspect packaged resources, CLI configuration, and installation status with `show`.
 - Check GitHub releases automatically with a 2-second timeout and a cached idle delay.
 - Run from a repository checkout, as a uv tool, or with uvx.
 
@@ -102,6 +102,11 @@ Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).
    ```
 
 4. Start or restart the target CLI so it discovers the installed skills.
+5. Optional: review packaged resources and installation status:
+
+   ```bash
+   skills show
+   ```
 
 `enable` and `disable` persist their selection; `install` updates every enabled CLI.
 
@@ -112,7 +117,7 @@ Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).
 |---|---|
 | `skills` | Print the full help screen. |
 | `skills --help` | Print the full help screen. |
-| `skills <command> --help` | Print help for `enable`, `disable`, `install`, `--upgrade`, `--uninstall`, `--ver`, or `--version`. |
+| `skills <command> --help` | Print help for `enable`, `disable`, `install`, `show`, `--upgrade`, `--uninstall`, `--ver`, or `--version`. |
 | `skills --ver` | Print the installed version as `x.y.z` and force a release check. |
 | `skills --version` | Print the installed version as `x.y.z` and force a release check. |
 | `skills --upgrade` | Reinstall the tool with uv on Linux; print the manual command on other platforms. |
@@ -120,6 +125,7 @@ Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).
 | `skills enable <cli name>` | Enable skill and prompt installation for a supported CLI. |
 | `skills disable <cli name>` | Disable skill and prompt installation for a supported CLI. |
 | `skills install` | Install or update bundled skills and prompts for every enabled CLI. |
+| `skills show` | Show packaged resources, CLI configuration, and installation status. |
 
 Exit codes:
 
@@ -191,15 +197,9 @@ Example:
 - Notifications are written to stderr.
 
 
-## Install with Astral uv
+## Upgrade and Uninstall
 
-Install:
-
-```bash
-uv tool install skills --force --from git+https://github.com/Ogekuri/SKILLs.git
-```
-
-Upgrade through the CLI:
+The tool is installed with Astral uv (see [Quick Start](#quick-start)). Upgrade through the CLI:
 
 ```bash
 skills --upgrade
@@ -216,8 +216,6 @@ Manual uninstall:
 ```bash
 uv tool uninstall skills
 ```
-
-`skills --upgrade` and `skills --uninstall` run the corresponding uv tool command on Linux. On other platforms they print the command for manual execution.
 
 
 ## Live execution with uvx
