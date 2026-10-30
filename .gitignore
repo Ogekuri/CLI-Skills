@@ -23,6 +23,7 @@
 !LICENSE.txt
 !setup.py
 !pyproject.toml
+!pyrightconfig.json
 !uv.lock
 !.g.conf
 !package-lock.json
@@ -31,16 +32,18 @@
 !src/**/*
 !docs/
 !docs/**/*
-!guidelines/
-!guidelines/**/*
 !tests/
 !tests/**/*
-!other-stuff/
-!other-stuff/**/*
 !scripts/
+!scripts/lib/
 !scripts/**/*.sh
+!scripts/**/*.ts
 !images/
 !images/**/*
+!.pi-usereq.json
+!pi-usereq/
+!pi-usereq/docs/
+!pi-usereq/docs/**/*.md
 
 ##########################################
 # Exlucde specific files and directories #
@@ -49,6 +52,7 @@
 # Exlude github agents and prompts
 .github/agents/
 .github/prompts/
+.github/skills/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -234,9 +238,9 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore
+#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
 #  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer,
+#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
 #  you could uncomment the following to ignore the entire vscode folder
 .vscode/
 
