@@ -6,6 +6,7 @@
 |---|---|---|---|---|---|
 | `PROC:main` | process | — | `skills` CLI: dispatch management, enable/disable, installation, and show commands; run automatic release check | `main()` [`src/skills/core.py`]; module trigger `sys.exit(main())` [`src/skills/__main__.py`]; re-export `from .core import main` [`src/skills/__init__.py`] | `src/skills/core.py`, `src/skills/settings.py`, `src/skills/targets.py`, `src/skills/installer.py`, `src/skills/catalog.py`, `src/skills/show.py`, `src/skills/__main__.py`, `src/skills/__init__.py` |
 | `PROC:uv` | process | `PROC:main` | child process executing external `uv` tool for `--upgrade` / `--uninstall` | external `uv` executable (no internal entrypoint) | `src/skills/core.py` (spawn site) |
+| `PROC:skills-install` | process | `PROC:main` | child process executing the freshly upgraded `skills` executable to install bundled resources into enabled CLIs after `--upgrade` | external `skills` executable (no internal entrypoint) | `src/skills/core.py` (spawn site) |
 
 ## Execution Units
 
@@ -31,6 +32,11 @@
       - `_human(...)`: format last-success epoch to ISO-8601 string [`src/skills/core.py`]
       - `_human(...)`: format idle-expiration epoch to ISO-8601 string [`src/skills/core.py`]
     - `_manage(UPGRADE)`: execute external `uv tool install ...` (`--upgrade` branch) [`src/skills/core.py`]
+      - `_post_upgrade_install(home)`: chain the post-upgrade install when the upgrade succeeded on Linux [`src/skills/core.py`]
+        - `load_config(home)`: load the enabled CLI set to gate the chained install [`src/skills/settings.py`]
+          - `config_path(home)`: resolve configuration file path [`src/skills/settings.py`]
+          - `_unique_strings(value)`: normalize enabled CLI names [`src/skills/settings.py`]
+        - `_manage(SKILLS_INSTALL)`: execute external `skills install` child when the enabled set is non-empty [`src/skills/core.py`]
     - `_manage(UNINSTALL)`: execute external `uv tool uninstall ...` (`--uninstall` branch) [`src/skills/core.py`]
     - `_enable(name)`: resolve adapter and persist enabled CLI (`enable <cli name>` branch) [`src/skills/core.py`]
       - `_unsupported(name)`: build unsupported-CLI diagnostic (unsupported branch) [`src/skills/core.py`]
@@ -130,9 +136,23 @@
 - **Internal Call-Trace Tree**: none (no internal functions; target implementation external)
 - **External Boundaries**: `uv` executable (tool install / tool uninstall)
 
+### `PROC:skills-install`
+
+- **Type**: process
+- **Parent Process**: `PROC:main`
+- **Threads**: no explicit threads detected
+- **Entrypoint(s)**: external `skills` executable (no internal function defined under `src/` for the child)
+- **Lifecycle / Trigger**:
+  - Start: spawned by `subprocess.run` in `_post_upgrade_install()` with argv `SKILLS_INSTALL` after a successful Linux `--upgrade` when the enabled configuration is non-empty [`src/skills/core.py`]
+  - Loop/Block: child runs to completion while parent blocks.
+  - Stop: child exits; returncode is returned to `_post_upgrade_install()` and propagated as the `--upgrade` exit code.
+- **Internal Call-Trace Tree**: none (no internal functions; the child runs the freshly upgraded external `skills` package)
+- **External Boundaries**: `skills` executable (`install` command: manifest-driven skill and prompt synchronization)
+
 ## Communication Edges
 
 | ID | Direction | Mechanism | Endpoint / Channel | Payload / Data-Shape | Declaration File(s) |
 |---|---|---|---|---|---|
 | `EDGE:main→uv-install` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","install","skills","--force","--from","git+https://github.com/Ogekuri/SKILLs.git"]` | `UPGRADE` `list[str]` in; returncode `int` out | `src/skills/core.py` |
 | `EDGE:main→uv-uninstall` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","uninstall","skills"]` | `UNINSTALL` `list[str]` in; returncode `int` out | `src/skills/core.py` |
+| `EDGE:main→skills-install` | `PROC:main` → `PROC:skills-install` | OS process spawn (blocking `subprocess.run` via `_manage`) | child argv `["skills","install"]` | `SKILLS_INSTALL` `list[str]` in; returncode `int` out | `src/skills/core.py` |

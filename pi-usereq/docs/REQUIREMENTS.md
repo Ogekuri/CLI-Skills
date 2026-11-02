@@ -212,6 +212,10 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-040**: MUST report each installation status row by scanning the CLI destination directories and comparing packaged paths and file contents.
 - **REQ-041**: MUST report prompt installation as unsupported in the installation status table when a CLI declares no prompts destination.
 - **REQ-042**: MUST print the complete `show` report and exit with code 0 when invoked as `show`.
+- **REQ-043**: MUST execute `skills install` as a child process after the `--upgrade` upgrade command succeeds when the enabled configuration contains at least one CLI.
+- **REQ-044**: MUST NOT execute `skills install` for `--upgrade` when the enabled configuration contains no CLI.
+- **REQ-045**: MUST NOT execute `skills install` for `--upgrade` when the upgrade command fails or is not executed.
+- **REQ-046**: MUST return the `skills install` exit code as the `--upgrade` exit code when `skills install` executes.
 
 Full help template: substitute `skills` for `%PROGRAM%` and the installed version for `x.y.z`; retain all other text and spacing.
 

@@ -20,6 +20,13 @@ from .targets import TARGETS, resolve_target
 ENDPOINT = "https://api.github.com/repos/Ogekuri/SKILLs/releases/latest"
 UPGRADE = ["uv", "tool", "install", "skills", "--force", "--from", "git+https://github.com/Ogekuri/SKILLs.git"]
 UNINSTALL = ["uv", "tool", "uninstall", "skills"]
+SKILLS_INSTALL = ["skills", "install"]
+"""
+@brief Child `skills install` command executed after a successful upgrade.
+@details Spawned by `_post_upgrade_install` so the freshly upgraded package
+         installs its bundled skills and prompts into every enabled CLI.
+@satisfies REQ-043
+"""
 HELP = f"""Usage: skills [command] [options] ({__version__})
 
 Management Commands:
@@ -113,6 +120,29 @@ def _manage(command: list[str]) -> int:
     except OSError as exc:
         print(f"Error executing {command[0]}: {exc}", file=sys.stderr)
         return 1
+
+
+def _post_upgrade_install(home: Path | None = None) -> int:
+    """
+    @brief Install bundled resources through `skills install` after a
+           successful upgrade.
+    @details Loads the user configuration and, when at least one CLI is
+             enabled, spawns `skills install` as a child process so the
+             freshly upgraded package synchronizes its bundled skills and
+             prompts into every enabled CLI. Skips the child process when
+             the enabled configuration is empty. The child reads the
+             upgraded package resources, not the running process ones.
+    @param home {Path | None} Optional home-directory override used only for
+            the configuration read; the child process inherits the real
+            environment.
+    @return {int} 0 when no CLI is enabled; otherwise the `skills install`
+            exit code (1 on spawn or installation failure).
+    @throws {OSError} When reading the configuration file fails.
+    @satisfies REQ-043 REQ-044 REQ-046
+    """
+    if not load_config(home)["enabled"]:
+        return 0
+    return _manage(SKILLS_INSTALL)
 
 
 def _unsupported(name: str) -> str:
@@ -218,6 +248,23 @@ def _show(home: Path | None = None) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """
+    @brief Run the automatic release check and dispatch one CLI command.
+    @details Executes `check_version` before argument parsing (forced by
+             `--ver` or `--version`), then routes to help, version,
+             management, enable/disable, install, or show handlers. The
+             `--upgrade` branch chains `skills install` after a successful
+             Linux upgrade when the enabled configuration is non-empty and
+             returns the chained exit code.
+    @param argv {list[str] | None} Command-line arguments; defaults to
+            `sys.argv[1:]`.
+    @return {int} Process exit code: 0 on success; 1 on upgrade or install
+            failure; 2 on usage errors.
+    @satisfies REQ-006 REQ-007 REQ-008 REQ-009 REQ-010 REQ-011 REQ-012
+               REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029
+               REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044
+               REQ-045 REQ-046
+    """
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)
     if not args or args == ["--help"]:
@@ -242,7 +289,10 @@ def main(argv: list[str] | None = None) -> int:
         print(__version__)
         return 0
     if args == ["--upgrade"]:
-        return _manage(UPGRADE)
+        upgraded = _manage(UPGRADE)
+        if upgraded == 0 and sys.platform.startswith("linux"):
+            return _post_upgrade_install()
+        return upgraded
     if args == ["--uninstall"]:
         return _manage(UNINSTALL)
     if len(args) == 1 and args[0] in ("enable", "disable"):

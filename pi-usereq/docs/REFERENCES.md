@@ -147,7 +147,7 @@ canonical support layout.
 
 ---
 
-# core.py | Python | 260L | 14 symbols | 14 imports | 7 comments
+# core.py | Python | 310L | 16 symbols | 14 imports | 10 comments
 > Path: `src/skills/core.py`
 
 ## Imports
@@ -173,24 +173,37 @@ from .targets import TARGETS, resolve_target
 - var `ENDPOINT = "https://api.github.com/repos/Ogekuri/SKILLs/releases/latest"` (L20)
 - var `UPGRADE = ["uv", "tool", "install", "skills", "--force", "--from", "git+https://github.com/Ogekuri/SKILLs.git"]` (L21)
 - var `UNINSTALL = ["uv", "tool", "uninstall", "skills"]` (L22)
-### fn `def cache_path() -> Path` (L44-47)
+- var `SKILLS_INSTALL = ["skills", "install"]` (L23)
+### fn `def cache_path() -> Path` (L51-54)
+- @brief Child `skills install` command executed after a successful upgrade.
+- @details Spawned by `_post_upgrade_install` so the freshly upgraded package
+installs its bundled skills and prompts into every enabled CLI.
+- @satisfies REQ-043
 
-### fn `def _human(timestamp: float | None) -> str | None` `priv` (L48-51)
+### fn `def _human(timestamp: float | None) -> str | None` `priv` (L55-58)
 
-### fn `def _version(value: str) -> tuple[int, int, int]` `priv` (L52-58)
+### fn `def _version(value: str) -> tuple[int, int, int]` `priv` (L59-65)
 
-### fn `def check_version(force: bool = False) -> None` (L59-106)
+### fn `def check_version(force: bool = False) -> None` (L66-113)
 
-### fn `def _manage(command: list[str]) -> int` `priv` (L107-117)
+### fn `def _manage(command: list[str]) -> int` `priv` (L114-124)
 
-### fn `def _unsupported(name: str) -> str` `priv` (L118-128)
+### fn `def _post_upgrade_install(home: Path | None = None) -> int` `priv` (L125-147)
+- @brief Install bundled resources through `skills install` after a successful upgrade.
+- @details Loads the user configuration and, when at least one CLI is enabled, spawns `skills install` as a child process so the freshly upgraded package synchronizes its bundled skills and prompts into every enabled CLI. Skips the child process when the enabled configuration is empty. The child reads the upgraded package resources, not the running process ones.
+- @param home {Path | None} Optional home-directory override used only for the configuration read; the child process inherits the real environment.
+- @return {int} 0 when no CLI is enabled; otherwise the `skills install` exit code (1 on spawn or installation failure).
+- @throws {OSError} When reading the configuration file fails.
+- @satisfies REQ-043 REQ-044 REQ-046
+
+### fn `def _unsupported(name: str) -> str` `priv` (L148-158)
 - @brief Build an unsupported-CLI diagnostic message.
 - @details Lists the canonical CLI names accepted by the adapter registry.
 - @param name {str} Unsupported CLI name from the command line.
 - @return {str} Human-readable diagnostic message.
 - @satisfies REQ-026
 
-### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L129-154)
+### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L159-184)
 - @brief Enable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, appends the canonical CLI name when absent, and persists the configuration. Re-enabling an enabled CLI leaves configuration unchanged.
 - @param name {str} CLI name from the command line.
@@ -199,7 +212,7 @@ from .targets import TARGETS, resolve_target
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-024 REQ-026 REQ-027 REQ-028
 
-### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L155-181)
+### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L185-211)
 - @brief Disable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, removes the canonical CLI name when present, and persists the configuration. Disabling an already disabled CLI is a successful no-op.
 - @param name {str} CLI name from the command line.
@@ -208,14 +221,14 @@ from .targets import TARGETS, resolve_target
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-025 REQ-026 REQ-027 REQ-028
 
-### fn `def _install(home: Path | None = None) -> int` `priv` (L182-206)
+### fn `def _install(home: Path | None = None) -> int` `priv` (L212-236)
 - @brief Install bundled resources for all enabled CLIs.
 - @details Delegates installation to `install_enabled`, prints per-CLI skill and prompt counts, prints an informational message when no CLI is enabled, and reports collected failures.
 - @param home {Path | None} Optional home-directory override.
 - @return {int} Exit code: 0 when no failure occurs; 1 when any failure occurs.
 - @satisfies REQ-029 REQ-030 REQ-031 REQ-032
 
-### fn `def _show(home: Path | None = None) -> int` `priv` (L207-219)
+### fn `def _show(home: Path | None = None) -> int` `priv` (L237-249)
 - @brief Print packaged resources, CLI configuration, and installation status.
 - @details Delegates report rendering to `build_show` and prints the result.
 - @param home {Path | None} Optional home-directory override.
@@ -223,7 +236,12 @@ from .targets import TARGETS, resolve_target
 - @throws {OSError} When bundled resources or the configuration cannot be read.
 - @satisfies REQ-037 REQ-038 REQ-039 REQ-042
 
-### fn `def main(argv: list[str] | None = None) -> int` (L220-261)
+### fn `def main(argv: list[str] | None = None) -> int` (L250-311)
+- @brief Run the automatic release check and dispatch one CLI command.
+- @details Executes `check_version` before argument parsing (forced by `--ver` or `--version`), then routes to help, version, management, enable/disable, install, or show handlers. The `--upgrade` branch chains `skills install` after a successful Linux upgrade when the enabled configuration is non-empty and returns the chained exit code.
+- @param argv {list[str] | None} Command-line arguments; defaults to `sys.argv[1:]`.
+- @return {int} Process exit code: 0 on success; 1 on upgrade or install failure; 2 on usage errors.
+- @satisfies REQ-006 REQ-007 REQ-008 REQ-009 REQ-010 REQ-011 REQ-012 REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029 REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044 REQ-045 REQ-046
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -231,17 +249,19 @@ from .targets import TARGETS, resolve_target
 |`ENDPOINT`|var|pub|20||
 |`UPGRADE`|var|pub|21||
 |`UNINSTALL`|var|pub|22||
-|`cache_path`|fn|pub|44-47|def cache_path() -> Path|
-|`_human`|fn|priv|48-51|def _human(timestamp: float | None) -> str | None|
-|`_version`|fn|priv|52-58|def _version(value: str) -> tuple[int, int, int]|
-|`check_version`|fn|pub|59-106|def check_version(force: bool = False) -> None|
-|`_manage`|fn|priv|107-117|def _manage(command: list[str]) -> int|
-|`_unsupported`|fn|priv|118-128|def _unsupported(name: str) -> str|
-|`_enable`|fn|priv|129-154|def _enable(name: str, home: Path | None = None) -> int|
-|`_disable`|fn|priv|155-181|def _disable(name: str, home: Path | None = None) -> int|
-|`_install`|fn|priv|182-206|def _install(home: Path | None = None) -> int|
-|`_show`|fn|priv|207-219|def _show(home: Path | None = None) -> int|
-|`main`|fn|pub|220-261|def main(argv: list[str] | None = None) -> int|
+|`SKILLS_INSTALL`|var|pub|23||
+|`cache_path`|fn|pub|51-54|def cache_path() -> Path|
+|`_human`|fn|priv|55-58|def _human(timestamp: float | None) -> str | None|
+|`_version`|fn|priv|59-65|def _version(value: str) -> tuple[int, int, int]|
+|`check_version`|fn|pub|66-113|def check_version(force: bool = False) -> None|
+|`_manage`|fn|priv|114-124|def _manage(command: list[str]) -> int|
+|`_post_upgrade_install`|fn|priv|125-147|def _post_upgrade_install(home: Path | None = None) -> int|
+|`_unsupported`|fn|priv|148-158|def _unsupported(name: str) -> str|
+|`_enable`|fn|priv|159-184|def _enable(name: str, home: Path | None = None) -> int|
+|`_disable`|fn|priv|185-211|def _disable(name: str, home: Path | None = None) -> int|
+|`_install`|fn|priv|212-236|def _install(home: Path | None = None) -> int|
+|`_show`|fn|priv|237-249|def _show(home: Path | None = None) -> int|
+|`main`|fn|pub|250-311|def main(argv: list[str] | None = None) -> int|
 
 
 ---
