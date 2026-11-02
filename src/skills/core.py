@@ -1,4 +1,4 @@
-"""CLI management commands, resource installation dispatch, and release notification orchestration."""
+"""CLI management commands, resource installation and uninstallation dispatch, and release notification orchestration."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from . import __version__
-from .installer import install_enabled
+from .installer import install_enabled, uninstall_enabled
 from .settings import load_config, save_config
 from .show import build_show
 from .targets import TARGETS, resolve_target
@@ -40,6 +40,7 @@ Installation Commands:
   enable <cli name>  - Enable skill and prompt installation for a supported CLI.
   disable <cli name> - Disable skill and prompt installation for a supported CLI.
   install            - Install skills and prompts for every enabled CLI.
+  uninstall          - Remove installed skills and prompts for every enabled CLI.
 
 Reporting Commands:
   show               - Show packaged resources, CLI configuration, and installation status.
@@ -234,6 +235,31 @@ def _install(home: Path | None = None) -> int:
     return 1 if errors else 0
 
 
+def _uninstall(home: Path | None = None) -> int:
+    """
+    @brief Remove installed bundled resources for all enabled CLIs.
+    @details Delegates uninstallation to `uninstall_enabled`, prints per-CLI
+             removed skill and prompt counts, prints an informational message
+             when no CLI is enabled, and reports collected failures.
+    @param home {Path | None} Optional home-directory override.
+    @return {int} Exit code: 0 when no failure occurs; 1 when any failure
+            occurs.
+    @satisfies REQ-047 REQ-054 REQ-055 REQ-056
+    """
+    summaries, errors = uninstall_enabled(home)
+    if not summaries and not errors:
+        print("No CLI enabled. Use 'skills enable <cli name>' first.")
+        return 0
+    for summary in summaries:
+        print(
+            f"Removed {summary.skills} skills and "
+            f"{summary.prompts} prompts for {summary.cli}."
+        )
+    for error in errors:
+        print(f"Error: {error}", file=sys.stderr)
+    return 1 if errors else 0
+
+
 def _show(home: Path | None = None) -> int:
     """
     @brief Print packaged resources, CLI configuration, and installation status.
@@ -252,10 +278,10 @@ def main(argv: list[str] | None = None) -> int:
     @brief Run the automatic release check and dispatch one CLI command.
     @details Executes `check_version` before argument parsing (forced by
              `--ver` or `--version`), then routes to help, version,
-             management, enable/disable, install, or show handlers. The
-             `--upgrade` branch chains `skills install` after a successful
-             Linux upgrade when the enabled configuration is non-empty and
-             returns the chained exit code.
+             management, enable/disable, install, uninstall, or show
+             handlers. The `--upgrade` branch chains `skills install` after
+             a successful Linux upgrade when the enabled configuration is
+             non-empty and returns the chained exit code.
     @param argv {list[str] | None} Command-line arguments; defaults to
             `sys.argv[1:]`.
     @return {int} Process exit code: 0 on success; 1 on upgrade or install
@@ -263,7 +289,7 @@ def main(argv: list[str] | None = None) -> int:
     @satisfies REQ-006 REQ-007 REQ-008 REQ-009 REQ-010 REQ-011 REQ-012
                REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029
                REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044
-               REQ-045 REQ-046
+               REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056
     """
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)
@@ -280,6 +306,7 @@ def main(argv: list[str] | None = None) -> int:
             "enable": "Enable skill and prompt installation for a supported CLI.",
             "disable": "Disable skill and prompt installation for a supported CLI.",
             "install": "Install skills and prompts for every enabled CLI.",
+            "uninstall": "Remove installed skills and prompts for every enabled CLI.",
             "show": "Show packaged resources, CLI configuration, and installation status.",
         }
         if command in descriptions:
@@ -304,6 +331,8 @@ def main(argv: list[str] | None = None) -> int:
         return _disable(args[1])
     if args == ["install"]:
         return _install()
+    if args == ["uninstall"]:
+        return _uninstall()
     if args == ["show"]:
         return _show()
     print(f"Unknown command or options: {' '.join(args)}", file=sys.stderr)

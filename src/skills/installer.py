@@ -3,9 +3,10 @@
 @brief Orchestrate skill and prompt installation for enabled CLI targets.
 @details Builds the bundled resource catalog, resolves manifest skill
          directories and prompt files, invokes the configured CLI adapters,
-         updates prompt records, and aggregates per-CLI outcomes. Rejects a
-         non-canonical skill support layout through the catalog builder.
-@satisfies PRJ-009 REQ-029 REQ-030 REQ-032 REQ-035 DES-055 DES-059 DES-060 DES-061 DES-062 DES-064 DES-073
+         updates prompt records, and aggregates per-CLI outcomes for
+         installation and uninstallation. Rejects a non-canonical skill
+         support layout through the catalog builder.
+@satisfies PRJ-009 PRJ-011 REQ-029 REQ-030 REQ-032 REQ-035 REQ-047 REQ-048 REQ-049 REQ-050 REQ-051 REQ-052 REQ-053 REQ-056 DES-055 DES-059 DES-060 DES-061 DES-062 DES-064 DES-073
 """
 
 from __future__ import annotations
@@ -45,6 +46,24 @@ class InstallSummary:
     prompts: int
     ## @brief Sorted installed prompt filenames.
     prompt_files: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class UninstallSummary:
+    """
+    @brief Summarize one CLI uninstallation result.
+    @details Carries the canonical CLI name, processed manifest skill
+             directory count, and processed managed prompt filename count.
+             Missing destinations count as removed.
+    @satisfies REQ-054
+    """
+
+    ## @brief Canonical CLI name.
+    cli: str
+    ## @brief Number of processed manifest skill directory names.
+    skills: int
+    ## @brief Number of processed managed prompt filenames.
+    prompts: int
 
 
 def _skill_directories(
@@ -178,6 +197,89 @@ def install_enabled(
             errors.append(f"{target.name}: {exc}")
             continue
         config["prompts"][target.name] = list(summary.prompt_files)
+        try:
+            save_config(config, home)
+        except OSError as exc:
+            errors.append(f"{target.name}: configuration write failed: {exc}")
+        summaries.append(summary)
+    return summaries, errors
+
+
+def uninstall_target(
+    target: CliTarget,
+    catalog: dict[str, list[dict[str, str]]],
+    recorded_prompts: Iterable[str],
+    resources_root: Path = RESOURCES_ROOT,
+    home: Path | None = None,
+) -> UninstallSummary:
+    """
+    @brief Remove manifest skills and installed prompts for one CLI target.
+    @details Resolves manifest skill directory names and the union of
+             manifest prompt filenames with previously recorded prompt
+             filenames, then delegates deletion to the adapter removal
+             methods. Missing destinations count as removed. Destination
+             entries outside manifest skill names and managed prompt names
+             are preserved.
+    @param target {CliTarget} CLI adapter to clean.
+    @param catalog {dict[str, list[dict[str, str]]]} Manifest catalog.
+    @param recorded_prompts {Iterable[str]} Previously recorded prompt
+            filenames for this CLI.
+    @param resources_root {Path} Resources root directory.
+    @param home {Path | None} Optional home-directory override.
+    @return {UninstallSummary} Removed skill and prompt counts.
+    @throws {InstallError} When a manifest-listed source path is missing.
+    @throws {OSError} When destination deletion fails.
+    @satisfies REQ-047 REQ-048 REQ-049 REQ-051 REQ-052
+    """
+    skills = _skill_directories(resources_root, catalog.get("skills", []))
+    prompts = _prompt_files(resources_root, catalog.get("prompts", []))
+    skill_names = sorted({path.name for path in skills})
+    prompt_names = sorted({path.name for path in prompts} | set(recorded_prompts))
+    skill_count = target.remove_skills(skill_names, home)
+    prompt_count = target.remove_prompts(prompt_names, home)
+    return UninstallSummary(
+        cli=target.name,
+        skills=skill_count,
+        prompts=prompt_count,
+    )
+
+
+def uninstall_enabled(
+    home: Path | None = None,
+) -> tuple[list[UninstallSummary], list[str]]:
+    """
+    @brief Remove installed bundled resources for every enabled CLI.
+    @details Loads user configuration and builds the resource catalog once.
+             Processes each enabled CLI independently, clears recorded prompt
+             filenames after each successful CLI, and collects failures
+             without stopping remaining CLI processing.
+    @param home {Path | None} Optional home-directory override.
+    @return {tuple[list[UninstallSummary], list[str]]} Uninstallation summaries
+            and failure diagnostics; both empty when no CLI is enabled.
+    @satisfies REQ-047 REQ-050 REQ-053 REQ-056
+    """
+    config = load_config(home)
+    enabled = config["enabled"]
+    if not enabled:
+        return [], []
+    try:
+        catalog = build_catalog()
+    except (OSError, SkillLayoutError) as exc:
+        return [], [f"catalog: {exc}"]
+    summaries: list[UninstallSummary] = []
+    errors: list[str] = []
+    for name in enabled:
+        target = resolve_target(name)
+        if target is None:
+            errors.append(f"Unsupported CLI: {name}")
+            continue
+        recorded = config["prompts"].get(target.name, [])
+        try:
+            summary = uninstall_target(target, catalog, recorded, home=home)
+        except (InstallError, OSError) as exc:
+            errors.append(f"{target.name}: {exc}")
+            continue
+        config["prompts"][target.name] = []
         try:
             save_config(config, home)
         except OSError as exc:

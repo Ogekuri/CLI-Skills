@@ -7,7 +7,9 @@
          and provide deterministic copy algorithms for skills and prompts.
          Shared copy primitives synchronize packaged trees, overwrite changed
          files, and prune destination entries absent from the package.
-@satisfies PRJ-010 DES-049 DES-050 DES-051 DES-052 DES-053 DES-054 DES-055 DES-056 DES-057 DES-058 DES-059 DES-063
+         Removal primitives delete managed skill directories and managed
+         prompt filenames while preserving unmanaged destination entries.
+@satisfies PRJ-010 PRJ-011 DES-049 DES-050 DES-051 DES-052 DES-053 DES-054 DES-055 DES-056 DES-057 DES-058 DES-059 DES-063 REQ-048 REQ-049 REQ-051 REQ-052
 """
 
 from __future__ import annotations
@@ -69,9 +71,10 @@ class CliTarget(ABC):
     @brief Abstract adapter for a supported CLI installation target.
     @details Subclasses declare the CLI name and resolve user-level destination
              directories. Base methods implement deterministic skill-tree
-             synchronization and prompt-file synchronization with stale-record
-             removal. Prompt-less adapters inherit a `None` prompt destination.
-    @satisfies DES-049
+             synchronization, prompt-file synchronization with stale-record
+             removal, and managed resource removal. Prompt-less adapters
+             inherit a `None` prompt destination.
+    @satisfies DES-049 REQ-048 REQ-049
     """
 
     ## @brief Canonical CLI name used by the `enable` and `disable` commands.
@@ -150,6 +153,57 @@ class CliTarget(ABC):
         for source in files:
             shutil.copy2(source, destination / source.name)
         return sorted(names)
+
+    def remove_skills(self, names: Iterable[str], home: Path | None = None) -> int:
+        """
+        @brief Remove managed skill directories from this CLI destination.
+        @details Deletes `<skills_dir>/<name>` recursively for each name.
+                 Missing destinations count as removed and do not raise.
+                 Destination entries outside `names` are preserved and no
+                 directory is created. Complexity O(N) deletions where N is
+                 the number of names.
+        @param names {Iterable[str]} Managed skill directory names.
+        @param home {Path | None} Optional home-directory override.
+        @return {int} Number of processed names; missing destinations count
+                as removed.
+        @throws {OSError} When recursive directory deletion fails.
+        @satisfies REQ-048 REQ-051 REQ-052
+        """
+        root = self.skills_dir(home)
+        count = 0
+        for name in names:
+            destination = root / name
+            if destination.is_dir():
+                shutil.rmtree(destination)
+            count += 1
+        return count
+
+    def remove_prompts(self, names: Iterable[str], home: Path | None = None) -> int:
+        """
+        @brief Remove managed prompt files from this CLI prompts destination.
+        @details No-ops with 0 when prompts are unsupported. Deletes
+                 `<prompts_dir>/<name>` for each safe name; names containing
+                 path components or traversal segments are skipped. Missing
+                 files count as removed and do not raise. Complexity O(N)
+                 deletions where N is the number of names.
+        @param names {Iterable[str]} Managed prompt filenames, manifest and
+                recorded.
+        @param home {Path | None} Optional home-directory override.
+        @return {int} Number of processed safe names; missing files count as
+                removed.
+        @throws {OSError} When file deletion fails.
+        @satisfies REQ-049 REQ-051 REQ-052
+        """
+        destination = self.prompts_dir(home)
+        if destination is None:
+            return 0
+        count = 0
+        for name in names:
+            if not name or Path(name).name != name or name in (".", ".."):
+                continue
+            (destination / name).unlink(missing_ok=True)
+            count += 1
+        return count
 
 
 class PiTarget(CliTarget):

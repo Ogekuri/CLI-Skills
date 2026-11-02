@@ -17,6 +17,8 @@ Python CLI application `skills` provides management commands, online release che
 
 The application installs bundled skills and prompts into user-level configuration directories of supported LLM agent CLIs when those CLIs are enabled.
 
+The `uninstall` command removes the skills and prompts previously installed by `install` from the destinations of every enabled CLI.
+
 Assumptions:
 
 - The archive supplies the pre-established source layout, project version, and release workflow; no application-specific commands beyond management commands are specified.
@@ -41,6 +43,7 @@ Assumptions:
 - **PRJ-008**: MUST distribute an `astra-uv-project` skill under `src/resources/skills/astra-uv-project` for creating new Astral uv Python projects from scratch.
 - **PRJ-009**: MUST install bundled skills and prompts into user-level configuration directories of supported LLM agent CLIs.
 - **PRJ-010**: MUST support installation targets `pi`, `openclaw`, `codex`, `antigravity`, and `claude`.
+- **PRJ-011**: MUST remove installed bundled skills and prompts from enabled CLI destinations through the `uninstall` command.
 
 ### 2.2 Project Constraints
 
@@ -205,8 +208,8 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-030**: MUST print the installed skill and prompt counts for each CLI processed by `install`.
 - **REQ-031**: MUST print an informational message and exit with code 0 when `install` finds no enabled CLI.
 - **REQ-032**: MUST print an error and exit with code 1 when any enabled CLI installation fails.
-- **REQ-033**: MUST provide command-specific help for `enable`, `disable`, and `install` with `--help`.
-- **REQ-034**: MUST print the full help template containing `enable`, `disable`, `install`, and `show` when invoked without parameters or with `--help` alone.
+- **REQ-033**: MUST provide command-specific help for `enable`, `disable`, `install`, and `uninstall` with `--help`.
+- **REQ-034**: MUST print the full help template containing `enable`, `disable`, `install`, `uninstall`, and `show` when invoked without parameters or with `--help` alone.
 - **REQ-035**: MUST terminate installation for a CLI with an error when a manifest-listed source path is missing.
 - **REQ-036**: MUST provide command-specific help for `show` when invoked as `show --help`.
 - **REQ-037**: MUST print every manifest skill and prompt as a table when invoked as `show`.
@@ -219,6 +222,16 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-044**: MUST NOT execute `skills install` for `--upgrade` when the enabled configuration contains no CLI.
 - **REQ-045**: MUST NOT execute `skills install` for `--upgrade` when the upgrade command fails or is not executed.
 - **REQ-046**: MUST return the `skills install` exit code as the `--upgrade` exit code when `skills install` executes.
+- **REQ-047**: MUST remove manifest skills and installed prompts for every enabled CLI when invoked as `uninstall`.
+- **REQ-048**: MUST delete each enabled CLI skill directory named after a manifest skill directory during `uninstall`.
+- **REQ-049**: MUST delete recorded and manifest prompt files from the prompts directory of each prompt-capable enabled CLI during `uninstall`.
+- **REQ-050**: MUST remove recorded prompt filenames of each processed CLI from the user configuration during `uninstall`.
+- **REQ-051**: MUST preserve destination files outside manifest skill directories during `uninstall`.
+- **REQ-052**: MUST treat a missing destination skill directory or prompt file as removed during `uninstall`.
+- **REQ-053**: MUST continue uninstallation for the remaining enabled CLIs after one CLI uninstallation fails.
+- **REQ-054**: MUST print the removed skill and prompt counts for each CLI processed by `uninstall`.
+- **REQ-055**: MUST print an informational message and exit with code 0 when `uninstall` finds no enabled CLI.
+- **REQ-056**: MUST print an error and exit with code 1 when any enabled CLI uninstallation fails.
 
 Full help template: substitute `skills` for `%PROGRAM%` and the installed version for `x.y.z`; retain all other text and spacing.
 
@@ -236,6 +249,7 @@ Installation Commands:
   enable <cli name>  - Enable skill and prompt installation for a supported CLI.
   disable <cli name> - Disable skill and prompt installation for a supported CLI.
   install            - Install skills and prompts for every enabled CLI.
+  uninstall          - Remove installed skills and prompts for every enabled CLI.
 
 Reporting Commands:
   show               - Show packaged resources, CLI configuration, and installation status.
