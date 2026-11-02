@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.4.0](https://github.com/Ogekuri/SKILLs/compare/v0.3.0..v0.4.0) - 2026-11-02
+### ⛰️  Features
+- add uninstall command removing installed skills and prompts [useReq] *(uninstall)*
+  - Add SRS requirements REQ-047..REQ-056 and PRJ-011 defining the reciprocal
+  - `uninstall` command of `install`, including help template coverage.
+  - Implement adapter removal primitives (CliTarget.remove_skills,
+  - remove_prompts), installer orchestration (uninstall_target,
+  - uninstall_enabled with prompt record clearing and per-CLI failure
+  - continuation), and core dispatch (_uninstall, help updates).
+  - Add HDT tests/test_uninstall.py suite; update WORKFLOW.md call traces
+  - and regenerate REFERENCES.md.
+
+### 🚜  Changes
+- fix skill rename and skeleton templating defects [useReq] *(astra-uv-project)*
+  - Align DES-001 archive path to assets/skell.tgz
+  - Rename src/skell to src/%SRCDIR% in DES-033 and skill PHASE 1 (SHORTNAME/SRCDIR conflict)
+  - Declare core.py comment-only stub in DES-034 and skill PHASE 2
+  - Delegate scripts/%SHORTNAME%.sh to python -m %SRCDIR% (DES-036, skeleton skell.sh)
+  - Template %AUTHOR% in skeleton pyproject authors (DES-074)
+  - Template %OWNER% in skeleton README URLs and skell.sh header (DES-075)
+  - Add bounded --help execution check (DES-076, skill verification step 5)
+
 ## [0.3.0](https://github.com/Ogekuri/SKILLs/compare/v0.2.0..v0.3.0) - 2026-11-02
 ### 🐛  Bug Fixes
 - Fix .gitignore file.
@@ -69,7 +91,9 @@
 - \[0.1.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0
 - \[0.2.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.2.0
 - \[0.3.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.3.0
+- \[0.4.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.4.0
 
 [0.1.0]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/SKILLs/compare/v0.1.0..v0.2.0
 [0.3.0]: https://github.com/Ogekuri/SKILLs/compare/v0.2.0..v0.3.0
+[0.4.0]: https://github.com/Ogekuri/SKILLs/compare/v0.3.0..v0.4.0
