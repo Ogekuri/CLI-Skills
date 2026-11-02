@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.0](https://github.com/Ogekuri/SKILLs/compare/v0.2.0..v0.3.0) - 2026-11-02
+### 🐛  Bug Fixes
+- Fix .gitignore file.
+
 ## [0.2.0](https://github.com/Ogekuri/SKILLs/compare/v0.1.0..v0.2.0) - 2026-11-02
 ### 🚜  Changes
 - chain skills install after successful --upgrade [useReq] *(core)*
@@ -64,6 +68,8 @@
 
 - \[0.1.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0
 - \[0.2.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.2.0
+- \[0.3.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.3.0
 
 [0.1.0]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/SKILLs/compare/v0.1.0..v0.2.0
+[0.3.0]: https://github.com/Ogekuri/SKILLs/compare/v0.2.0..v0.3.0
