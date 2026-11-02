@@ -46,15 +46,16 @@ Run the following file operations in this exact order, inside the new project ro
    - `src/skell/__main__.py`
 3. **Renaming.**
    - Rename `scripts/skell.sh` to `scripts/%SHORTNAME%.sh`.
-   - Rename the directory `src/skell` to `src/%SHORTNAME%`.
-   - Note: the application sources must be generated under `src/%SRCDIR%` following the pre-established schema.
+   - Rename the directory `src/skell` to `src/%SRCDIR%`.
+   - Note: `src/%SRCDIR%` is the Python package referenced by `pyproject.toml` and executed by `scripts/%SHORTNAME%.sh`; do not use `%SHORTNAME%` for the source directory unless it equals `%SRCDIR%`.
 
 ## 4. PHASE 2: Application Architecture
 
 Develop a CLI-based Python application/module compiled and distributed through the **Astral UV Tool / UVX** stack:
 
 - Name the application `%PROGRAM%`.
-- Support local execution through `scripts/%SHORTNAME%.sh`.
+- Implement the application entrypoint in this phase: the extracted `src/%SRCDIR%/core.py` ships as a comment-only stub while `__init__.py` and `__main__.py` already import `main` from it; define `main` in `core.py` (behavior specified in PHASE 3 and PHASE 4) so the package imports and runs.
+- Support local execution through `scripts/%SHORTNAME%.sh`, which delegates to `uv run --project <project root> python -m %SRCDIR%`.
 - Package the application so it can be downloaded with `uv` and executed on-the-fly from the web with `uvx`.
 - Configure `pyproject.toml` to include every file needed at runtime so the GitHub Actions workflow in `.github/workflows/release-uvx.yml` can build the package correctly.
 
@@ -122,7 +123,7 @@ Implement an automatic new-version check that runs before parsing incoming param
 Before declaring completion, verify, and report any failure:
 
 1. No literal keyword `%AUTHOR%`, `%DESCRIPTION%`, `%PROGRAM%`, `%SHORTNAME%`, `%SRCDIR%`, `%OWNER%`, or `%REPOSITORY%` remains in any scaffolded file.
-2. `scripts/%SHORTNAME%.sh` exists and `src/skell` no longer exists.
+2. `scripts/%SHORTNAME%.sh` exists, `src/skell` no longer exists, and `src/%SRCDIR%` exists.
 3. Application sources live under `src/%SRCDIR%`.
 4. `pyproject.toml` declares the package so that `.github/workflows/release-uvx.yml` can build it (project name, packages discovery, package data).
-5. When `uv` is available, run `uv build` (or `uv sync`) as a bounded smoke check; when unavailable, record the check as skipped with the reason.
+5. When `uv` is available, run `uv build` (or `uv sync`) as a bounded smoke check and execute one bounded command such as `scripts/%SHORTNAME%.sh --help` or `uv run python -m %SRCDIR% --help` to prove the package imports and runs; when unavailable, record each skipped check with the reason.

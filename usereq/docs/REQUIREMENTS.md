@@ -58,7 +58,7 @@ Assumptions:
 
 ### 3.1 Design and Implementation
 
-- **DES-001**: MUST extract every file and directory, including empty directories, from `../skell.tgz` into the current directory before keyword substitution.
+- **DES-001**: MUST extract every file and directory, including empty directories, from `assets/skell.tgz` into the current directory before keyword substitution.
 - **DES-002**: MUST overwrite existing files when extracting archive entries.
 - **DES-003**: MUST replace the seven specified keywords with their configured values in `.g.conf`, `README.md`, `pyproject.toml`, and `uv.lock` after extraction.
 - **DES-004**: MUST replace the seven specified keywords with their configured values in `src/skell/core.py`, `scripts/skell.sh`, and `src/skell/__main__.py` after extraction.
@@ -90,10 +90,10 @@ Assumptions:
 - **DES-030**: MUST normalize `%PROGRAM%`, `%SHORTNAME%`, and `%SRCDIR%` values to lowercase.
 - **DES-031**: MUST specify extraction of every `assets/skell.tgz` entry, including empty directories, into the target project directory with overwrite of existing files.
 - **DES-032**: MUST specify replacing the seven bootstrap keywords in `.g.conf`, `README.md`, `pyproject.toml`, `uv.lock`, `src/skell/core.py`, `scripts/skell.sh`, and `src/skell/__main__.py` after extraction.
-- **DES-033**: MUST specify renaming `scripts/skell.sh` to `scripts/%SHORTNAME%.sh` and directory `src/skell` to `src/%SHORTNAME%` after keyword substitution.
-- **DES-034**: MUST specify application source generation under `src/%SRCDIR%` following the archive pre-established layout.
+- **DES-033**: MUST specify renaming `scripts/skell.sh` to `scripts/%SHORTNAME%.sh` and directory `src/skell` to `src/%SRCDIR%` after keyword substitution.
+- **DES-034**: MUST specify application source generation under `src/%SRCDIR%` following the archive pre-established layout, where `core.py` ships as a comment-only stub implemented in PHASE 2 through PHASE 4.
 - **DES-035**: MUST specify a Python CLI application named `%PROGRAM%` packaged for Astral uv tool installation and uvx on-the-fly execution.
-- **DES-036**: MUST specify local execution support through `scripts/%SHORTNAME%.sh`.
+- **DES-036**: MUST specify local execution support through `scripts/%SHORTNAME%.sh` delegating to `uv run python -m %SRCDIR%`.
 - **DES-037**: MUST specify `pyproject.toml` configuration including every file needed by the `.github/workflows/release-uvx.yml` package build.
 - **DES-038**: MUST include the exact English help template listing `--upgrade`, `--uninstall`, `--ver`, `--version`, and `--help` management commands.
 - **DES-039**: MUST specify `--ver` and `--version` printing the installed version as `x.y.z` and forcing an immediate online release check.
@@ -131,6 +131,9 @@ Assumptions:
 - **DES-071**: MUST place data and configuration files for a skill under its `assets` subdirectory.
 - **DES-072**: MUST place vector or raster images referenced by `SKILL.md` under the skill `images` subdirectory.
 - **DES-073**: MUST reject a bundled skill whose layout violates DES-067 through DES-072 during catalog generation.
+- **DES-074**: MUST ship `%AUTHOR%` in the `pyproject.toml` author field inside `assets/skell.tgz` instead of a hardcoded author name.
+- **DES-075**: MUST ship `%OWNER%` in `README.md` repository URLs and the `scripts/skell.sh` author header inside `assets/skell.tgz` instead of hardcoded owner names.
+- **DES-076**: MUST specify a bounded post-implementation execution check such as `scripts/%SHORTNAME%.sh --help` in addition to the build smoke check.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
