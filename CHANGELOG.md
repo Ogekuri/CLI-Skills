@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.0](https://github.com/Ogekuri/SKILLs/compare/v0.1.0..v0.2.0) - 2026-11-02
+### 🚜  Changes
+- chain skills install after successful --upgrade [useReq] *(core)*
+  - Requirements: add REQ-043..REQ-046 mandating post-upgrade execution of
+  - 'skills install' when the enabled configuration is non-empty.
+  - Source: add SKILLS_INSTALL command constant and _post_upgrade_install();
+  - the --upgrade branch now chains the child 'skills install' after a
+  - successful Linux upgrade and returns its exit code.
+  - Docs: WORKFLOW.md adds PROC:skills-install unit and spawn edge;
+  - REFERENCES.md regenerated.
+
 ## [0.1.0](https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0) - 2026-10-30
 ### ⛰️  Features
 - add package inventory, CLI configuration, and install status report *(show)*
@@ -52,5 +63,7 @@
 # History
 
 - \[0.1.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0
+- \[0.2.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.2.0
 
 [0.1.0]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0
+[0.2.0]: https://github.com/Ogekuri/SKILLs/compare/v0.1.0..v0.2.0
