@@ -31,9 +31,22 @@ Determine the following keywords from the user request or the project context an
 
 **Missing-input rule.** Do not invent values. If any keyword cannot be identified clearly and unambiguously from the user request and project context, terminate the process prematurely: report the problem, list every missing keyword, and ask for the missing information before doing any file operation.
 
+**Validation gate (runs before every file operation).** First normalize the resolved values: trim surrounding whitespace, then lowercase `%PROGRAM%`, `%SHORTNAME%`, and `%SRCDIR%` as listed in the table. Then check every value against the rules below. If any check fails, terminate exactly like a missing keyword: report every invalid value with the reason it failed, request corrected values, and perform no extraction, write, rename, or deletion.
+
+- `%PROGRAM%` and `%SHORTNAME%`: non-empty; only lowercase ASCII letters, digits, hyphens, and underscores; MUST start with a letter; MUST NOT contain whitespace, path separators (`/` or `\`), the dot segments `.` or `..`, shell metacharacters, or line breaks.
+- `%SRCDIR%`: non-empty; only lowercase ASCII letters, digits, and underscores; MUST start with a letter; MUST NOT contain a hyphen or any character rejected above, so it always forms a valid importable Python package name.
+- `%OWNER%` and `%REPOSITORY%`: non-empty; only ASCII letters, digits, and single inner hyphens; MUST NOT start or end with a hyphen; MUST NOT contain `/`, whitespace, `..`, or line breaks, so both are safe inside a GitHub URL path.
+- `%AUTHOR%` and `%DESCRIPTION%`: non-empty single-line free text after trimming; MUST NOT contain line breaks.
+
+**Substituted values are data, never code.** Do not evaluate, `source`, or interpolate keyword values into shell commands or any other executable context. Serialize each value for its destination format at substitution time: write `%AUTHOR%` and `%DESCRIPTION%` into `pyproject.toml` as escaped TOML basic strings (escape backslashes and double quotes; reject a value that still cannot be represented), and write values into `README.md`, `uv.lock`, `.g.conf`, `src/skell/core.py`, `src/skell/__main__.py`, and the `scripts/skell.sh` comment header as plain literal text; the single-line rule above excludes line-break injection.
+
 ## 3. PHASE 1: File System and Initialization
 
+Precondition: the PHASE 0 validation gate has passed. If it has not, no operation in this phase runs.
+
 Run the following file operations in this exact order, inside the new project root directory:
+
+**Path confinement.** Keep every extraction, substitution, rename, and write strictly inside the new project root. Before creating, renaming, or deleting any path, verify that the fully resolved absolute path remains inside the project root; if any resolved path would escape it, stop and report instead of performing the operation. The two renames below are fixed by this specification and MUST NOT be composed from any value other than the validated `%SHORTNAME%` and `%SRCDIR%`.
 
 1. **Extraction.** Extract every file and directory from `assets/skell.tgz` into the current directory, including empty directories, overwriting any existing file.
 2. **Keyword substitution.** Search and replace the keywords `%OWNER%`, `%AUTHOR%`, `%DESCRIPTION%`, `%REPOSITORY%`, `%PROGRAM%`, `%SHORTNAME%`, `%SRCDIR%` with their bootstrap values in exactly these files:
@@ -105,25 +118,33 @@ Implement an automatic new-version check that runs before parsing incoming param
 **Caching logic (idle-delay and idle-time):**
 
 - Standard `idle-delay`: hardcoded to `3600` seconds (1 hour).
+- Negative-outcome `idle-delay`: hardcoded to `86400` seconds (1 day).
 - Cache file: `$HOME/.cache/%PROGRAM%/check_version_idle-time.json`
-- Required JSON structure in the file:
-  1. Last successful check timestamp (epoch).
-  2. Last successful check timestamp (human-readable).
-  3. End-of-block timestamp / `idle-time` = (last timestamp + `idle-delay`) (epoch).
-  4. End-of-block timestamp / `idle-time` (human-readable).
+- Required JSON content (field names are an implementation choice):
+  1. `last-success`: the epoch of the most recent successful check, plus the same instant in human-readable form; `null` in both forms until the first successful check.
+  2. `idle-time` expiration: the epoch after which the next automatic check is due, plus the same instant in human-readable form.
+
+**Timestamp semantics.**
+
+- The `last-success` fields record only checks that received and parsed a valid release response; a failed check attempt MUST NOT change them.
+- The `idle-time` expiration is always computed from the timestamp of the attempt just performed, never from the stored `last-success` value, so a stored old success never shortens the configured delay.
 
 **Version-check execution flow:**
 
-1. **Initial decision.** If the JSON file does not exist, or its `idle-time` has expired, or `--ver`/`--version` was passed, perform the HTTP call; otherwise skip the check.
-2. **Positive outcome (newer version found).** Print a message in BRIGHT GREEN color reporting "Available Version" versus "Installed Version". Generate or update the JSON file using the standard `idle-delay` (3600 seconds).
-3. **Negative outcome / HTTP errors (429, 503, ... any error).** Print an error message in BRIGHT RED color reporting the encountered error. Generate or update the JSON file with an inflated `idle-delay` of `86400` seconds (1 day).
+1. **Initial decision.** Perform the HTTP call when the cache file does not exist, cannot be read, cannot be parsed, holds an expired `idle-time` (current time greater than or equal to the stored expiration epoch), or `--ver`/`--version` was passed; otherwise skip the check.
+2. **Positive outcome (newer version found).** Print a message in BRIGHT GREEN color reporting "Available Version" versus "Installed Version". Record the attempt time `t` in both `last-success` fields and set the `idle-time` expiration to `t + 3600` seconds.
+3. **Negative outcome, valid response (no newer version).** Print a BRIGHT RED message reporting that no newer version is available. Record the attempt time `t` in both `last-success` fields and set the `idle-time` expiration to `t + 86400` seconds.
+4. **Negative outcome, failed check (HTTP errors such as 429 or 503, transport errors, or an unparseable response).** Print a BRIGHT RED message reporting the encountered error. Preserve the stored `last-success` fields unchanged when a prior successful check exists; keep them `null` when none exists. Set the `idle-time` expiration to the failed attempt time `t + 86400` seconds in both forms.
 
 ## 7. Verification
 
-Before declaring completion, verify, and report any failure:
+Before declaring completion, verify each item below and report its outcome. Items 1–4 are static file checks; item 5 runs bounded behavioral checks; report the two groups separately:
 
 1. No literal keyword `%AUTHOR%`, `%DESCRIPTION%`, `%PROGRAM%`, `%SHORTNAME%`, `%SRCDIR%`, `%OWNER%`, or `%REPOSITORY%` remains in any scaffolded file.
 2. `scripts/%SHORTNAME%.sh` exists, `src/skell` no longer exists, and `src/%SRCDIR%` exists.
 3. Application sources live under `src/%SRCDIR%`.
 4. `pyproject.toml` declares the package so that `.github/workflows/release-uvx.yml` can build it (project name, packages discovery, package data).
-5. When `uv` is available, run `uv build` (or `uv sync`) as a bounded smoke check and execute one bounded command such as `scripts/%SHORTNAME%.sh --help` or `uv run python -m %SRCDIR% --help` to prove the package imports and runs; when unavailable, record each skipped check with the reason.
+5. **Bounded build and execution checks.** When `uv` is available, run at most one attempt of each applicable check below and give each check a finite execution timeout (suggested values: 120 seconds for the build check, 60 seconds for the execution check). Do not retry a failed or timed-out check.
+   - **Build check.** Run `uv build` as the build smoke check. `uv sync` is a separate dependency-synchronization check: run and report it on its own only when useful, and never report it as a substitute for the build check.
+   - **Execution check.** Run exactly one bounded command, either `scripts/%SHORTNAME%.sh --help` or `uv run python -m %SRCDIR% --help`, to prove the package imports and runs.
+   - **Outcome reporting.** Report every behavioral check with exactly one outcome: PASS (exit code 0 within the timeout), FAIL (non-zero exit; include the observed error), TIMEOUT (the finite limit expired before exit), or SKIPPED (precondition unmet, for example `uv` not available; include the reason). Report TIMEOUT as its own outcome, never as PASS or FAIL, and never report an unexecuted check as passed.
