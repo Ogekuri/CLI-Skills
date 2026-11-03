@@ -132,14 +132,16 @@ def _post_upgrade_install(home: Path | None = None) -> int:
              freshly upgraded package synchronizes its bundled skills and
              prompts into every enabled CLI. Skips the child process when
              the enabled configuration is empty. The child reads the
-             upgraded package resources, not the running process ones.
+             upgraded package resources, not the running process ones. The
+             child inherits stdout, so its per-CLI count and installed-name
+             report surfaces as visible `--upgrade` output.
     @param home {Path | None} Optional home-directory override used only for
             the configuration read; the child process inherits the real
             environment.
     @return {int} 0 when no CLI is enabled; otherwise the `skills install`
             exit code (1 on spawn or installation failure).
     @throws {OSError} When reading the configuration file fails.
-    @satisfies REQ-043 REQ-044 REQ-046
+    @satisfies REQ-043 REQ-044 REQ-046 REQ-058
     """
     if not load_config(home)["enabled"]:
         return 0
@@ -214,12 +216,13 @@ def _install(home: Path | None = None) -> int:
     """
     @brief Install bundled resources for all enabled CLIs.
     @details Delegates installation to `install_enabled`, prints per-CLI skill
-             and prompt counts, prints an informational message when no CLI is
+             and prompt counts plus the installed skill names and prompt
+             filenames, prints an informational message when no CLI is
              enabled, and reports collected failures.
     @param home {Path | None} Optional home-directory override.
     @return {int} Exit code: 0 when no failure occurs; 1 when any failure
             occurs.
-    @satisfies REQ-029 REQ-030 REQ-031 REQ-032
+    @satisfies REQ-029 REQ-030 REQ-031 REQ-032 REQ-057
     """
     summaries, errors = install_enabled(home)
     if not summaries and not errors:
@@ -230,6 +233,10 @@ def _install(home: Path | None = None) -> int:
             f"Installed {summary.skills} skills and "
             f"{summary.prompts} prompts for {summary.cli}."
         )
+        skill_names = ", ".join(summary.skill_names) or "none"
+        prompt_names = ", ".join(summary.prompt_files) or "none"
+        print(f"  Skills: {skill_names}")
+        print(f"  Prompts: {prompt_names}")
     for error in errors:
         print(f"Error: {error}", file=sys.stderr)
     return 1 if errors else 0
@@ -289,7 +296,8 @@ def main(argv: list[str] | None = None) -> int:
     @satisfies REQ-006 REQ-007 REQ-008 REQ-009 REQ-010 REQ-011 REQ-012
                REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029
                REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044
-               REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056
+               REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057
+               REQ-058
     """
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)

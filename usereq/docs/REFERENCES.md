@@ -147,7 +147,7 @@ canonical support layout.
 
 ---
 
-# core.py | Python | 339L | 17 symbols | 14 imports | 11 comments
+# core.py | Python | 347L | 17 symbols | 14 imports | 11 comments
 > Path: `src/skills/core.py`
 
 ## Imports
@@ -188,22 +188,22 @@ installs its bundled skills and prompts into every enabled CLI.
 
 ### fn `def _manage(command: list[str]) -> int` `priv` (L115-125)
 
-### fn `def _post_upgrade_install(home: Path | None = None) -> int` `priv` (L126-148)
+### fn `def _post_upgrade_install(home: Path | None = None) -> int` `priv` (L126-150)
 - @brief Install bundled resources through `skills install` after a successful upgrade.
-- @details Loads the user configuration and, when at least one CLI is enabled, spawns `skills install` as a child process so the freshly upgraded package synchronizes its bundled skills and prompts into every enabled CLI. Skips the child process when the enabled configuration is empty. The child reads the upgraded package resources, not the running process ones.
+- @details Loads the user configuration and, when at least one CLI is enabled, spawns `skills install` as a child process so the freshly upgraded package synchronizes its bundled skills and prompts into every enabled CLI. Skips the child process when the enabled configuration is empty. The child reads the upgraded package resources, not the running process ones. The child inherits stdout, so its per-CLI count and installed-name report surfaces as visible `--upgrade` output.
 - @param home {Path | None} Optional home-directory override used only for the configuration read; the child process inherits the real environment.
 - @return {int} 0 when no CLI is enabled; otherwise the `skills install` exit code (1 on spawn or installation failure).
 - @throws {OSError} When reading the configuration file fails.
-- @satisfies REQ-043 REQ-044 REQ-046
+- @satisfies REQ-043 REQ-044 REQ-046 REQ-058
 
-### fn `def _unsupported(name: str) -> str` `priv` (L149-159)
+### fn `def _unsupported(name: str) -> str` `priv` (L151-161)
 - @brief Build an unsupported-CLI diagnostic message.
 - @details Lists the canonical CLI names accepted by the adapter registry.
 - @param name {str} Unsupported CLI name from the command line.
 - @return {str} Human-readable diagnostic message.
 - @satisfies REQ-026
 
-### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L160-185)
+### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L162-187)
 - @brief Enable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, appends the canonical CLI name when absent, and persists the configuration. Re-enabling an enabled CLI leaves configuration unchanged.
 - @param name {str} CLI name from the command line.
@@ -212,7 +212,7 @@ installs its bundled skills and prompts into every enabled CLI.
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-024 REQ-026 REQ-027 REQ-028
 
-### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L186-212)
+### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L188-214)
 - @brief Disable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, removes the canonical CLI name when present, and persists the configuration. Disabling an already disabled CLI is a successful no-op.
 - @param name {str} CLI name from the command line.
@@ -221,21 +221,21 @@ installs its bundled skills and prompts into every enabled CLI.
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-025 REQ-026 REQ-027 REQ-028
 
-### fn `def _install(home: Path | None = None) -> int` `priv` (L213-237)
+### fn `def _install(home: Path | None = None) -> int` `priv` (L215-244)
 - @brief Install bundled resources for all enabled CLIs.
-- @details Delegates installation to `install_enabled`, prints per-CLI skill and prompt counts, prints an informational message when no CLI is enabled, and reports collected failures.
+- @details Delegates installation to `install_enabled`, prints per-CLI skill and prompt counts plus the installed skill names and prompt filenames, prints an informational message when no CLI is enabled, and reports collected failures.
 - @param home {Path | None} Optional home-directory override.
 - @return {int} Exit code: 0 when no failure occurs; 1 when any failure occurs.
-- @satisfies REQ-029 REQ-030 REQ-031 REQ-032
+- @satisfies REQ-029 REQ-030 REQ-031 REQ-032 REQ-057
 
-### fn `def _uninstall(home: Path | None = None) -> int` `priv` (L238-262)
+### fn `def _uninstall(home: Path | None = None) -> int` `priv` (L245-269)
 - @brief Remove installed bundled resources for all enabled CLIs.
 - @details Delegates uninstallation to `uninstall_enabled`, prints per-CLI removed skill and prompt counts, prints an informational message when no CLI is enabled, and reports collected failures.
 - @param home {Path | None} Optional home-directory override.
 - @return {int} Exit code: 0 when no failure occurs; 1 when any failure occurs.
 - @satisfies REQ-047 REQ-054 REQ-055 REQ-056
 
-### fn `def _show(home: Path | None = None) -> int` `priv` (L263-275)
+### fn `def _show(home: Path | None = None) -> int` `priv` (L270-282)
 - @brief Print packaged resources, CLI configuration, and installation status.
 - @details Delegates report rendering to `build_show` and prints the result.
 - @param home {Path | None} Optional home-directory override.
@@ -243,12 +243,12 @@ installs its bundled skills and prompts into every enabled CLI.
 - @throws {OSError} When bundled resources or the configuration cannot be read.
 - @satisfies REQ-037 REQ-038 REQ-039 REQ-042
 
-### fn `def main(argv: list[str] | None = None) -> int` (L276-340)
+### fn `def main(argv: list[str] | None = None) -> int` (L283-348)
 - @brief Run the automatic release check and dispatch one CLI command.
 - @details Executes `check_version` before argument parsing (forced by `--ver` or `--version`), then routes to help, version, management, enable/disable, install, uninstall, or show handlers. The `--upgrade` branch chains `skills install` after a successful Linux upgrade when the enabled configuration is non-empty and returns the chained exit code.
 - @param argv {list[str] | None} Command-line arguments; defaults to `sys.argv[1:]`.
 - @return {int} Process exit code: 0 on success; 1 on upgrade or install failure; 2 on usage errors.
-- @satisfies REQ-006 REQ-007 REQ-008 REQ-009 REQ-010 REQ-011 REQ-012 REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029 REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044 REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056
+- @satisfies REQ-006 REQ-007 REQ-008 REQ-009 REQ-010 REQ-011 REQ-012 REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029 REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044 REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057 REQ-058
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -262,19 +262,19 @@ installs its bundled skills and prompts into every enabled CLI.
 |`_version`|fn|priv|60-66|def _version(value: str) -> tuple[int, int, int]|
 |`check_version`|fn|pub|67-114|def check_version(force: bool = False) -> None|
 |`_manage`|fn|priv|115-125|def _manage(command: list[str]) -> int|
-|`_post_upgrade_install`|fn|priv|126-148|def _post_upgrade_install(home: Path | None = None) -> int|
-|`_unsupported`|fn|priv|149-159|def _unsupported(name: str) -> str|
-|`_enable`|fn|priv|160-185|def _enable(name: str, home: Path | None = None) -> int|
-|`_disable`|fn|priv|186-212|def _disable(name: str, home: Path | None = None) -> int|
-|`_install`|fn|priv|213-237|def _install(home: Path | None = None) -> int|
-|`_uninstall`|fn|priv|238-262|def _uninstall(home: Path | None = None) -> int|
-|`_show`|fn|priv|263-275|def _show(home: Path | None = None) -> int|
-|`main`|fn|pub|276-340|def main(argv: list[str] | None = None) -> int|
+|`_post_upgrade_install`|fn|priv|126-150|def _post_upgrade_install(home: Path | None = None) -> int|
+|`_unsupported`|fn|priv|151-161|def _unsupported(name: str) -> str|
+|`_enable`|fn|priv|162-187|def _enable(name: str, home: Path | None = None) -> int|
+|`_disable`|fn|priv|188-214|def _disable(name: str, home: Path | None = None) -> int|
+|`_install`|fn|priv|215-244|def _install(home: Path | None = None) -> int|
+|`_uninstall`|fn|priv|245-269|def _uninstall(home: Path | None = None) -> int|
+|`_show`|fn|priv|270-282|def _show(home: Path | None = None) -> int|
+|`main`|fn|pub|283-348|def main(argv: list[str] | None = None) -> int|
 
 
 ---
 
-# installer.py | Python | 288L | 9 symbols | 7 imports | 17 comments
+# installer.py | Python | 292L | 9 symbols | 7 imports | 18 comments
 > Path: `src/skills/installer.py`
 - @brief Orchestrate skill and prompt installation for enabled CLI targets.
 - @details Builds the bundled resource catalog, resolves manifest skill
@@ -302,19 +302,19 @@ from .targets import CliTarget, resolve_target
 - @details Raised when a manifest-listed source path is missing, duplicated, or otherwise not installable.
 - @satisfies REQ-035
 
-### class `class InstallSummary` `@dataclass(frozen=True)` (L33-50)
+### class `class InstallSummary` `@dataclass(frozen=True)` (L33-53)
 - @brief Summarize one CLI installation result.
-- @details Carries the canonical CLI name, installed skill count, installed prompt count, and installed prompt filenames for persistence.
-- @satisfies REQ-030 DES-060
+- @details Carries the canonical CLI name, installed skill count, sorted installed skill directory names, installed prompt count, and installed prompt filenames for persistence and reporting.
+- @satisfies REQ-030 REQ-057 DES-060
 
-### class `class UninstallSummary` `@dataclass(frozen=True)` (L52-68)
+### class `class UninstallSummary` `@dataclass(frozen=True)` (L55-71)
 - @brief Summarize one CLI uninstallation result.
 - @details Carries the canonical CLI name, processed manifest skill directory count, and processed managed prompt filename count. Missing destinations count as removed.
 - @satisfies REQ-054
 
-### fn `def _skill_directories(` `priv` (L69-71)
+### fn `def _skill_directories(` `priv` (L72-74)
 
-### fn `def _prompt_files(` `priv` (L99-101)
+### fn `def _prompt_files(` `priv` (L102-104)
 - @brief Resolve manifest skill entries to packaged skill directories.
 - @details Validates each entry file path, deduplicates by directory name, and
 returns directories sorted by name.
@@ -325,7 +325,7 @@ returns directories sorted by name.
 missing.
 - @satisfies DES-055 DES-062 REQ-035
 
-### fn `def install_target(` (L130-135)
+### fn `def install_target(` (L133-138)
 - @brief Resolve manifest prompt entries to packaged prompt files.
 - @details Validates each entry file path and rejects duplicate destination
 filenames that would overwrite each other.
@@ -336,7 +336,7 @@ filenames that would overwrite each other.
 entries share the same destination filename.
 - @satisfies DES-059 DES-062 REQ-035
 
-### fn `def install_enabled(` (L164-165)
+### fn `def install_enabled(` (L168-169)
 - @brief Install manifest skills and prompts for one CLI target.
 - @details Resolves manifest sources, delegates skill synchronization and
 prompt-file replacement to the adapter, and returns installed
@@ -349,9 +349,9 @@ counts and prompt filenames.
 - @return {InstallSummary} Installed skill and prompt counts.
 - @throws {InstallError} When a manifest-listed source path is missing.
 - @throws {OSError} When copying, pruning, or directory creation fails.
-- @satisfies REQ-029 REQ-030 DES-055 DES-056 DES-057 DES-059 DES-061 DES-062
+- @satisfies REQ-029 REQ-030 REQ-057 DES-055 DES-056 DES-057 DES-059 DES-061 DES-062
 
-### fn `def uninstall_target(` (L208-213)
+### fn `def uninstall_target(` (L212-217)
 - @brief Install bundled resources for every enabled CLI.
 - @details Loads user configuration and builds the resource catalog once.
 Processes each enabled CLI independently, persists prompt records
@@ -362,7 +362,7 @@ remaining CLI processing.
 failure diagnostics; both empty when no CLI is enabled.
 - @satisfies REQ-029 REQ-030 REQ-031 REQ-032 DES-064 DES-073
 
-### fn `def uninstall_enabled(` (L247-248)
+### fn `def uninstall_enabled(` (L251-252)
 - @brief Remove manifest skills and installed prompts for one CLI target.
 - @details Resolves manifest skill directory names and the union of
 manifest prompt filenames with previously recorded prompt
@@ -385,14 +385,14 @@ filenames for this CLI.
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
 |`InstallError`|class|pub|23-31|class InstallError(RuntimeError)|
-|`InstallSummary`|class|pub|33-50|class InstallSummary|
-|`UninstallSummary`|class|pub|52-68|class UninstallSummary|
-|`_skill_directories`|fn|priv|69-71|def _skill_directories(|
-|`_prompt_files`|fn|priv|99-101|def _prompt_files(|
-|`install_target`|fn|pub|130-135|def install_target(|
-|`install_enabled`|fn|pub|164-165|def install_enabled(|
-|`uninstall_target`|fn|pub|208-213|def uninstall_target(|
-|`uninstall_enabled`|fn|pub|247-248|def uninstall_enabled(|
+|`InstallSummary`|class|pub|33-53|class InstallSummary|
+|`UninstallSummary`|class|pub|55-71|class UninstallSummary|
+|`_skill_directories`|fn|priv|72-74|def _skill_directories(|
+|`_prompt_files`|fn|priv|102-104|def _prompt_files(|
+|`install_target`|fn|pub|133-138|def install_target(|
+|`install_enabled`|fn|pub|168-169|def install_enabled(|
+|`uninstall_target`|fn|pub|212-217|def uninstall_target(|
+|`uninstall_enabled`|fn|pub|251-252|def uninstall_enabled(|
 
 
 ---

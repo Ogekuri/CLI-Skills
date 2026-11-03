@@ -232,6 +232,8 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-054**: MUST print the removed skill and prompt counts for each CLI processed by `uninstall`.
 - **REQ-055**: MUST print an informational message and exit with code 0 when `uninstall` finds no enabled CLI.
 - **REQ-056**: MUST print an error and exit with code 1 when any enabled CLI uninstallation fails.
+- **REQ-057**: MUST list every installed skill name and prompt filename for each CLI processed by `install`.
+- **REQ-058**: MUST surface the chained `skills install` report as visible `--upgrade` output when the upgrade command and the chained installation both succeed.
 
 Full help template: substitute `skills` for `%PROGRAM%` and the installed version for `x.y.z`; retain all other text and spacing.
 

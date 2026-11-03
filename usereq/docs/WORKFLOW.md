@@ -54,7 +54,7 @@
         - `_unique_strings(value)`: normalize enabled names and prompt filename lists [`src/skills/settings.py`]
       - `save_config(config, home)`: persist enabled CLI names without the disabled CLI [`src/skills/settings.py`]
         - `config_path(home)`: resolve configuration file path [`src/skills/settings.py`]
-    - `_install(home)`: install resources for enabled CLIs (`install` branch) [`src/skills/core.py`]
+    - `_install(home)`: install resources for enabled CLIs and print per-CLI counts with installed skill names and prompt filenames (`install` branch) [`src/skills/core.py`]
       - `install_enabled(home)`: orchestrate per-CLI installation [`src/skills/installer.py`]
         - `load_config(home)`: load enabled CLI names and prompt records [`src/skills/settings.py`]
           - `config_path(home)`: resolve configuration file path [`src/skills/settings.py`]
@@ -171,7 +171,7 @@
   - Loop/Block: child runs to completion while parent blocks.
   - Stop: child exits; returncode is returned to `_post_upgrade_install()` and propagated as the `--upgrade` exit code.
 - **Internal Call-Trace Tree**: none (no internal functions; the child runs the freshly upgraded external `skills` package)
-- **External Boundaries**: `skills` executable (`install` command: manifest-driven skill and prompt synchronization)
+- **External Boundaries**: `skills` executable (`install` command: manifest-driven skill and prompt synchronization with per-CLI count and installed-name report)
 
 ## Communication Edges
 

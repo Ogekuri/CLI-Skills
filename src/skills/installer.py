@@ -33,15 +33,18 @@ class InstallError(RuntimeError):
 class InstallSummary:
     """
     @brief Summarize one CLI installation result.
-    @details Carries the canonical CLI name, installed skill count, installed
-             prompt count, and installed prompt filenames for persistence.
-    @satisfies REQ-030 DES-060
+    @details Carries the canonical CLI name, installed skill count, sorted
+             installed skill directory names, installed prompt count, and
+             installed prompt filenames for persistence and reporting.
+    @satisfies REQ-030 REQ-057 DES-060
     """
 
     ## @brief Canonical CLI name.
     cli: str
     ## @brief Number of installed skill directories.
     skills: int
+    ## @brief Sorted installed skill directory names.
+    skill_names: tuple[str, ...]
     ## @brief Number of installed prompt files.
     prompts: int
     ## @brief Sorted installed prompt filenames.
@@ -147,7 +150,7 @@ def install_target(
     @return {InstallSummary} Installed skill and prompt counts.
     @throws {InstallError} When a manifest-listed source path is missing.
     @throws {OSError} When copying, pruning, or directory creation fails.
-    @satisfies REQ-029 REQ-030 DES-055 DES-056 DES-057 DES-059 DES-061 DES-062
+    @satisfies REQ-029 REQ-030 REQ-057 DES-055 DES-056 DES-057 DES-059 DES-061 DES-062
     """
     skills = _skill_directories(resources_root, catalog.get("skills", []))
     prompts = _prompt_files(resources_root, catalog.get("prompts", []))
@@ -156,6 +159,7 @@ def install_target(
     return InstallSummary(
         cli=target.name,
         skills=skill_count,
+        skill_names=tuple(sorted(path.name for path in skills)),
         prompts=len(prompt_files),
         prompt_files=tuple(prompt_files),
     )
