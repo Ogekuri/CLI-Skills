@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0](https://github.com/Ogekuri/SKILLs/compare/v0.4.0..v0.5.0) - 2026-11-03
+### 🐛  Bug Fixes
+- harden bootstrap validation, cache semantics, verification bounds [useReq] *(astra-uv-project)*
+  - PHASE 0: validation gate for keyword values (name/path/URL safety); invalid input causes no writes; data-not-code substitution with TOML escaping (DES-015, DES-028-033)
+  - PHASE 1: gate precondition and project-root path confinement for all writes and renames
+  - PHASE 4: explicit last-success/idle-time semantics; failure at t sets expiry t+86400 preserving prior successful timestamps or null (DES-043-046)
+  - Verification: separate build and execution checks with finite timeouts and PASS/FAIL/TIMEOUT/SKIPPED outcomes (DES-076)
+
+### 🚜  Changes
+- list installed skill and prompt names per CLI after upgrade [useReq] *(install)*
+  - Requirements: add REQ-057 (install lists installed skill names and prompt filenames per CLI) and REQ-058 (chained install report surfaces as --upgrade output)
+  - installer: InstallSummary carries sorted skill_names; install_target populates it
+  - core: _install prints per-CLI installed names alongside counts; docstrings map REQ-057/REQ-058
+  - WORKFLOW/REFERENCES updated for the new reporting surface
+
 ## [0.4.0](https://github.com/Ogekuri/SKILLs/compare/v0.3.0..v0.4.0) - 2026-11-02
 ### ⛰️  Features
 - add uninstall command removing installed skills and prompts [useReq] *(uninstall)*
@@ -92,8 +107,10 @@
 - \[0.2.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.2.0
 - \[0.3.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.3.0
 - \[0.4.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.4.0
+- \[0.5.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.5.0
 
 [0.1.0]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/SKILLs/compare/v0.1.0..v0.2.0
 [0.3.0]: https://github.com/Ogekuri/SKILLs/compare/v0.2.0..v0.3.0
 [0.4.0]: https://github.com/Ogekuri/SKILLs/compare/v0.3.0..v0.4.0
+[0.5.0]: https://github.com/Ogekuri/SKILLs/compare/v0.4.0..v0.5.0
