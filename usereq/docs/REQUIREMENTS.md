@@ -38,7 +38,7 @@ Assumptions:
 - **PRJ-003**: MUST support local execution through `scripts/cli-skills.sh`.
 - **PRJ-004**: MUST support installation using Astral uv and on-the-fly execution using uvx.
 - **PRJ-005**: MUST check online for newer releases using a local idle-time cache.
-- **PRJ-006**: MUST distribute LLM agent skills and prompts together with the `skills` program under `src/resources`.
+- **PRJ-006**: MUST distribute LLM agent skills and prompts together with the `cli-skills` program under `src/resources`.
 - **PRJ-007**: MUST maintain skills under `src/resources/skills` and prompts under `src/resources/prompts`.
 - **PRJ-008**: MUST distribute an `astra-uv-project` skill under `src/resources/skills/astra-uv-project` for creating new Astral uv Python projects from scratch.
 - **PRJ-009**: MUST install bundled skills and prompts into user-level configuration directories of supported LLM agent CLIs.
@@ -148,13 +148,14 @@ Assumptions:
 - **DES-079**: MUST publish built distributions to PyPI with `pypa/gh-action-pypi-publish` using OIDC `id-token: write` and no API token, only on `master`.
 - **DES-080**: MUST declare PyPI-compliant package metadata in `pyproject.toml`, including the PEP 639 SPDX license expression and project URLs.
 - **DES-081**: MUST specify Linux execution of `uv tool install %PROGRAM% --force --from git+https://github.com/%OWNER%/%REPOSITORY%.git` for `--upgrade` combined with `--dev` or `--develop`.
-- **DES-082**: MUST treat `--dev` and `--develop` as `--upgrade`-only options selecting the latest GitHub release regardless of its branch.
+- **DES-082**: MUST accept `--dev` and `--develop` only as suffixes of `--upgrade`, selecting the latest GitHub release regardless of its branch.
 - **DES-083**: MUST specify `https://api.github.com/repos/%OWNER%/%REPOSITORY%/releases/latest` as the GitHub latest-release endpoint backing `--ver`, `--version`, and `--dev` upgrades.
 - **DES-084**: MUST build the sdist and wheel with the release workflow build command into a temporary directory in `scripts/pre-release-check.sh`.
 - **DES-085**: MUST validate the built distributions with `twine check` in `scripts/pre-release-check.sh`.
 - **DES-086**: MUST run the unit-test suite through the project-defined uv test command in `scripts/pre-release-check.sh`.
 - **DES-087**: MUST remove every build and test artifact, including the temporary build directory, egg-info directories, and `__pycache__` directories, on success and failure.
 - **DES-088**: MUST verify the PRJ-015 and PRJ-016 gating through a unit test that parses `release-pypi.yml` and checks the test-job dependency and test command.
+- **DES-089**: MUST document in the help template only user-facing usage of the listed commands, without internal-implementation details or legacy-support references.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
@@ -226,7 +227,7 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-030**: MUST print the installed skill and prompt counts for each CLI processed by `install`.
 - **REQ-031**: MUST print an informational message and exit with code 0 when `install` finds no enabled CLI.
 - **REQ-032**: MUST print an error and exit with code 1 when any enabled CLI installation fails.
-- **REQ-033**: MUST provide command-specific help for `enable`, `disable`, `install`, and `uninstall` with `--help`.
+- **REQ-033**: MUST provide command-specific help for `enable`, `disable`, `install`, and `uninstall` when invoked as `<command> --help`.
 - **REQ-034**: MUST print the full help template containing `enable`, `disable`, `install`, `uninstall`, and `show` when invoked without parameters or with `--help` alone.
 - **REQ-035**: MUST terminate installation for a CLI with an error when a manifest-listed source path is missing.
 - **REQ-036**: MUST provide command-specific help for `show` when invoked as `show --help`.
@@ -258,6 +259,7 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-062**: MUST report on the `GitHub latest:` line the same release that `--upgrade` with `--dev` installs.
 - **REQ-063**: MUST execute `uv tool install cli-skills --force --from git+https://github.com/Ogekuri/CLI-Skills.git` for `--upgrade --dev` and `--upgrade --develop` on Linux.
 - **REQ-064**: MUST treat `--dev` or `--develop` without `--upgrade` as an unknown command with exit code 2.
+- **REQ-065**: MUST treat `--help` before a command name, or `--dev` or `--develop` before `--upgrade`, as an unknown command with exit code 2.
 
 Full help template: substitute `cli-skills` for `%PROGRAM%` and the installed version for `x.y.z`; retain all other text and spacing.
 

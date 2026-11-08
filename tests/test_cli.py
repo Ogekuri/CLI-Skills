@@ -102,7 +102,7 @@ class CliTests(unittest.TestCase):
         with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core.subprocess, "run") as run:
             run.return_value.returncode = 0
             self.assertEqual(core.main(["--upgrade", "--dev"]), 7)
-            self.assertEqual(core.main(["--develop", "--upgrade"]), 7)
+            self.assertEqual(core.main(["--upgrade", "--develop"]), 7)
         self.assertEqual(run.call_args.args[0], core.UPGRADE_DEVELOP)
         chained.assert_called_with()
 
@@ -118,6 +118,22 @@ class CliTests(unittest.TestCase):
         with patch.object(core, "check_version"), contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(core.main(["--dev"]), 2)
             self.assertEqual(core.main(["--develop"]), 2)
+
+    def test_legacy_argument_orders_are_rejected(self):
+        """
+        @brief Verify legacy argument orders are rejected as usage errors.
+        @details Asserts exit code 2 for `--help` preceding a command name and
+                 for `--dev`/`--develop` preceding `--upgrade`; only the
+                 canonical `<command> --help` and `--upgrade --dev` forms
+                 dispatch.
+        @return {None}
+        @expected_output Exit code 2 for every legacy argument order.
+        @satisfies REQ-065
+        """
+        with patch.object(core, "check_version"), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(core.main(["--help", "show"]), 2)
+            self.assertEqual(core.main(["--dev", "--upgrade"]), 2)
+            self.assertEqual(core.main(["--develop", "--upgrade"]), 2)
 
 
 if __name__ == "__main__":

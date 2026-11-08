@@ -136,7 +136,7 @@ canonical support layout.
 
 ---
 
-# core.py | Python | 458L | 23 symbols | 14 imports | 21 comments
+# core.py | Python | 459L | 23 symbols | 14 imports | 21 comments
 > Path: `src/cli_skills/core.py`
 
 ## Imports
@@ -280,12 +280,12 @@ installs its bundled skills and prompts into every enabled CLI.
 - @throws {OSError} When bundled resources or the configuration cannot be read.
 - @satisfies REQ-037 REQ-038 REQ-039 REQ-042
 
-### fn `def main(argv: list[str] | None = None) -> int` (L384-459)
+### fn `def main(argv: list[str] | None = None) -> int` (L384-460)
 - @brief Run the automatic release check and dispatch one CLI command.
 - @details Executes `check_version` before argument parsing (forced by `--ver` or `--version`), then routes to help, version, management, enable/disable, install, uninstall, or show handlers. The `--upgrade` branch with or without `--dev` chains `cli-skills install` after a successful Linux upgrade when the enabled configuration is non-empty and returns the chained exit code. The `--ver` and `--version` branch prints the installed version plus the PyPI and GitHub latest-version lines.
 - @param argv {list[str] | None} Command-line arguments; defaults to `sys.argv[1:]`.
 - @return {int} Process exit code: 0 on success; 1 on upgrade or install failure; 2 on usage errors.
-- @satisfies REQ-006 REQ-007 REQ-008 REQ-009 REQ-010 REQ-011 REQ-012 REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029 REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044 REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057 REQ-058 REQ-059 REQ-060 REQ-061 REQ-062 REQ-063 REQ-064
+- @satisfies REQ-006 REQ-007 REQ-008 REQ-009 REQ-010 REQ-011 REQ-012 REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029 REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044 REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057 REQ-058 REQ-059 REQ-060 REQ-061 REQ-062 REQ-063 REQ-064 REQ-065 DES-089
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -312,7 +312,7 @@ installs its bundled skills and prompts into every enabled CLI.
 |`_install`|fn|priv|316-345|def _install(home: Path | None = None) -> int|
 |`_uninstall`|fn|priv|346-370|def _uninstall(home: Path | None = None) -> int|
 |`_show`|fn|priv|371-383|def _show(home: Path | None = None) -> int|
-|`main`|fn|pub|384-459|def main(argv: list[str] | None = None) -> int|
+|`main`|fn|pub|384-460|def main(argv: list[str] | None = None) -> int|
 
 
 ---
@@ -854,7 +854,7 @@ prompt files under `$HOME/.claude/commands`.
 > Path: `src/resources/__init__.py`
 - @brief Mark `resources` as the bundled skills and prompts distribution package.
 - @details Provides an importable namespace for the `src/resources` data tree so
-setuptools packages it with the `skills` distribution and downstream
+setuptools packages it with the `cli-skills` distribution and downstream
 LLM agents can resolve bundled artifacts via `importlib.resources`.
 - @satisfies PRJ-006 PRJ-007 DES-020
 

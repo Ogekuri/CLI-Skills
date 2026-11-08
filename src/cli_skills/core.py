@@ -401,14 +401,15 @@ def main(argv: list[str] | None = None) -> int:
                REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044
                REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057
                REQ-058 REQ-059 REQ-060 REQ-061 REQ-062 REQ-063 REQ-064
+               REQ-065 DES-089
     """
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)
     if not args or args == ["--help"]:
         print(HELP)
         return 0
-    if len(args) == 2 and "--help" in args:
-        command = args[0] if args[1] == "--help" else args[1]
+    if len(args) == 2 and args[1] == "--help":
+        command = args[0]
         descriptions = {
             "--upgrade": "Reinstall cli-skills on Linux; print manual command elsewhere.",
             "--uninstall": "Uninstall cli-skills on Linux; print manual command elsewhere.",
@@ -437,7 +438,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args == ["--upgrade"]:
         return _run_upgrade(UPGRADE)
-    if args in (["--upgrade", "--dev"], ["--upgrade", "--develop"], ["--dev", "--upgrade"], ["--develop", "--upgrade"]):
+    if args in (["--upgrade", "--dev"], ["--upgrade", "--develop"]):
         return _run_upgrade(UPGRADE_DEVELOP)
     if args == ["--uninstall"]:
         return _manage(UNINSTALL)
