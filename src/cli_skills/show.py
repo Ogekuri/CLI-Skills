@@ -1,7 +1,7 @@
 """
 @file show.py
 @brief Render packaged resource inventory, CLI configuration, and installation status.
-@details Builds three deterministic ASCII tables: bundled skills from
+@details Builds three deterministic box-drawing-bordered tables: bundled skills from
          the manifest, every supported CLI with enabled state and home-relative
          skills path, and a per-skill per-enabled-CLI installation status
          derived from destination-directory scans.
@@ -67,10 +67,12 @@ def render_table(
     max_width: int = MAX_CELL_WIDTH,
 ) -> str:
     """
-    @brief Render an ASCII grid table with aligned and wrapped cells.
-    @details Column widths are the longest cell capped by `max_width`; every
-             row is emitted between `+---+` borders and multi-line cells are
-             padded to the row height.
+    @brief Render a box-drawing-bordered grid table with aligned and wrapped cells.
+    @details Column widths are the longest cell capped by `max_width`; the
+             header opens with a `┌─┬┐` border and closes with an `├─┼┤`
+             separator, rows are emitted between `│` verticals, and the table
+             ends with a `└─┴┘` border. Multi-line cells are padded to the row
+             height.
     @param headers {Sequence[str]} Column header labels.
     @param rows {Iterable[Sequence[str]]} Row cell values; short rows are padded.
     @param max_width {int} Maximum column width in characters.
@@ -84,7 +86,13 @@ def render_table(
         lengths = [len(str(headers[index]))]
         lengths.extend(len(row[index]) for row in data if index < len(row))
         widths.append(max(1, min(max(lengths), max(1, max_width))))
-    border = "+" + "+".join("-" * (width + 2) for width in widths) + "+"
+
+    def border(left: str, middle: str, right: str) -> str:
+        return left + middle.join("─" * (width + 2) for width in widths) + right
+
+    top = border("┌", "┬", "┐")
+    separator = border("├", "┼", "┤")
+    bottom = border("└", "┴", "┘")
 
     def render(cells: Sequence[str]) -> list[str]:
         wrapped = [
@@ -99,16 +107,16 @@ def render_table(
                 for index in range(columns)
             ]
             lines.append(
-                "| "
-                + " | ".join(part.ljust(widths[index]) for index, part in enumerate(parts))
-                + " |"
+                "│ "
+                + " │ ".join(part.ljust(widths[index]) for index, part in enumerate(parts))
+                + " │"
             )
         return lines
 
-    lines = [border, *render(list(headers)), border]
+    lines = [top, *render(list(headers)), separator]
     for row in data:
         lines.extend(render(row))
-        lines.append(border)
+    lines.append(bottom)
     return "\n".join(lines)
 
 

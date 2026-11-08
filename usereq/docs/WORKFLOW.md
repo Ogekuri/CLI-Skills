@@ -108,7 +108,7 @@
           - `config_path(home)`: resolve configuration file path [`src/cli_skills/settings.py`]
           - `_unique_strings(value)`: normalize enabled CLI names [`src/cli_skills/settings.py`]
         - `_resource_rows(catalog)`: build packaged resource inventory rows [`src/cli_skills/show.py`]
-        - `render_table(...)`: render wrapped ASCII inventory table [`src/cli_skills/show.py`]
+        - `render_table(...)`: render wrapped box-drawing inventory table [`src/cli_skills/show.py`]
           - `_wrap(text, width)`: wrap cell text to column width [`src/cli_skills/show.py`]
         - `_cli_rows(config, home)`: build CLI enabled-state and home-relative skills path rows [`src/cli_skills/show.py`]
           - `resolve_home(home)`: resolve the home root used to relativize skills paths [`src/cli_skills/targets.py`]

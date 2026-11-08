@@ -129,7 +129,7 @@ Assumptions:
 - **DES-063**: MUST create missing destination directories before copying skill files.
 - **DES-064**: MUST continue installation for remaining enabled CLIs after an adapter installation failure.
 - **DES-065**: MUST implement the `show` report in a dedicated `src/cli_skills/show.py` module exposing table rendering and a home-directory override.
-- **DES-066**: MUST render every `show` table with aligned ASCII borders and word-wrapped cell content.
+- **DES-066**: MUST render every `show` table with box-drawing borders using `┌ ─ ┬ ┐ │ ├ ┼ ┤ └ ┴ ┘` and word-wrapped cell content.
 - **DES-067**: MUST organize every skill support file under exactly one canonical subdirectory of the skill directory: `scripts`, `references`, `assets`, or `images`.
 - **DES-068**: MUST place shell and Python scripts for a skill under its `scripts` subdirectory.
 - **DES-069**: MUST place Markdown support files for a skill under its `references` subdirectory.

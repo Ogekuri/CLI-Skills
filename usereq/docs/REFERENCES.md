@@ -488,10 +488,10 @@ from typing import Any
 
 ---
 
-# show.py | Python | 281L | 13 symbols | 6 imports | 13 comments
+# show.py | Python | 289L | 14 symbols | 6 imports | 13 comments
 > Path: `src/cli_skills/show.py`
 - @brief Render packaged resource inventory, CLI configuration, and installation status.
-- @details Builds three deterministic ASCII tables: bundled skills from
+- @details Builds three deterministic box-drawing-bordered tables: bundled skills from
 the manifest, every supported CLI with enabled state and home-relative
 skills path, and a per-skill per-enabled-CLI installation status
 derived from destination-directory scans.
@@ -527,27 +527,31 @@ from .targets import TARGETS, resolve_home
 
 ### fn `def render_table(` (L64-67)
 
-### fn `def render(cells: Sequence[str]) -> list[str]` (L89-107)
-- @brief Render an ASCII grid table with aligned and wrapped cells.
-- @details Column widths are the longest cell capped by `max_width`; every
-row is emitted between `+---+` borders and multi-line cells are
-padded to the row height.
+### fn `def border(left: str, middle: str, right: str) -> str` (L90-92)
+- @brief Render a box-drawing-bordered grid table with aligned and wrapped cells.
+- @details Column widths are the longest cell capped by `max_width`; the
+header opens with a `┌─┬┐` border and closes with an `├─┼┤`
+separator, rows are emitted between `│` verticals, and the table
+ends with a `└─┴┘` border. Multi-line cells are padded to the row
+height.
 - @param headers {Sequence[str]} Column header labels.
 - @param rows {Iterable[Sequence[str]]} Row cell values; short rows are padded.
 - @param max_width {int} Maximum column width in characters.
 - @return {str} Rendered table text without trailing newline.
 - @satisfies DES-066
 
-### fn `def _resource_rows(` `priv` (L115-116)
+### fn `def render(cells: Sequence[str]) -> list[str]` (L97-115)
 
-### fn `def _cli_rows(` `priv` (L138-140)
+### fn `def _resource_rows(` `priv` (L123-124)
+
+### fn `def _cli_rows(` `priv` (L146-148)
 - @brief Build inventory rows from manifest catalog entries.
 - @details Emits skills preserving manifest entry order.
 - @param catalog {dict[str, list[dict[str, str]]]} Manifest catalog.
 - @return {list[tuple[str, str, str, str]]} `(type, name, file, description)` rows.
 - @satisfies REQ-037
 
-### fn `def _files_match(source: Path, destination: Path) -> str` `priv` (L165-183)
+### fn `def _files_match(source: Path, destination: Path) -> str` `priv` (L173-191)
 - @brief Build CLI configuration rows from the adapter registry.
 - @brief Compare one packaged file with its installed destination file.
 - @details Reports registry order, enabled state, and the home-relative
@@ -561,7 +565,7 @@ skills destination.
 - @satisfies REQ-038
 - @satisfies REQ-040
 
-### fn `def _skill_status(source: Path, destination: Path) -> str` `priv` (L184-207)
+### fn `def _skill_status(source: Path, destination: Path) -> str` `priv` (L192-215)
 - @brief Compare a packaged skill directory with its installed copy.
 - @details Every packaged regular file must exist in the destination with identical bytes.
 - @param source {Path} Packaged skill directory.
@@ -569,9 +573,9 @@ skills destination.
 - @return {str} `OK` when all files match; `MISSING` when the package or a destination file is absent; `STALE` on content mismatch.
 - @satisfies REQ-040
 
-### fn `def _install_rows(` `priv` (L208-211)
+### fn `def _install_rows(` `priv` (L216-219)
 
-### fn `def build_show(home: Path | None = None) -> str` (L248-282)
+### fn `def build_show(home: Path | None = None) -> str` (L256-290)
 - @brief Build per-skill per-enabled-CLI installation status rows.
 - @brief Build the complete `show` report text.
 - @details Scans adapter destination directories for each manifest skill
@@ -598,13 +602,14 @@ installed)` rows.
 |`STATUS_STALE`|var|pub|27||
 |`_wrap`|fn|priv|30-63|def _wrap(text: str, width: int) -> list[str]|
 |`render_table`|fn|pub|64-67|def render_table(|
-|`render`|fn|pub|89-107|def render(cells: Sequence[str]) -> list[str]|
-|`_resource_rows`|fn|priv|115-116|def _resource_rows(|
-|`_cli_rows`|fn|priv|138-140|def _cli_rows(|
-|`_files_match`|fn|priv|165-183|def _files_match(source: Path, destination: Path) -> str|
-|`_skill_status`|fn|priv|184-207|def _skill_status(source: Path, destination: Path) -> str|
-|`_install_rows`|fn|priv|208-211|def _install_rows(|
-|`build_show`|fn|pub|248-282|def build_show(home: Path | None = None) -> str|
+|`border`|fn|pub|90-92|def border(left: str, middle: str, right: str) -> str|
+|`render`|fn|pub|97-115|def render(cells: Sequence[str]) -> list[str]|
+|`_resource_rows`|fn|priv|123-124|def _resource_rows(|
+|`_cli_rows`|fn|priv|146-148|def _cli_rows(|
+|`_files_match`|fn|priv|173-191|def _files_match(source: Path, destination: Path) -> str|
+|`_skill_status`|fn|priv|192-215|def _skill_status(source: Path, destination: Path) -> str|
+|`_install_rows`|fn|priv|216-219|def _install_rows(|
+|`build_show`|fn|pub|256-290|def build_show(home: Path | None = None) -> str|
 
 
 ---
