@@ -46,6 +46,7 @@ Assumptions:
 - **PRJ-011**: MUST remove installed bundled skills and prompts from enabled CLI destinations through the `uninstall` command.
 - **PRJ-012**: MUST publish the `cli-skills` package to PyPI through OIDC Trusted Publishing from the `release-pypi.yml` workflow.
 - **PRJ-013**: MUST run every release-workflow step for a tagged version on any branch and publish to PyPI only when the tag is on `master`.
+- **PRJ-014**: MUST provide `scripts/pre-release-check.sh` running build, metadata, and unit-test checks required before an official release.
 
 ### 2.2 Project Constraints
 
@@ -147,6 +148,10 @@ Assumptions:
 - **DES-081**: MUST specify Linux execution of `uv tool install %PROGRAM% --force --from git+https://github.com/%OWNER%/%REPOSITORY%.git` for `--upgrade` combined with `--dev` or `--develop`.
 - **DES-082**: MUST treat `--dev` and `--develop` as `--upgrade`-only options selecting the latest GitHub release regardless of its branch.
 - **DES-083**: MUST specify `https://api.github.com/repos/%OWNER%/%REPOSITORY%/releases/latest` as the GitHub latest-release endpoint backing `--ver`, `--version`, and `--dev` upgrades.
+- **DES-084**: MUST build the sdist and wheel with the release workflow build command into a temporary directory in `scripts/pre-release-check.sh`.
+- **DES-085**: MUST validate the built distributions with `twine check` in `scripts/pre-release-check.sh`.
+- **DES-086**: MUST run the unit-test suite through the project-defined uv test command in `scripts/pre-release-check.sh`.
+- **DES-087**: MUST remove every build and test artifact, including the temporary build directory, egg-info directories, and `__pycache__` directories, on success and failure.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
