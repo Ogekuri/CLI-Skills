@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.6.0..v0.7.0) - 2026-11-08
+### 🐛  Bug Fixes
+- pin astral-sh/setup-uv to published v9.0.0 [useReq] *(release)*
+  - The v10 major tag does not exist upstream, so the runner failed action
+  - resolution and blocked the unit-tests job and the whole release pipeline.
+  - Pin both setup-uv steps to v9.0.0 (newest published tag, node24 runtime;
+  - full semver because majors 8-9 have no floating major tag) satisfying CTN-010.
+  - Correct the DES-077 Node24 policy minimum for setup-uv to v7.0.0, the
+  - verified first node24 release (v6.8.0 is node20).
+  - Add reproducer test asserting every setup-uv pin and the policy minimum
+  - resolve against the verified upstream published tag set.
+
 ## [0.6.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.5.0..v0.6.0) - 2026-11-08
 ### 🚜  Changes
 - BREAKING CHANGE: remove legacy argument orders and legacy program naming [useReq] *(cli)*
@@ -175,6 +187,7 @@
 - \[0.4.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.4.0
 - \[0.5.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.5.0
 - \[0.6.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.6.0
+- \[0.7.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.7.0
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -182,3 +195,4 @@
 [0.4.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.3.0..v0.4.0
 [0.5.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.4.0..v0.5.0
 [0.6.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.5.0..v0.6.0
+[0.7.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.6.0..v0.7.0
