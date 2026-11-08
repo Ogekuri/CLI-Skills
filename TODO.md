@@ -2,10 +2,16 @@
 
 ## Version 1.0.0
 
+### Pre-Alpha Stage
+#### Todo List ✓
+- [x] Initial Pre-Alpha release
+- [x] Pre-Alpha developments
+- [ ] Alpha stage release
+
 ### Alpha Stage
 #### Todo List ✓
-- [x] Initial alpha release
-- [x] Alpha developments
+- [ ] Initial alpha release
+- [ ] Alpha developments
 - [ ] Testing and bug fixes
 - [ ] Beta stage release
 
@@ -14,7 +20,8 @@
 - [ ] Testing and bug fixes
 - [ ] Release RC stage version
 
-### Release Candidate Stage
+### Release-Candidate (RC) Stage
 #### Todo List ✓
 - [ ] Check documentation
 - [ ] Release version 1.0.0
+
