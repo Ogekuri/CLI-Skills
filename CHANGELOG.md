@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0) - 2026-11-08
+### 🐛  Bug Fixes
+- replace invalid trove classifier blocking PyPI upload [useReq] *(metadata)*
+  - PyPI rejected the 0.7.0 upload with HTTP 400 because
+  - 'Topic :: Software Development :: Configuration Management' is not an
+  - official trove classifier (0 occurrences in pypi.org/classifiers/).
+  - Replace it with its valid direct parent 'Topic :: Software Development'
+  - so project metadata satisfies DES-080 and unblocks PRJ-012/DES-079.
+  - Add HDT Level-0 reproducer suite tests/test_pyproject_classifiers.py
+  - validating every declared classifier against a verified official
+  - trove snapshot; suite runs offline and deterministically.
+
 ## [0.7.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.6.0..v0.7.0) - 2026-11-08
 ### 🐛  Bug Fixes
 - pin astral-sh/setup-uv to published v9.0.0 [useReq] *(release)*
@@ -188,6 +200,7 @@
 - \[0.5.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.5.0
 - \[0.6.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.6.0
 - \[0.7.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.7.0
+- \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -196,3 +209,4 @@
 [0.5.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.4.0..v0.5.0
 [0.6.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.5.0..v0.6.0
 [0.7.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.6.0..v0.7.0
+[0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
