@@ -2,32 +2,21 @@
 ```
 .
 └── src
-    ├── resources
-    │   └── __init__.py
-    └── skills
-        ├── __init__.py
-        ├── __main__.py
-        ├── catalog.py
-        ├── core.py
-        ├── installer.py
-        ├── settings.py
-        ├── show.py
-        └── targets.py
+    ├── cli_skills
+    │   ├── __init__.py
+    │   ├── __main__.py
+    │   ├── catalog.py
+    │   ├── core.py
+    │   ├── installer.py
+    │   ├── settings.py
+    │   ├── show.py
+    │   └── targets.py
+    └── resources
+        └── __init__.py
 ```
 
-# __init__.py | Python | 8L | 0 symbols | 0 imports | 1 comments
-> Path: `src/resources/__init__.py`
-- @brief Mark `resources` as the bundled skills and prompts distribution package.
-- @details Provides an importable namespace for the `src/resources` data tree so
-setuptools packages it with the `skills` distribution and downstream
-LLM agents can resolve bundled artifacts via `importlib.resources`.
-- @satisfies PRJ-006 PRJ-007 DES-020
-
-
----
-
 # __init__.py | Python | 13L | 0 symbols | 1 imports | 7 comments
-> Path: `src/skills/__init__.py`
+> Path: `src/cli_skills/__init__.py`
 
 ## Imports
 ```
@@ -38,7 +27,7 @@ from .core import main  # noqa: F401
 ---
 
 # __main__.py | Python | 11L | 0 symbols | 2 imports | 5 comments
-> Path: `src/skills/__main__.py`
+> Path: `src/cli_skills/__main__.py`
 
 ## Imports
 ```
@@ -50,7 +39,7 @@ import sys
 ---
 
 # catalog.py | Python | 190L | 11 symbols | 4 imports | 12 comments
-> Path: `src/skills/catalog.py`
+> Path: `src/cli_skills/catalog.py`
 - @brief Generate the skills and prompts manifest for `src/resources`.
 - @details Deterministic generator for `src/resources/manifest.json`. Recursively
 scans `src/resources/skills` for `SKILL.md` files and
@@ -148,7 +137,7 @@ canonical support layout.
 ---
 
 # core.py | Python | 347L | 17 symbols | 14 imports | 11 comments
-> Path: `src/skills/core.py`
+> Path: `src/cli_skills/core.py`
 
 ## Imports
 ```
@@ -170,12 +159,12 @@ from .targets import TARGETS, resolve_target
 
 ## Definitions
 
-- var `ENDPOINT = "https://api.github.com/repos/Ogekuri/SKILLs/releases/latest"` (L20)
-- var `UPGRADE = ["uv", "tool", "install", "skills", "--force", "--from", "git+https://github.com/Ogekuri/SKILLs.git"]` (L21)
-- var `UNINSTALL = ["uv", "tool", "uninstall", "skills"]` (L22)
-- var `SKILLS_INSTALL = ["skills", "install"]` (L23)
+- var `ENDPOINT = "https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest"` (L20)
+- var `UPGRADE = ["uv", "tool", "install", "cli-skills", "--force", "--from", "git+https://github.com/Ogekuri/CLI-Skills.git"]` (L21)
+- var `UNINSTALL = ["uv", "tool", "uninstall", "cli-skills"]` (L22)
+- var `SKILLS_INSTALL = ["cli-skills", "install"]` (L23)
 ### fn `def cache_path() -> Path` (L52-55)
-- @brief Child `skills install` command executed after a successful upgrade.
+- @brief Child `cli-skills install` command executed after a successful upgrade.
 - @details Spawned by `_post_upgrade_install` so the freshly upgraded package
 installs its bundled skills and prompts into every enabled CLI.
 - @satisfies REQ-043
@@ -189,10 +178,10 @@ installs its bundled skills and prompts into every enabled CLI.
 ### fn `def _manage(command: list[str]) -> int` `priv` (L115-125)
 
 ### fn `def _post_upgrade_install(home: Path | None = None) -> int` `priv` (L126-150)
-- @brief Install bundled resources through `skills install` after a successful upgrade.
-- @details Loads the user configuration and, when at least one CLI is enabled, spawns `skills install` as a child process so the freshly upgraded package synchronizes its bundled skills and prompts into every enabled CLI. Skips the child process when the enabled configuration is empty. The child reads the upgraded package resources, not the running process ones. The child inherits stdout, so its per-CLI count and installed-name report surfaces as visible `--upgrade` output.
+- @brief Install bundled resources through `cli-skills install` after a successful upgrade.
+- @details Loads the user configuration and, when at least one CLI is enabled, spawns `cli-skills install` as a child process so the freshly upgraded package synchronizes its bundled skills and prompts into every enabled CLI. Skips the child process when the enabled configuration is empty. The child reads the upgraded package resources, not the running process ones. The child inherits stdout, so its per-CLI count and installed-name report surfaces as visible `--upgrade` output.
 - @param home {Path | None} Optional home-directory override used only for the configuration read; the child process inherits the real environment.
-- @return {int} 0 when no CLI is enabled; otherwise the `skills install` exit code (1 on spawn or installation failure).
+- @return {int} 0 when no CLI is enabled; otherwise the `cli-skills install` exit code (1 on spawn or installation failure).
 - @throws {OSError} When reading the configuration file fails.
 - @satisfies REQ-043 REQ-044 REQ-046 REQ-058
 
@@ -245,7 +234,7 @@ installs its bundled skills and prompts into every enabled CLI.
 
 ### fn `def main(argv: list[str] | None = None) -> int` (L283-348)
 - @brief Run the automatic release check and dispatch one CLI command.
-- @details Executes `check_version` before argument parsing (forced by `--ver` or `--version`), then routes to help, version, management, enable/disable, install, uninstall, or show handlers. The `--upgrade` branch chains `skills install` after a successful Linux upgrade when the enabled configuration is non-empty and returns the chained exit code.
+- @details Executes `check_version` before argument parsing (forced by `--ver` or `--version`), then routes to help, version, management, enable/disable, install, uninstall, or show handlers. The `--upgrade` branch chains `cli-skills install` after a successful Linux upgrade when the enabled configuration is non-empty and returns the chained exit code.
 - @param argv {list[str] | None} Command-line arguments; defaults to `sys.argv[1:]`.
 - @return {int} Process exit code: 0 on success; 1 on upgrade or install failure; 2 on usage errors.
 - @satisfies REQ-006 REQ-007 REQ-008 REQ-009 REQ-010 REQ-011 REQ-012 REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029 REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044 REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057 REQ-058
@@ -275,7 +264,7 @@ installs its bundled skills and prompts into every enabled CLI.
 ---
 
 # installer.py | Python | 292L | 9 symbols | 7 imports | 18 comments
-> Path: `src/skills/installer.py`
+> Path: `src/cli_skills/installer.py`
 - @brief Orchestrate skill and prompt installation for enabled CLI targets.
 - @details Builds the bundled resource catalog, resolves manifest skill
 directories and prompt files, invokes the configured CLI adapters,
@@ -398,10 +387,10 @@ filenames for this CLI.
 ---
 
 # settings.py | Python | 105L | 5 symbols | 4 imports | 8 comments
-> Path: `src/skills/settings.py`
+> Path: `src/cli_skills/settings.py`
 - @brief Persist enabled CLI targets and installed prompt records.
 - @details User configuration is a JSON object stored at
-`$HOME/.config/skills/config.json` with the schema
+`$HOME/.config/cli-skills/config.json` with the schema
 `{"enabled": ["<cli>", ...], "prompts": {"<cli>": ["<file>", ...]}}`.
 Loading tolerates missing, unreadable, or malformed content by
 returning normalized defaults.
@@ -417,13 +406,13 @@ from typing import Any
 
 ## Definitions
 
-- var `CONFIG_RELATIVE = Path(".config") / "skills" / "config.json"` (L21)
+- var `CONFIG_RELATIVE = Path(".config") / "cli-skills" / "config.json"` (L21)
 - @brief Configuration path relative to the user home directory.
-- @details `$HOME` + `.config/skills/config.json`.
+- @details `$HOME` + `.config/cli-skills/config.json`.
 - @satisfies DES-047
 ### fn `def config_path(home: Path | None = None) -> Path` (L24-35)
 - @brief Resolve the user configuration file path.
-- @details Joins the effective home directory with `.config/skills/config.json`.
+- @details Joins the effective home directory with `.config/cli-skills/config.json`.
 - @param home {Path | None} Optional home-directory override.
 - @return {Path} Configuration file path.
 - @satisfies DES-047
@@ -466,7 +455,7 @@ from typing import Any
 ---
 
 # show.py | Python | 297L | 14 symbols | 6 imports | 14 comments
-> Path: `src/skills/show.py`
+> Path: `src/cli_skills/show.py`
 - @brief Render packaged resource inventory, CLI configuration, and installation status.
 - @details Builds three deterministic ASCII tables: bundled skills and prompts from
 the manifest, every supported CLI with enabled state and home-relative
@@ -592,7 +581,7 @@ installed)` rows.
 ---
 
 # targets.py | Python | 351L | 22 symbols | 5 imports | 27 comments
-> Path: `src/skills/targets.py`
+> Path: `src/cli_skills/targets.py`
 - @brief Provide per-CLI skill and prompt installation adapters.
 - @details Defines the `CliTarget` abstraction and one concrete adapter for each
 supported CLI: `pi`, `openclaw`, `codex`, `antigravity`, and `claude`.
@@ -803,4 +792,15 @@ prompt files under `$HOME/.claude/commands`.
 |`ClaudeTarget.skills_dir`|fn|pub|308-316|def skills_dir(self, home: Path | None = None) -> Path|
 |`ClaudeTarget.prompts_dir`|fn|pub|317-326|def prompts_dir(self, home: Path | None = None) -> Path|
 |`resolve_target`|fn|pub|342-352|def resolve_target(name: str) -> CliTarget | None|
+
+
+---
+
+# __init__.py | Python | 8L | 0 symbols | 0 imports | 1 comments
+> Path: `src/resources/__init__.py`
+- @brief Mark `resources` as the bundled skills and prompts distribution package.
+- @details Provides an importable namespace for the `src/resources` data tree so
+setuptools packages it with the `skills` distribution and downstream
+LLM agents can resolve bundled artifacts via `importlib.resources`.
+- @satisfies PRJ-006 PRJ-007 DES-020
 

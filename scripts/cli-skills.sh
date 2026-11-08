@@ -75,9 +75,9 @@ UV_TOOL="uv"
 
 ###############################################################################
 ## @brief Delegate CLI execution to Astral uv runtime.
-## @details Executes `uv run --project <BASE_DIR> python -m skills` and
+## @details Executes `uv run --project <BASE_DIR> python -m cli_skills` and
 ##          forwards all user CLI arguments unchanged. No `.venv` bootstrap,
 ##          activation, or pip installation logic is used.
 ## @satisfies CTN-002 CPT-005 CPT-002
 ###############################################################################
-exec "${UV_TOOL}" run --project "${BASE_DIR}" python -m skills "$@"
+exec "${UV_TOOL}" run --project "${BASE_DIR}" python -m cli_skills "$@"

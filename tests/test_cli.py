@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
 
-from skills import core
+from cli_skills import core
 
 
 class CliTests(unittest.TestCase):
@@ -27,9 +27,9 @@ class CliTests(unittest.TestCase):
     def release(self, tag):
         return io.BytesIO(json.dumps({"tag_name": tag}).encode())
 
-    @patch("skills.core.time.time", return_value=1000)
+    @patch("cli_skills.core.time.time", return_value=1000)
     def test_new_version_and_cached_check(self, clock):
-        with patch("skills.core.urlopen", return_value=self.release("v1.2.3")) as request:
+        with patch("cli_skills.core.urlopen", return_value=self.release("v1.2.3")) as request:
             core.check_version()
             core.check_version()
         self.assertEqual(request.call_count, 1)
@@ -39,11 +39,11 @@ class CliTests(unittest.TestCase):
         self.assertEqual(data["idle_time_epoch"], 4600)
         self.assertIn("\x1b[92m", self.err.getvalue())
 
-    @patch("skills.core.time.time", return_value=1000)
+    @patch("cli_skills.core.time.time", return_value=1000)
     def test_failure_preserves_success_and_backs_off(self, clock):
         self.path.write_text(json.dumps({"last_success_epoch": 500, "idle_time_epoch": 999}))
         error = HTTPError(core.ENDPOINT, 429, "Too Many Requests", Message(), None)
-        with patch("skills.core.urlopen", side_effect=error):
+        with patch("cli_skills.core.urlopen", side_effect=error):
             core.check_version()
         data = json.loads(self.path.read_text())
         self.assertEqual(data["last_success_epoch"], 500)
@@ -51,9 +51,9 @@ class CliTests(unittest.TestCase):
         self.assertIn("429", self.err.getvalue())
         self.assertIn("\x1b[91m", self.err.getvalue())
 
-    @patch("skills.core.time.time", return_value=1000)
+    @patch("cli_skills.core.time.time", return_value=1000)
     def test_no_newer_release_is_negative(self, clock):
-        with patch("skills.core.urlopen", return_value=self.release("v0.0.0")):
+        with patch("cli_skills.core.urlopen", return_value=self.release("v0.0.0")):
             core.check_version()
         data = json.loads(self.path.read_text())
         self.assertEqual(data["last_success_epoch"], 1000)
@@ -76,7 +76,7 @@ class CliTests(unittest.TestCase):
         with patch.object(core, "check_version"), patch.object(core.sys, "platform", "darwin"), patch.object(core.subprocess, "run") as run, contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(core.main(["--uninstall"]), 0)
             run.assert_not_called()
-            self.assertIn("uv tool uninstall skills", output.getvalue())
+            self.assertIn("uv tool uninstall cli-skills", output.getvalue())
 
 
 if __name__ == "__main__":

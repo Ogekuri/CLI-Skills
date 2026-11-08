@@ -17,23 +17,23 @@ from .settings import load_config, save_config
 from .show import build_show
 from .targets import TARGETS, resolve_target
 
-ENDPOINT = "https://api.github.com/repos/Ogekuri/SKILLs/releases/latest"
-UPGRADE = ["uv", "tool", "install", "skills", "--force", "--from", "git+https://github.com/Ogekuri/SKILLs.git"]
-UNINSTALL = ["uv", "tool", "uninstall", "skills"]
-SKILLS_INSTALL = ["skills", "install"]
+ENDPOINT = "https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest"
+UPGRADE = ["uv", "tool", "install", "cli-skills", "--force", "--from", "git+https://github.com/Ogekuri/CLI-Skills.git"]
+UNINSTALL = ["uv", "tool", "uninstall", "cli-skills"]
+SKILLS_INSTALL = ["cli-skills", "install"]
 """
-@brief Child `skills install` command executed after a successful upgrade.
+@brief Child `cli-skills install` command executed after a successful upgrade.
 @details Spawned by `_post_upgrade_install` so the freshly upgraded package
          installs its bundled skills and prompts into every enabled CLI.
 @satisfies REQ-043
 """
-HELP = f"""Usage: skills [command] [options] ({__version__})
+HELP = f"""Usage: cli-skills [command] [options] ({__version__})
 
 Management Commands:
-  --upgrade   - Reinstall skills on Linux; print manual command elsewhere.
-  --uninstall - Uninstall skills on Linux; print manual command elsewhere.
-  --ver       - Print the skills version.
-  --version   - Print the skills version.
+  --upgrade   - Reinstall cli-skills on Linux; print manual command elsewhere.
+  --uninstall - Uninstall cli-skills on Linux; print manual command elsewhere.
+  --ver       - Print the cli-skills version.
+  --version   - Print the cli-skills version.
   --help      - Print the full help screen or the help text of a specific command.
 
 Installation Commands:
@@ -50,7 +50,7 @@ Commands:
 
 
 def cache_path() -> Path:
-    return Path.home() / ".cache" / "skills" / "check_version_idle-time.json"
+    return Path.home() / ".cache" / "cli-skills" / "check_version_idle-time.json"
 
 
 def _human(timestamp: float | None) -> str | None:
@@ -84,7 +84,7 @@ def check_version(force: bool = False) -> None:
         last_success = None
     delay = 86400
     try:
-        request = Request(ENDPOINT, headers={"Accept": "application/vnd.github+json", "User-Agent": "skills"})
+        request = Request(ENDPOINT, headers={"Accept": "application/vnd.github+json", "User-Agent": "cli-skills"})
         with urlopen(request, timeout=2) as response:
             release = json.load(response)
         available = release["tag_name"]
@@ -125,10 +125,10 @@ def _manage(command: list[str]) -> int:
 
 def _post_upgrade_install(home: Path | None = None) -> int:
     """
-    @brief Install bundled resources through `skills install` after a
+    @brief Install bundled resources through `cli-skills install` after a
            successful upgrade.
     @details Loads the user configuration and, when at least one CLI is
-             enabled, spawns `skills install` as a child process so the
+             enabled, spawns `cli-skills install` as a child process so the
              freshly upgraded package synchronizes its bundled skills and
              prompts into every enabled CLI. Skips the child process when
              the enabled configuration is empty. The child reads the
@@ -138,7 +138,7 @@ def _post_upgrade_install(home: Path | None = None) -> int:
     @param home {Path | None} Optional home-directory override used only for
             the configuration read; the child process inherits the real
             environment.
-    @return {int} 0 when no CLI is enabled; otherwise the `skills install`
+    @return {int} 0 when no CLI is enabled; otherwise the `cli-skills install`
             exit code (1 on spawn or installation failure).
     @throws {OSError} When reading the configuration file fails.
     @satisfies REQ-043 REQ-044 REQ-046 REQ-058
@@ -226,7 +226,7 @@ def _install(home: Path | None = None) -> int:
     """
     summaries, errors = install_enabled(home)
     if not summaries and not errors:
-        print("No CLI enabled. Use 'skills enable <cli name>' first.")
+        print("No CLI enabled. Use 'cli-skills enable <cli name>' first.")
         return 0
     for summary in summaries:
         print(
@@ -255,7 +255,7 @@ def _uninstall(home: Path | None = None) -> int:
     """
     summaries, errors = uninstall_enabled(home)
     if not summaries and not errors:
-        print("No CLI enabled. Use 'skills enable <cli name>' first.")
+        print("No CLI enabled. Use 'cli-skills enable <cli name>' first.")
         return 0
     for summary in summaries:
         print(
@@ -286,7 +286,7 @@ def main(argv: list[str] | None = None) -> int:
     @details Executes `check_version` before argument parsing (forced by
              `--ver` or `--version`), then routes to help, version,
              management, enable/disable, install, uninstall, or show
-             handlers. The `--upgrade` branch chains `skills install` after
+             handlers. The `--upgrade` branch chains `cli-skills install` after
              a successful Linux upgrade when the enabled configuration is
              non-empty and returns the chained exit code.
     @param argv {list[str] | None} Command-line arguments; defaults to
@@ -307,10 +307,10 @@ def main(argv: list[str] | None = None) -> int:
     if len(args) == 2 and "--help" in args:
         command = args[0] if args[1] == "--help" else args[1]
         descriptions = {
-            "--upgrade": "Reinstall skills on Linux; print manual command elsewhere.",
-            "--uninstall": "Uninstall skills on Linux; print manual command elsewhere.",
-            "--ver": "Print the skills version.",
-            "--version": "Print the skills version.",
+            "--upgrade": "Reinstall cli-skills on Linux; print manual command elsewhere.",
+            "--uninstall": "Uninstall cli-skills on Linux; print manual command elsewhere.",
+            "--ver": "Print the cli-skills version.",
+            "--version": "Print the cli-skills version.",
             "enable": "Enable skill and prompt installation for a supported CLI.",
             "disable": "Disable skill and prompt installation for a supported CLI.",
             "install": "Install skills and prompts for every enabled CLI.",
@@ -331,7 +331,7 @@ def main(argv: list[str] | None = None) -> int:
     if args == ["--uninstall"]:
         return _manage(UNINSTALL)
     if len(args) == 1 and args[0] in ("enable", "disable"):
-        print(f"Usage: skills {args[0]} <cli name>", file=sys.stderr)
+        print(f"Usage: cli-skills {args[0]} <cli name>", file=sys.stderr)
         return 2
     if len(args) == 2 and args[0] == "enable":
         return _enable(args[1])

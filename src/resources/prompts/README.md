@@ -1,6 +1,6 @@
 # Prompts
 
-Bundled LLM agent prompts distributed with the `skills` program under `src/resources/prompts`.
+Bundled LLM agent prompts distributed with the `cli-skills` program under `src/resources/prompts`.
 
 - Language: English.
 - Audience: LLM Agents and automated parsers.

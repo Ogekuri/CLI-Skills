@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0.0", "wheel>=0.41.0", "build>=1.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "skills"
+name = "cli-skills"
 version = "0.5.0"
 description = "Agent skills and prompts."
 readme = "README.md"
@@ -30,11 +30,11 @@ dependencies = [
 dev = ["pytest"]
 
 [project.urls]
-Homepage = "https://github.com/Ogekuri/SKILLs"
-Repository = "https://github.com/Ogekuri/SKILLs"
+Homepage = "https://github.com/Ogekuri/CLI-Skills"
+Repository = "https://github.com/Ogekuri/CLI-Skills"
 
 [project.scripts]
-skills = "skills.core:main"
+cli-skills = "cli_skills.core:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -43,8 +43,8 @@ include-package-data = true
 [tool.setuptools.packages.find]
 namespaces = true
 where = ["src"]
-include = ["skills", "skills.*", "resources", "resources.*"]
+include = ["cli_skills", "cli_skills.*", "resources", "resources.*"]
 
 [tool.setuptools.package-data]
-skills = ["*.py"]
+cli_skills = ["*.py"]
 resources = ["**/*"]

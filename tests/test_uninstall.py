@@ -7,10 +7,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from skills import core, installer
-from skills.installer import InstallError, UninstallSummary
-from skills.settings import load_config, save_config
-from skills.targets import OpenClawTarget, PiTarget
+from cli_skills import core, installer
+from cli_skills.installer import InstallError, UninstallSummary
+from cli_skills.settings import load_config, save_config
+from cli_skills.targets import OpenClawTarget, PiTarget
 
 
 def make_catalog(skills, prompts):

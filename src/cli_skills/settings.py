@@ -2,7 +2,7 @@
 @file settings.py
 @brief Persist enabled CLI targets and installed prompt records.
 @details User configuration is a JSON object stored at
-         `$HOME/.config/skills/config.json` with the schema
+         `$HOME/.config/cli-skills/config.json` with the schema
          `{"enabled": ["<cli>", ...], "prompts": {"<cli>": ["<file>", ...]}}`.
          Loading tolerates missing, unreadable, or malformed content by
          returning normalized defaults.
@@ -16,15 +16,15 @@ from pathlib import Path
 from typing import Any
 
 ## @brief Configuration path relative to the user home directory.
-# @details `$HOME` + `.config/skills/config.json`.
+# @details `$HOME` + `.config/cli-skills/config.json`.
 # @satisfies DES-047
-CONFIG_RELATIVE = Path(".config") / "skills" / "config.json"
+CONFIG_RELATIVE = Path(".config") / "cli-skills" / "config.json"
 
 
 def config_path(home: Path | None = None) -> Path:
     """
     @brief Resolve the user configuration file path.
-    @details Joins the effective home directory with `.config/skills/config.json`.
+    @details Joins the effective home directory with `.config/cli-skills/config.json`.
     @param home {Path | None} Optional home-directory override.
     @return {Path} Configuration file path.
     @satisfies DES-047

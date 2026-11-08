@@ -10,7 +10,7 @@
 > * **No Support or Feature Requests:** Please **do not** open issues, bug reports, or feature requests. They will not be addressed or accepted at this stage of development.
 > * **No Warranty:** This software is provided **"AS IS"**, without warranty of any kind, express or implied. You may use it strictly for **testing and evaluation purposes** at your own sole risk.
 
-# skills (0.5.0)
+# cli-skills (0.5.0)
 
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+">
@@ -54,7 +54,7 @@ Manage user-level skills and prompt templates for <code>pi</code>, <code>opencla
 - Install bundled skills into each enabled CLI's user-level skills directory.
 - Install manifest-listed prompt templates for `pi` and `claude`.
 - Replace managed skill directories on every install and remove files that are no longer packaged.
-- Enable or disable each target CLI; the selection persists in `~/.config/skills/config.json`.
+- Enable or disable each target CLI; the selection persists in `~/.config/cli-skills/config.json`.
 - Inspect packaged resources, CLI configuration, and installation status with `show`.
 - Check GitHub releases automatically with a 2-second timeout and a cached idle delay.
 - Run from a repository checkout, as a uv tool, or with uvx.
@@ -97,27 +97,27 @@ Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).
 1. Install the CLI:
 
    ```bash
-   uv tool install skills --force --from git+https://github.com/Ogekuri/SKILLs.git
+   uv tool install cli-skills --force --from git+https://github.com/Ogekuri/CLI-Skills.git
    ```
 
 2. Enable one or more target CLIs:
 
    ```bash
-   skills enable pi
-   skills enable claude
+   cli-skills enable pi
+   cli-skills enable claude
    ```
 
 3. Install the bundled resources:
 
    ```bash
-   skills install
+   cli-skills install
    ```
 
 4. Start or restart the target CLI so it discovers the installed skills.
 5. Optional: review packaged resources and installation status:
 
    ```bash
-   skills show
+   cli-skills show
    ```
 
 `enable` and `disable` persist their selection; `install` updates every enabled CLI.
@@ -127,17 +127,17 @@ Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).
 
 | Command | Behavior |
 |---|---|
-| `skills` | Print the full help screen. |
-| `skills --help` | Print the full help screen. |
-| `skills <command> --help` | Print help for `enable`, `disable`, `install`, `show`, `--upgrade`, `--uninstall`, `--ver`, or `--version`. |
-| `skills --ver` | Print the installed version as `x.y.z` and force a release check. |
-| `skills --version` | Print the installed version as `x.y.z` and force a release check. |
-| `skills --upgrade` | Reinstall the tool with uv on Linux; print the manual command on other platforms. |
-| `skills --uninstall` | Uninstall the tool with uv on Linux; print the manual command on other platforms. |
-| `skills enable <cli name>` | Enable skill and prompt installation for a supported CLI. |
-| `skills disable <cli name>` | Disable skill and prompt installation for a supported CLI. |
-| `skills install` | Install or update bundled skills and prompts for every enabled CLI. |
-| `skills show` | Show packaged resources, CLI configuration, and installation status. |
+| `cli-skills` | Print the full help screen. |
+| `cli-skills --help` | Print the full help screen. |
+| `cli-skills <command> --help` | Print help for `enable`, `disable`, `install`, `show`, `--upgrade`, `--uninstall`, `--ver`, or `--version`. |
+| `cli-skills --ver` | Print the installed version as `x.y.z` and force a release check. |
+| `cli-skills --version` | Print the installed version as `x.y.z` and force a release check. |
+| `cli-skills --upgrade` | Reinstall the tool with uv on Linux; print the manual command on other platforms. |
+| `cli-skills --uninstall` | Uninstall the tool with uv on Linux; print the manual command on other platforms. |
+| `cli-skills enable <cli name>` | Enable skill and prompt installation for a supported CLI. |
+| `cli-skills disable <cli name>` | Disable skill and prompt installation for a supported CLI. |
+| `cli-skills install` | Install or update bundled skills and prompts for every enabled CLI. |
+| `cli-skills show` | Show packaged resources, CLI configuration, and installation status. |
 
 Exit codes:
 
@@ -180,7 +180,7 @@ Only manifest-listed prompt files are installed; the current package contains no
 The CLI stores its user configuration at:
 
 ```text
-~/.config/skills/config.json
+~/.config/cli-skills/config.json
 ```
 
 Example:
@@ -201,7 +201,7 @@ Example:
 
 - A release check runs before command dispatch.
 - The check requests the latest GitHub release with a 2-second timeout.
-- Cache file: `~/.cache/skills/check_version_idle-time.json`.
+- Cache file: `~/.cache/cli-skills/check_version_idle-time.json`.
 - The check is skipped while the cached idle time is valid.
 - `--ver` and `--version` force a check regardless of the cache.
 - A newer release prints a bright-green message and sets a 3600-second idle delay.
@@ -214,34 +214,34 @@ Example:
 The tool is installed with Astral uv (see [Quick Start](#quick-start)). Upgrade through the CLI:
 
 ```bash
-skills --upgrade
+cli-skills --upgrade
 ```
 
 Uninstall through the CLI:
 
 ```bash
-skills --uninstall
+cli-skills --uninstall
 ```
 
 Manual uninstall:
 
 ```bash
-uv tool uninstall skills
+uv tool uninstall cli-skills
 ```
 
 
 ## Live execution with uvx
 
-Run `skills` from the repository without installing the tool:
+Run `cli-skills` from the repository without installing the tool:
 
 ```bash
-uvx --from git+https://github.com/Ogekuri/SKILLs.git skills --help
+uvx --from git+https://github.com/Ogekuri/CLI-Skills.git cli-skills --help
 ```
 
 Use the same form for installation commands, for example:
 
 ```bash
-uvx --from git+https://github.com/Ogekuri/SKILLs.git skills install
+uvx --from git+https://github.com/Ogekuri/CLI-Skills.git cli-skills install
 ```
 
 
@@ -250,9 +250,9 @@ uvx --from git+https://github.com/Ogekuri/SKILLs.git skills install
 Run the CLI from the repository checkout:
 
 ```bash
-./scripts/skills.sh --help
-./scripts/skills.sh enable pi
-./scripts/skills.sh install
+./scripts/cli-skills.sh --help
+./scripts/cli-skills.sh enable pi
+./scripts/cli-skills.sh install
 ```
 
 The launcher delegates execution to Astral uv from the repository root.
