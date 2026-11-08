@@ -10,6 +10,5 @@
       "name": "prompt-skill-architect",
       "description": "Create, review, validate, debug, correct, modify, refactor, or optimize LLM agent prompts and skills. Use whenever a task authors or changes system/developer instructions, prompt templates, agent instruction files, SKILL.md, skill routing metadata, or prompt/skill evaluation cases, including incidental edits within larger tasks. Also use for ambiguity, instruction conflicts, prompt-injection resistance, and Pi/OpenClaw skill portability reviews."
     }
-  ],
-  "prompts": []
+  ]
 }

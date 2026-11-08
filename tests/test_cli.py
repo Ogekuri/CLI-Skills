@@ -76,7 +76,7 @@ class CliTests(unittest.TestCase):
             self.assertEqual(output.getvalue(), core.HELP + "\n")
 
     def test_management_platforms(self):
-        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core.subprocess, "run") as run:
+        with patch.object(core, "check_version"), patch.object(core, "load_config", return_value={"enabled": []}), patch.object(core.sys, "platform", "linux"), patch.object(core.subprocess, "run") as run:
             run.return_value.returncode = 0
             self.assertEqual(core.main(["--upgrade"]), 0)
             run.assert_called_once_with(core.UPGRADE, check=False)

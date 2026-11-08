@@ -20,8 +20,8 @@
 <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json" alt="uv">
 </p>
 <p align="center">
-<strong>Install and update LLM agent skills and prompts for supported CLI tools.</strong><br>
-Manage user-level skills and prompt templates for <code>pi</code>, <code>openclaw</code>, <code>codex</code>, <code>antigravity</code>, and <code>claude</code>.
+<strong>Install and update LLM agent skills for supported CLI tools.</strong><br>
+Manage user-level skills for <code>pi</code>, <code>openclaw</code>, <code>codex</code>, <code>antigravity</code>, and <code>claude</code>.
 </p>
 
 
@@ -52,7 +52,6 @@ Manage user-level skills and prompt templates for <code>pi</code>, <code>opencla
 ## Feature Highlights
 
 - Install bundled skills into each enabled CLI's user-level skills directory.
-- Install manifest-listed prompt templates for `pi` and `claude`.
 - Replace managed skill directories on every install and remove files that are no longer packaged.
 - Enable or disable each target CLI; the selection persists in `~/.config/cli-skills/config.json`.
 - Inspect packaged resources, CLI configuration, and installation status with `show`.
@@ -135,9 +134,9 @@ Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).
 | `cli-skills --upgrade` | Reinstall from PyPI with uv on Linux; print the manual command on other platforms. |
 | `cli-skills --upgrade --dev` | Reinstall the latest GitHub release instead of PyPI (Linux); print the manual command elsewhere. |
 | `cli-skills --uninstall` | Uninstall the tool with uv on Linux; print the manual command on other platforms. |
-| `cli-skills enable <cli name>` | Enable skill and prompt installation for a supported CLI. |
-| `cli-skills disable <cli name>` | Disable skill and prompt installation for a supported CLI. |
-| `cli-skills install` | Install or update bundled skills and prompts for every enabled CLI. |
+| `cli-skills enable <cli name>` | Enable skill installation for a supported CLI. |
+| `cli-skills disable <cli name>` | Disable skill installation for a supported CLI. |
+| `cli-skills install` | Install or update bundled skills for every enabled CLI. |
 | `cli-skills show` | Show packaged resources, CLI configuration, and installation status. |
 
 Exit codes:
@@ -149,17 +148,15 @@ Exit codes:
 
 ## Supported CLI Targets
 
-| CLI | Skills directory | Prompts directory |
-|---|---|---|
-| `pi` | `~/.pi/agent/skills` | `~/.pi/agent/prompts` |
-| `openclaw` | `~/.openclaw/workspace/skills` | Not supported |
-| `codex` | `~/.codex/skills` | Not supported |
-| `antigravity` | `~/.gemini/config/skills` | Not supported |
-| `claude` | `~/.claude/skills` | `~/.claude/commands` |
+| CLI | Skills directory |
+|---|---|
+| `pi` | `~/.pi/agent/skills` |
+| `openclaw` | `~/.openclaw/workspace/skills` |
+| `codex` | `~/.codex/skills` |
+| `antigravity` | `~/.gemini/config/skills` |
+| `claude` | `~/.claude/skills` |
 
 Only enabled CLIs are updated. Destinations are user-level configuration directories, not project directories.
-
-Only manifest-listed prompt files are installed; the current package contains no prompt templates.
 
 
 ## Install Behavior
@@ -169,9 +166,8 @@ Only manifest-listed prompt files are installed; the current package contains no
 - Existing skill files are overwritten with the packaged versions.
 - Files and directories inside a managed skill directory that are absent from the package are deleted.
 - Skill directories not managed by the package are left unchanged.
-- Previously installed prompt files that are no longer packaged are deleted.
 - A missing packaged source path aborts that CLI and reports an error; remaining enabled CLIs are still processed.
-- Output reports the installed skill and prompt counts for each processed CLI.
+- Output reports the installed skill count for each processed CLI.
 - With no enabled CLI, `install` prints an informational message and exits with `0`.
 - If any CLI installation fails, `install` prints the error and exits with `1`.
 
@@ -195,7 +191,7 @@ Example:
 }
 ```
 
-`enable` and `disable` maintain the `enabled` array. The file may also contain prompt installation records, which are maintained automatically; edit only `enabled` when changing the configuration manually. A missing or invalid file is treated as an empty configuration.
+`enable` and `disable` maintain the `enabled` array; edit only `enabled` when changing the configuration manually. A missing or invalid file is treated as an empty configuration.
 
 
 ## Release Checks

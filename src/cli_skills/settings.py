@@ -1,12 +1,12 @@
 """
 @file settings.py
-@brief Persist enabled CLI targets and installed prompt records.
+@brief Persist enabled CLI targets.
 @details User configuration is a JSON object stored at
          `$HOME/.config/cli-skills/config.json` with the schema
-         `{"enabled": ["<cli>", ...], "prompts": {"<cli>": ["<file>", ...]}}`.
+         `{"enabled": ["<cli>", ...]}`.
          Loading tolerates missing, unreadable, or malformed content by
          returning normalized defaults.
-@satisfies DES-047 DES-048 DES-060
+@satisfies DES-047 DES-048
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ def _unique_strings(value: Any) -> list[str]:
     @return {list[str]} Unique strings in first-seen order; empty for
             non-list input.
     @complexity O(n) where n is the list length.
-    @satisfies DES-048 DES-060
+    @satisfies DES-048
     """
     if not isinstance(value, list):
         return []
@@ -57,28 +57,21 @@ def load_config(home: Path | None = None) -> dict[str, Any]:
     """
     @brief Load the user configuration with normalized defaults.
     @details Reads JSON from `config_path`. Missing, unreadable, non-object, or
-             malformed content yields `{"enabled": [], "prompts": {}}`.
-             Valid `enabled` entries are unique strings; valid `prompts`
-             entries map CLI names to unique filename lists.
+             malformed content yields `{"enabled": []}`.
+             Valid `enabled` entries are unique strings.
     @param home {Path | None} Optional home-directory override.
     @return {dict[str, Any]} Normalized configuration object.
     @note Read and decode errors are handled internally and are not raised.
-    @satisfies DES-047 DES-048 DES-060
+    @satisfies DES-047 DES-048
     """
-    default: dict[str, Any] = {"enabled": [], "prompts": {}}
+    default: dict[str, Any] = {"enabled": []}
     try:
         raw = json.loads(config_path(home).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return default
     if not isinstance(raw, dict):
         return default
-    prompts: dict[str, list[str]] = {}
-    raw_prompts = raw.get("prompts")
-    if isinstance(raw_prompts, dict):
-        for key, value in raw_prompts.items():
-            if isinstance(key, str) and key:
-                prompts[key] = _unique_strings(value)
-    return {"enabled": _unique_strings(raw.get("enabled")), "prompts": prompts}
+    return {"enabled": _unique_strings(raw.get("enabled"))}
 
 
 def save_config(config: dict[str, Any], home: Path | None = None) -> Path:
@@ -92,7 +85,7 @@ def save_config(config: dict[str, Any], home: Path | None = None) -> Path:
     @return {Path} Written configuration file path.
     @throws {OSError} When directory creation or file writing fails.
     @post The configuration file contains the serialized `config` object.
-    @satisfies DES-047 DES-048 DES-060
+    @satisfies DES-047 DES-048
     """
     path = config_path(home)
     path.parent.mkdir(parents=True, exist_ok=True)

@@ -32,7 +32,7 @@ SKILLS_INSTALL = ["cli-skills", "install"]
 """
 @brief Child `cli-skills install` command executed after a successful upgrade.
 @details Spawned by `_post_upgrade_install` so the freshly upgraded package
-         installs its bundled skills and prompts into every enabled CLI.
+         installs its bundled skills into every enabled CLI.
 @satisfies REQ-043
 """
 HELP = f"""Usage: cli-skills [command] [options] ({__version__})
@@ -46,10 +46,10 @@ Management Commands:
   --help      - Print the full help screen or the help text of a specific command.
 
 Installation Commands:
-  enable <cli name>  - Enable skill and prompt installation for a supported CLI.
-  disable <cli name> - Disable skill and prompt installation for a supported CLI.
-  install            - Install skills and prompts for every enabled CLI.
-  uninstall          - Remove installed skills and prompts for every enabled CLI.
+  enable <cli name>  - Enable skill installation for a supported CLI.
+  disable <cli name> - Disable skill installation for a supported CLI.
+  install            - Install skills for every enabled CLI.
+  uninstall          - Remove installed skills for every enabled CLI.
 
 Reporting Commands:
   show               - Show packaged resources, CLI configuration, and installation status.
@@ -236,8 +236,8 @@ def _post_upgrade_install(home: Path | None = None) -> int:
            successful upgrade.
     @details Loads the user configuration and, when at least one CLI is
              enabled, spawns `cli-skills install` as a child process so the
-             freshly upgraded package synchronizes its bundled skills and
-             prompts into every enabled CLI. Skips the child process when
+             freshly upgraded package synchronizes its bundled skills into
+             every enabled CLI. Skips the child process when
              the enabled configuration is empty. The child reads the
              upgraded package resources, not the running process ones. The
              child inherits stdout, so its per-CLI count and installed-name
@@ -341,10 +341,10 @@ def _disable(name: str, home: Path | None = None) -> int:
 def _install(home: Path | None = None) -> int:
     """
     @brief Install bundled resources for all enabled CLIs.
-    @details Delegates installation to `install_enabled`, prints per-CLI skill
-             and prompt counts plus the installed skill names and prompt
-             filenames, prints an informational message when no CLI is
-             enabled, and reports collected failures.
+    @details Delegates installation to `install_enabled`, prints per-CLI
+             installed skill counts plus the installed skill names, prints an
+             informational message when no CLI is enabled, and reports
+             collected failures.
     @param home {Path | None} Optional home-directory override.
     @return {int} Exit code: 0 when no failure occurs; 1 when any failure
             occurs.
@@ -355,14 +355,8 @@ def _install(home: Path | None = None) -> int:
         print("No CLI enabled. Use 'cli-skills enable <cli name>' first.")
         return 0
     for summary in summaries:
-        print(
-            f"Installed {summary.skills} skills and "
-            f"{summary.prompts} prompts for {summary.cli}."
-        )
-        skill_names = ", ".join(summary.skill_names) or "none"
-        prompt_names = ", ".join(summary.prompt_files) or "none"
-        print(f"  Skills: {skill_names}")
-        print(f"  Prompts: {prompt_names}")
+        print(f"Installed {summary.skills} skills for {summary.cli}.")
+        print(f"  Skills: {', '.join(summary.skill_names) or 'none'}")
     for error in errors:
         print(f"Error: {error}", file=sys.stderr)
     return 1 if errors else 0
@@ -372,7 +366,7 @@ def _uninstall(home: Path | None = None) -> int:
     """
     @brief Remove installed bundled resources for all enabled CLIs.
     @details Delegates uninstallation to `uninstall_enabled`, prints per-CLI
-             removed skill and prompt counts, prints an informational message
+             removed skill counts, prints an informational message
              when no CLI is enabled, and reports collected failures.
     @param home {Path | None} Optional home-directory override.
     @return {int} Exit code: 0 when no failure occurs; 1 when any failure
@@ -384,10 +378,7 @@ def _uninstall(home: Path | None = None) -> int:
         print("No CLI enabled. Use 'cli-skills enable <cli name>' first.")
         return 0
     for summary in summaries:
-        print(
-            f"Removed {summary.skills} skills and "
-            f"{summary.prompts} prompts for {summary.cli}."
-        )
+        print(f"Removed {summary.skills} skills for {summary.cli}.")
     for error in errors:
         print(f"Error: {error}", file=sys.stderr)
     return 1 if errors else 0
@@ -443,10 +434,10 @@ def main(argv: list[str] | None = None) -> int:
             "--ver": "Print the cli-skills version.",
             "--version": "Print the cli-skills version.",
             "--dev": "With --upgrade, install the latest GitHub release instead of PyPI.",
-            "enable": "Enable skill and prompt installation for a supported CLI.",
-            "disable": "Disable skill and prompt installation for a supported CLI.",
-            "install": "Install skills and prompts for every enabled CLI.",
-            "uninstall": "Remove installed skills and prompts for every enabled CLI.",
+            "enable": "Enable skill installation for a supported CLI.",
+            "disable": "Disable skill installation for a supported CLI.",
+            "install": "Install skills for every enabled CLI.",
+            "uninstall": "Remove installed skills for every enabled CLI.",
             "show": "Show packaged resources, CLI configuration, and installation status.",
         }
         if command in descriptions:

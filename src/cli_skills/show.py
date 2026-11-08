@@ -1,11 +1,11 @@
 """
 @file show.py
 @brief Render packaged resource inventory, CLI configuration, and installation status.
-@details Builds three deterministic ASCII tables: bundled skills and prompts from
+@details Builds three deterministic ASCII tables: bundled skills from
          the manifest, every supported CLI with enabled state and home-relative
-         skills path, and a per-resource per-enabled-CLI installation status
+         skills path, and a per-skill per-enabled-CLI installation status
          derived from destination-directory scans.
-@satisfies DES-065 DES-066 REQ-037 REQ-038 REQ-039 REQ-040 REQ-041
+@satisfies DES-065 DES-066 REQ-037 REQ-038 REQ-039 REQ-040
 """
 
 from __future__ import annotations
@@ -25,8 +25,6 @@ STATUS_OK = "OK"
 STATUS_MISSING = "MISSING"
 ## @brief Status value for a resource whose destination files differ from the package.
 STATUS_STALE = "STALE"
-## @brief Status value for prompt installation on a CLI without prompts support.
-STATUS_UNSUPPORTED = "UNSUPPORTED"
 
 
 def _wrap(text: str, width: int) -> list[str]:
@@ -119,51 +117,46 @@ def _resource_rows(
 ) -> list[tuple[str, str, str, str]]:
     """
     @brief Build inventory rows from manifest catalog entries.
-    @details Emits skills before prompts, preserving manifest entry order.
+    @details Emits skills preserving manifest entry order.
     @param catalog {dict[str, list[dict[str, str]]]} Manifest catalog.
     @return {list[tuple[str, str, str, str]]} `(type, name, file, description)` rows.
     @satisfies REQ-037
     """
     rows: list[tuple[str, str, str, str]] = []
-    for kind, key in (("Skill", "skills"), ("Prompt", "prompts")):
-        for entry in catalog.get(key, []):
-            rows.append(
-                (
-                    kind,
-                    entry.get("name", ""),
-                    entry.get("file", ""),
-                    entry.get("description", ""),
-                )
+    for entry in catalog.get("skills", []):
+        rows.append(
+            (
+                "Skill",
+                entry.get("name", ""),
+                entry.get("file", ""),
+                entry.get("description", ""),
             )
+        )
     return rows
 
 
 def _cli_rows(
     config: dict[str, Any],
     home: Path | None,
-) -> list[tuple[str, str, str, str]]:
+) -> list[tuple[str, str, str]]:
     """
     @brief Build CLI configuration rows from the adapter registry.
-    @details Reports registry order, enabled state, home-relative skills
-             destination, and prompts destination or `UNSUPPORTED` for
-             prompt-less adapters.
+    @details Reports registry order, enabled state, and the home-relative
+             skills destination.
     @param config {dict[str, object]} Normalized user configuration.
     @param home {Path | None} Optional home-directory override.
-    @return {list[tuple[str, str, str, str]]} `(cli, enabled, skills path,
-            prompts path)` rows.
+    @return {list[tuple[str, str, str]]} `(cli, enabled, skills path)` rows.
     @satisfies REQ-038
     """
     enabled = set(config.get("enabled", []))
     root = resolve_home(home)
-    rows: list[tuple[str, str, str, str]] = []
+    rows: list[tuple[str, str, str]] = []
     for name, target in TARGETS.items():
-        prompts = target.prompts_dir(home)
         rows.append(
             (
                 name,
                 "yes" if name in enabled else "no",
                 target.skills_dir(home).relative_to(root).as_posix(),
-                str(prompts) if prompts is not None else STATUS_UNSUPPORTED,
             )
         )
     return rows
@@ -218,46 +211,37 @@ def _install_rows(
     home: Path | None,
 ) -> list[tuple[str, str, str, str, str]]:
     """
-    @brief Build per-resource per-enabled-CLI installation status rows.
-    @details Scans adapter destination directories for each manifest skill or
-             prompt and emits rows only for CLIs present in the enabled
+    @brief Build per-skill per-enabled-CLI installation status rows.
+    @details Scans adapter destination directories for each manifest skill
+             and emits rows only for CLIs present in the enabled
              configuration.
     @param catalog {dict[str, list[dict[str, str]]]} Manifest catalog.
     @param config {dict[str, object]} Normalized user configuration.
     @param home {Path | None} Optional home-directory override.
     @return {list[tuple[str, str, str, str, str]]} `(type, name, cli, enabled,
             installed)` rows.
-    @satisfies REQ-039 REQ-040 REQ-041
+    @satisfies REQ-039 REQ-040
     """
     enabled = set(config.get("enabled", []))
     targets = [(name, target) for name, target in TARGETS.items() if name in enabled]
     rows: list[tuple[str, str, str, str, str]] = []
-    for kind, key in (("Skill", "skills"), ("Prompt", "prompts")):
-        for entry in catalog.get(key, []):
-            relative = entry.get("file", "")
-            source = RESOURCES_ROOT / relative
-            for name, target in targets:
-                if kind == "Skill":
-                    status = _skill_status(
-                        source.parent,
-                        target.skills_dir(home) / source.parent.name,
-                    )
-                else:
-                    prompts = target.prompts_dir(home)
-                    status = (
-                        STATUS_UNSUPPORTED
-                        if prompts is None
-                        else _files_match(source, prompts / source.name)
-                    )
-                rows.append(
-                    (
-                        kind,
-                        entry.get("name", ""),
-                        name,
-                        "yes",
-                        status,
-                    )
+    for entry in catalog.get("skills", []):
+        relative = entry.get("file", "")
+        source = RESOURCES_ROOT / relative
+        for name, target in targets:
+            status = _skill_status(
+                source.parent,
+                target.skills_dir(home) / source.parent.name,
+            )
+            rows.append(
+                (
+                    "Skill",
+                    entry.get("name", ""),
+                    name,
+                    "yes",
+                    status,
                 )
+            )
     return rows
 
 
@@ -284,7 +268,7 @@ def build_show(home: Path | None = None) -> str:
             "",
             "CLI Configuration",
             render_table(
-                ("CLI", "Enabled", "Skills Path", "Prompts Path"),
+                ("CLI", "Enabled", "Skills Path"),
                 _cli_rows(config, home),
             ),
             "",

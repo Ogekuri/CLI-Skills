@@ -1,9 +1,8 @@
 """
 @file catalog.py
-@brief Generate the skills and prompts manifest for `src/resources`.
+@brief Generate the skills manifest for `src/resources`.
 @details Deterministic generator for `src/resources/manifest.json`. Recursively
-         scans `src/resources/skills` for `SKILL.md` files and
-         `src/resources/prompts` for frontmatter files, extracts frontmatter
+         scans `src/resources/skills` for `SKILL.md` files, extracts frontmatter
          `name` and `description`, and emits entries sorted by relative path.
          Validates every skill directory against the canonical support layout
          before accepting its metadata. Single maintenance path guaranteeing
@@ -113,52 +112,28 @@ def _discover_skills(root: Path) -> list[Path]:
     return sorted(p for p in skills_dir.rglob("SKILL.md") if p.is_file())
 
 
-def _discover_prompts(root: Path) -> list[Path]:
-    """
-    @brief Discover candidate prompt files under `root/prompts`.
-    @details Recursively collects every regular file, sorted by path.
-             Frontmatter filtering is applied by `build_catalog`.
-    @param root {Path} Resources root directory.
-    @return {List[Path]} Sorted candidate prompt file paths.
-    """
-    prompts_dir = root / "prompts"
-    if not prompts_dir.is_dir():
-        return []
-    return sorted(p for p in prompts_dir.rglob("*") if p.is_file())
-
-
 def build_catalog(
     resources_root: Path = RESOURCES_ROOT,
 ) -> dict[str, list[dict[str, str]]]:
     """
-    @brief Build the skills and prompts catalog dictionary.
-    @details Validates each skill directory layout, then scans skills and prompts
-             directories, extracts frontmatter metadata, and emits entries
+    @brief Build the skills catalog dictionary.
+    @details Validates each skill directory layout, then scans the skills
+             directory, extracts frontmatter metadata, and emits entries
              sorted by relative path. Entries missing `name` or `description`
              are omitted.
     @param resources_root {Path} Resources root directory to scan.
-    @return {Dict[str, List[Dict[str, str]]]} Catalog with `skills` and
-            `prompts` lists; each entry contains `file`, `name`, `description`.
+    @return {Dict[str, List[Dict[str, str]]]} Catalog with a `skills` list;
+            each entry contains `file`, `name`, `description`.
     @throws {SkillLayoutError} When a discovered skill directory violates the
             canonical support layout.
     @satisfies DES-021 DES-022 DES-023 DES-024 DES-067 DES-068 DES-069 DES-070 DES-071 DES-072 DES-073
     """
-    catalog: dict[str, list[dict[str, str]]] = {"skills": [], "prompts": []}
+    catalog: dict[str, list[dict[str, str]]] = {"skills": []}
     for path in _discover_skills(resources_root):
         validate_skill_layout(path.parent)
         meta = _parse_frontmatter(path.read_text(encoding="utf-8"))
         if "name" in meta and "description" in meta:
             catalog["skills"].append(
-                {
-                    "file": path.relative_to(resources_root).as_posix(),
-                    "name": meta["name"],
-                    "description": meta["description"],
-                }
-            )
-    for path in _discover_prompts(resources_root):
-        meta = _parse_frontmatter(path.read_text(encoding="utf-8"))
-        if "name" in meta and "description" in meta:
-            catalog["prompts"].append(
                 {
                     "file": path.relative_to(resources_root).as_posix(),
                     "name": meta["name"],

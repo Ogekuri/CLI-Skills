@@ -1,15 +1,15 @@
 """
 @file targets.py
-@brief Provide per-CLI skill and prompt installation adapters.
+@brief Provide per-CLI skill installation adapters.
 @details Defines the `CliTarget` abstraction and one concrete adapter for each
          supported CLI: `pi`, `openclaw`, `codex`, `antigravity`, and `claude`.
-         Adapters resolve user-level destination directories from a home root
-         and provide deterministic copy algorithms for skills and prompts.
+         Adapters resolve user-level skill destination directories from a home
+         root and provide deterministic copy algorithms for skills.
          Shared copy primitives synchronize packaged trees, overwrite changed
          files, and prune destination entries absent from the package.
-         Removal primitives delete managed skill directories and managed
-         prompt filenames while preserving unmanaged destination entries.
-@satisfies PRJ-010 PRJ-011 DES-049 DES-050 DES-051 DES-052 DES-053 DES-054 DES-055 DES-056 DES-057 DES-058 DES-059 DES-063 REQ-048 REQ-049 REQ-051 REQ-052
+         Removal primitives delete managed skill directories while preserving
+         unmanaged destination entries.
+@satisfies PRJ-010 PRJ-011 DES-049 DES-050 DES-051 DES-052 DES-053 DES-054 DES-055 DES-056 DES-057 DES-058 DES-063 REQ-048 REQ-051 REQ-052
 """
 
 from __future__ import annotations
@@ -69,12 +69,10 @@ def sync_skill_tree(source: Path, destination: Path) -> None:
 class CliTarget(ABC):
     """
     @brief Abstract adapter for a supported CLI installation target.
-    @details Subclasses declare the CLI name and resolve user-level destination
-             directories. Base methods implement deterministic skill-tree
-             synchronization, prompt-file synchronization with stale-record
-             removal, and managed resource removal. Prompt-less adapters
-             inherit a `None` prompt destination.
-    @satisfies DES-049 REQ-048 REQ-049
+    @details Subclasses declare the CLI name and resolve the user-level skill
+             destination directory. Base methods implement deterministic
+             skill-tree synchronization and managed skill removal.
+    @satisfies DES-049 REQ-048
     """
 
     ## @brief Canonical CLI name used by the `enable` and `disable` commands.
@@ -88,17 +86,6 @@ class CliTarget(ABC):
         @return {Path} Skills destination directory.
         @satisfies DES-050 DES-051 DES-052 DES-053 DES-054
         """
-
-    def prompts_dir(self, home: Path | None = None) -> Path | None:
-        """
-        @brief Resolve the CLI user-level prompts destination directory.
-        @details Returns `None` for CLIs without prompt-file support.
-        @param home {Path | None} Optional home-directory override.
-        @return {Path | None} Prompts destination directory when supported;
-                `None` otherwise.
-        @satisfies DES-050 DES-051 DES-052 DES-053 DES-054
-        """
-        return None
 
     def install_skills(self, sources: Iterable[Path], home: Path | None = None) -> int:
         """
@@ -117,42 +104,6 @@ class CliTarget(ABC):
             sync_skill_tree(source, root / source.name)
             count += 1
         return count
-
-    def install_prompts(
-        self,
-        sources: Iterable[Path],
-        previous: Iterable[str],
-        home: Path | None = None,
-    ) -> list[str]:
-        """
-        @brief Install packaged prompt files and remove stale managed prompts.
-        @details No-ops with an empty list when prompts are unsupported.
-                 Otherwise creates the destination directory, deletes previously
-                 managed filenames absent from `sources`, then copies each source
-                 file into the destination using its source filename. Recorded
-                 names containing path components or traversal segments are
-                 ignored during deletion.
-        @param sources {Iterable[Path]} Packaged prompt files.
-        @param previous {Iterable[str]} Previously installed prompt filenames.
-        @param home {Path | None} Optional home-directory override.
-        @return {list[str]} Sorted installed prompt filenames; empty when
-                prompts are unsupported.
-        @throws {OSError} When deletion, directory creation, or copying fails.
-        @satisfies DES-059 DES-060 DES-061 DES-063
-        """
-        destination = self.prompts_dir(home)
-        files = sorted(sources, key=lambda path: path.name)
-        if destination is None:
-            return []
-        destination.mkdir(parents=True, exist_ok=True)
-        names = {source.name for source in files}
-        for stale in sorted(set(previous) - names):
-            if not stale or Path(stale).name != stale or stale in (".", ".."):
-                continue
-            (destination / stale).unlink(missing_ok=True)
-        for source in files:
-            shutil.copy2(source, destination / source.name)
-        return sorted(names)
 
     def remove_skills(self, names: Iterable[str], home: Path | None = None) -> int:
         """
@@ -178,39 +129,10 @@ class CliTarget(ABC):
             count += 1
         return count
 
-    def remove_prompts(self, names: Iterable[str], home: Path | None = None) -> int:
-        """
-        @brief Remove managed prompt files from this CLI prompts destination.
-        @details No-ops with 0 when prompts are unsupported. Deletes
-                 `<prompts_dir>/<name>` for each safe name; names containing
-                 path components or traversal segments are skipped. Missing
-                 files count as removed and do not raise. Complexity O(N)
-                 deletions where N is the number of names.
-        @param names {Iterable[str]} Managed prompt filenames, manifest and
-                recorded.
-        @param home {Path | None} Optional home-directory override.
-        @return {int} Number of processed safe names; missing files count as
-                removed.
-        @throws {OSError} When file deletion fails.
-        @satisfies REQ-049 REQ-051 REQ-052
-        """
-        destination = self.prompts_dir(home)
-        if destination is None:
-            return 0
-        count = 0
-        for name in names:
-            if not name or Path(name).name != name or name in (".", ".."):
-                continue
-            (destination / name).unlink(missing_ok=True)
-            count += 1
-        return count
-
-
 class PiTarget(CliTarget):
     """
     @brief Installation adapter for the `pi` coding agent.
-    @details Installs skills under `$HOME/.pi/agent/skills` and prompt
-             templates under `$HOME/.pi/agent/prompts`.
+    @details Installs skills under `$HOME/.pi/agent/skills`.
     @satisfies DES-050
     """
 
@@ -225,21 +147,11 @@ class PiTarget(CliTarget):
         """
         return resolve_home(home) / ".pi" / "agent" / "skills"
 
-    def prompts_dir(self, home: Path | None = None) -> Path:
-        """
-        @brief Resolve the pi user-level prompts directory.
-        @param home {Path | None} Optional home-directory override.
-        @return {Path} `$HOME/.pi/agent/prompts`.
-        @satisfies DES-050
-        """
-        return resolve_home(home) / ".pi" / "agent" / "prompts"
-
 
 class OpenClawTarget(CliTarget):
     """
     @brief Installation adapter for the `openclaw` agent workspace.
-    @details Installs skills under `$HOME/.openclaw/workspace/skills`; prompt
-             template installation is unsupported.
+    @details Installs skills under `$HOME/.openclaw/workspace/skills`.
     @satisfies DES-051
     """
 
@@ -258,8 +170,7 @@ class OpenClawTarget(CliTarget):
 class CodexTarget(CliTarget):
     """
     @brief Installation adapter for the `codex` CLI.
-    @details Installs skills under `$HOME/.codex/skills`; prompt template
-             installation is unsupported.
+    @details Installs skills under `$HOME/.codex/skills`.
     @satisfies DES-052
     """
 
@@ -278,8 +189,7 @@ class CodexTarget(CliTarget):
 class AntigravityTarget(CliTarget):
     """
     @brief Installation adapter for Google Antigravity.
-    @details Installs skills under `$HOME/.gemini/config/skills`; prompt
-             template installation is unsupported.
+    @details Installs skills under `$HOME/.gemini/config/skills`.
     @satisfies DES-053
     """
 
@@ -298,8 +208,7 @@ class AntigravityTarget(CliTarget):
 class ClaudeTarget(CliTarget):
     """
     @brief Installation adapter for the `claude` CLI.
-    @details Installs skills under `$HOME/.claude/skills` and slash-command
-             prompt files under `$HOME/.claude/commands`.
+    @details Installs skills under `$HOME/.claude/skills`.
     @satisfies DES-054
     """
 
@@ -313,15 +222,6 @@ class ClaudeTarget(CliTarget):
         @satisfies DES-054
         """
         return resolve_home(home) / ".claude" / "skills"
-
-    def prompts_dir(self, home: Path | None = None) -> Path:
-        """
-        @brief Resolve the claude user-level commands directory.
-        @param home {Path | None} Optional home-directory override.
-        @return {Path} `$HOME/.claude/commands`.
-        @satisfies DES-054
-        """
-        return resolve_home(home) / ".claude" / "commands"
 
 
 ## @brief Registry of supported CLI adapters keyed by canonical CLI name.
