@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.9.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0) - 2026-11-08
+### 🚜  Changes
+- add opencode and copilot with alphabetical CLI listing [useReq] *(targets)*
+  - Extend supported CLIs from five to seven and order every CLI listing
+  - alphabetically.
+  - REQUIREMENTS.md: update PRJ-010 and scope list; add DES-090
+  - (opencode -> $HOME/.config/opencode/skills), DES-091 (copilot ->
+  - $HOME/.copilot/skills), DES-092 (alphabetical CLI listings).
+  - targets.py: add CopilotTarget and OpenCodeTarget adapters; build
+  - TARGETS registry in alphabetical key order.
+  - core.py/_unsupported and show.py/_cli_rows: document alphabetical
+  - listing (DES-092); README targets table updated and sorted.
+- render tables with box-drawing borders [useReq] *(show)*
+  - Update DES-066: every show table must use box-drawing borders
+  - (┌─┬┐ top, ├─┼┤ header separator, │ verticals, └─┴┘ bottom)
+  - instead of +---+ ASCII borders.
+  - show.py render_table: three border builders over per-column ─ runs,
+  - single header separator, and one bottom border (no per-row rules).
+  - Update module and render_table Doxygen docs; WORKFLOW.md node text;
+  - regenerate REFERENCES.md.
+- BREAKING CHANGE: remove prompt support keeping skills only [useReq] *(core)*
+  - Breaking change: complete removal of prompt installation, update,
+  - and maintenance; only skill management remains, with no backward
+  - compatibility or legacy logic.
+  - REQUIREMENTS.md: skills-only wording (PRJ/DES/REQ), remove DES-059,
+  - DES-060, DES-061, REQ-041, REQ-049, REQ-050; update help template.
+  - catalog/settings/targets/installer/show/core: drop prompts scanning,
+  - prompts config key, prompts_dir/install_prompts/remove_prompts,
+  - prompt summaries, records, tables, help lines, and prints.
+  - Delete src/resources/prompts and regenerate skills-only manifest.
+  - Update README.md; update test_uninstall.py (RemovePromptTests
+  - removed), isolate config read in test_cli upgrade test.
+- print GitHub latest failure reason on 404 rate limit [useReq] *(core)*
+  - Add REQ-066: --ver/--version must print 'GitHub latest: unknown
+  - (<reason>)' when the GitHub latest-release request fails, with the
+  - reason identifying the actual error.
+  - Add _failure_reason() to core.py: for HTTPError it decodes the JSON
+  - error body and surfaces the API message as 'HTTP <code>: <message>'
+  - (exposes 404 rate-limit causes); non-HTTP errors fall back to str(exc).
+  - Replace the GitHub 'unavailable' failure line with the required
+  - unknown(<reason>) syntax; PyPI line unchanged.
+  - Update WORKFLOW.md call trace and REFERENCES.md.
+
 ## [0.8.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0) - 2026-11-08
 ### 🐛  Bug Fixes
 - replace invalid trove classifier blocking PyPI upload [useReq] *(metadata)*
@@ -201,6 +244,7 @@
 - \[0.6.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.6.0
 - \[0.7.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.7.0
 - \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
+- \[0.9.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.0
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -210,3 +254,4 @@
 [0.6.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.5.0..v0.6.0
 [0.7.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.6.0..v0.7.0
 [0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
+[0.9.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0
