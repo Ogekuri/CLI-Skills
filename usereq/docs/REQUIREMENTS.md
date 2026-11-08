@@ -56,6 +56,7 @@ Assumptions:
 - **CTN-007**: MUST use a hardcoded standard idle delay of 3600 seconds.
 - **CTN-008**: MUST use a hardcoded negative-outcome idle delay of 86400 seconds.
 - **CTN-009**: MUST treat the `skell.tgz` archive content as an externally maintained input of the `astra-uv-project` skill.
+- **CTN-010**: MUST pin every GitHub Action referenced by `.github/workflows/release-uvx.yml` to a major version whose runtime is Node24 or later.
 
 ## 3. Requirements
 
@@ -137,6 +138,7 @@ Assumptions:
 - **DES-074**: MUST ship `%AUTHOR%` in the `pyproject.toml` author field inside `assets/skell.tgz` instead of a hardcoded author name.
 - **DES-075**: MUST ship `%OWNER%` in `README.md` repository URLs and the `scripts/skell.sh` author header inside `assets/skell.tgz` instead of hardcoded owner names.
 - **DES-076**: MUST specify a bounded post-implementation execution check such as `scripts/%SHORTNAME%.sh --help` in addition to the build smoke check.
+- **DES-077**: MUST verify the CTN-010 constraint through a unit test that parses `.github/workflows/release-uvx.yml` and validates every referenced action major.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
