@@ -25,13 +25,25 @@
   - Stop: `main()` returns an `int` exit code; module entry propagates it via `sys.exit`.
 - **Internal Call-Trace Tree**:
   - `main(argv=None)`: CLI dispatch; run release check, then route to help/version/manage/enable/disable/install/uninstall/show/error path [`src/cli_skills/core.py`]
-    - `check_version(force=...)`: automatic release-check decision; `force=True` when `--ver`/`--version` present [`src/cli_skills/core.py`]
+    - `check_version(force=...)`: automatic release-check decision against PyPI; `force=True` when `--ver`/`--version` present [`src/cli_skills/core.py`]
       - `cache_path()`: resolve cache file path [`src/cli_skills/core.py`]
-      - `_version(...)`: parse remote `tag_name` to version tuple (HTTP-success branch) [`src/cli_skills/core.py`]
+      - `fetch_pypi_latest()`: fetch the newest PyPI version (check branch) [`src/cli_skills/core.py`]
+        - `_http_json(url, accept)`: HTTP GET and JSON decode [`src/cli_skills/core.py`]
+      - `_version(...)`: parse PyPI latest version to version tuple (HTTP-success branch) [`src/cli_skills/core.py`]
       - `_version(...)`: parse installed `__version__` to version tuple (HTTP-success branch) [`src/cli_skills/core.py`]
       - `_human(...)`: format last-success epoch to ISO-8601 string [`src/cli_skills/core.py`]
       - `_human(...)`: format idle-expiration epoch to ISO-8601 string [`src/cli_skills/core.py`]
-    - `_manage(UPGRADE)`: execute external `uv tool install ...` (`--upgrade` branch) [`src/cli_skills/core.py`]
+    - `fetch_pypi_latest()`: fetch the newest PyPI version (`--ver`/`--version` report line) [`src/cli_skills/core.py`]
+      - `_http_json(url, accept)`: HTTP GET and JSON decode [`src/cli_skills/core.py`]
+    - `fetch_github_latest()`: fetch the newest GitHub release normalized to `x.y.z` (`--ver`/`--version` report line) [`src/cli_skills/core.py`]
+      - `_http_json(url, accept)`: HTTP GET and JSON decode [`src/cli_skills/core.py`]
+    - `_run_upgrade(UPGRADE)`: execute external `uv tool install ...` from PyPI and chain the install (`--upgrade` branch) [`src/cli_skills/core.py`]
+      - `_post_upgrade_install(home)`: chain the post-upgrade install when the upgrade succeeded on Linux [`src/cli_skills/core.py`]
+        - `load_config(home)`: load the enabled CLI set to gate the chained install [`src/cli_skills/settings.py`]
+          - `config_path(home)`: resolve configuration file path [`src/cli_skills/settings.py`]
+          - `_unique_strings(value)`: normalize enabled CLI names [`src/cli_skills/settings.py`]
+        - `_manage(SKILLS_INSTALL)`: execute external `cli-skills install` child when the enabled set is non-empty [`src/cli_skills/core.py`]
+    - `_run_upgrade(UPGRADE_DEVELOP)`: execute external `uv tool install ...` from GitHub and chain the install (`--upgrade --dev` branch) [`src/cli_skills/core.py`]
       - `_post_upgrade_install(home)`: chain the post-upgrade install when the upgrade succeeded on Linux [`src/cli_skills/core.py`]
         - `load_config(home)`: load the enabled CLI set to gate the chained install [`src/cli_skills/settings.py`]
           - `config_path(home)`: resolve configuration file path [`src/cli_skills/settings.py`]
@@ -133,7 +145,8 @@
   - stdout/stderr `print()` (help template, version, status/error messages) [`src/cli_skills/core.py`]
   - cache read: `Path.open` + `json.load` [`src/cli_skills/core.py`]
   - cache write: `Path.parent.mkdir` + `Path.write_text` [`src/cli_skills/core.py`]
-  - HTTP GET `https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest` via `urllib.request.Request` / `urlopen` (timeout 2 s) [`src/cli_skills/core.py`]
+  - HTTP GET `https://pypi.org/pypi/cli-skills/json` via `urllib.request.Request` / `urlopen` (timeout 2 s; automatic release check and `--ver`/`--version` report) [`src/cli_skills/core.py`]
+  - HTTP GET `https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest` via `urllib.request.Request` / `urlopen` (timeout 2 s; `--ver`/`--version` report and `--dev` upgrade source) [`src/cli_skills/core.py`]
   - regex version parse `re.fullmatch` [`src/cli_skills/core.py`]
   - time/date formatting `time.time` + `datetime.fromtimestamp` [`src/cli_skills/core.py`]
   - OS platform check `sys.platform.startswith("linux")` [`src/cli_skills/core.py`]
@@ -154,7 +167,7 @@
 - **Threads**: no explicit threads detected
 - **Entrypoint(s)**: external `uv` executable (no internal function defined under `src/`)
 - **Lifecycle / Trigger**:
-  - Start: spawned by `subprocess.run` in `_manage()` with argv `UPGRADE` or `UNINSTALL` [`src/cli_skills/core.py`]
+  - Start: spawned by `subprocess.run` in `_manage()` with argv `UPGRADE`, `UPGRADE_DEVELOP`, or `UNINSTALL` [`src/cli_skills/core.py`]
   - Loop/Block: child runs to completion while parent blocks.
   - Stop: child exits; returncode is returned to `_manage()`.
 - **Internal Call-Trace Tree**: none (no internal functions; target implementation external)
@@ -167,7 +180,7 @@
 - **Threads**: no explicit threads detected
 - **Entrypoint(s)**: external `cli-skills` executable (no internal function defined under `src/` for the child)
 - **Lifecycle / Trigger**:
-  - Start: spawned by `subprocess.run` in `_post_upgrade_install()` with argv `SKILLS_INSTALL` after a successful Linux `--upgrade` when the enabled configuration is non-empty [`src/cli_skills/core.py`]
+  - Start: spawned by `subprocess.run` in `_post_upgrade_install()` with argv `SKILLS_INSTALL` after a successful Linux `--upgrade` with or without `--dev` when the enabled configuration is non-empty [`src/cli_skills/core.py`]
   - Loop/Block: child runs to completion while parent blocks.
   - Stop: child exits; returncode is returned to `_post_upgrade_install()` and propagated as the `--upgrade` exit code.
 - **Internal Call-Trace Tree**: none (no internal functions; the child runs the freshly upgraded external `cli-skills` package)
@@ -177,6 +190,7 @@
 
 | ID | Direction | Mechanism | Endpoint / Channel | Payload / Data-Shape | Declaration File(s) |
 |---|---|---|---|---|---|
-| `EDGE:main→uv-install` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","install","cli-skills","--force","--from","git+https://github.com/Ogekuri/CLI-Skills.git"]` | `UPGRADE` `list[str]` in; returncode `int` out | `src/cli_skills/core.py` |
+| `EDGE:main→uv-install` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","install","cli-skills","--force"]` | `UPGRADE` `list[str]` in; returncode `int` out | `src/cli_skills/core.py` |
+| `EDGE:main→uv-install-develop` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","install","cli-skills","--force","--from","git+https://github.com/Ogekuri/CLI-Skills.git"]` | `UPGRADE_DEVELOP` `list[str]` in; returncode `int` out | `src/cli_skills/core.py` |
 | `EDGE:main→uv-uninstall` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","uninstall","cli-skills"]` | `UNINSTALL` `list[str]` in; returncode `int` out | `src/cli_skills/core.py` |
 | `EDGE:main→cli-skills-install` | `PROC:main` → `PROC:cli-skills-install` | OS process spawn (blocking `subprocess.run` via `_manage`) | child argv `["cli-skills","install"]` | `SKILLS_INSTALL` `list[str]` in; returncode `int` out | `src/cli_skills/core.py` |

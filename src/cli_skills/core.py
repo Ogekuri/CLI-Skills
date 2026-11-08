@@ -17,8 +17,15 @@ from .settings import load_config, save_config
 from .show import build_show
 from .targets import TARGETS, resolve_target
 
+## @brief PyPI JSON API endpoint for the newest published version.
+## @satisfies DES-042
+PYPI_ENDPOINT = "https://pypi.org/pypi/cli-skills/json"
 ENDPOINT = "https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest"
-UPGRADE = ["uv", "tool", "install", "cli-skills", "--force", "--from", "git+https://github.com/Ogekuri/CLI-Skills.git"]
+UPGRADE = ["uv", "tool", "install", "cli-skills", "--force"]
+## @brief Upgrade command argv installing the latest tagged GitHub release via git.
+## @details Executed for `--upgrade --dev`; bypasses PyPI.
+## @satisfies DES-081 REQ-063
+UPGRADE_DEVELOP = ["uv", "tool", "install", "cli-skills", "--force", "--from", "git+https://github.com/Ogekuri/CLI-Skills.git"]
 UNINSTALL = ["uv", "tool", "uninstall", "cli-skills"]
 SKILLS_INSTALL = ["cli-skills", "install"]
 """
@@ -34,6 +41,7 @@ Management Commands:
   --uninstall - Uninstall cli-skills on Linux; print manual command elsewhere.
   --ver       - Print the cli-skills version.
   --version   - Print the cli-skills version.
+  --dev       - With --upgrade, install the latest GitHub release instead of PyPI.
   --help      - Print the full help screen or the help text of a specific command.
 
 Installation Commands:
@@ -64,7 +72,84 @@ def _version(value: str) -> tuple[int, int, int]:
     return int(match.group(1)), int(match.group(2)), int(match.group(3))
 
 
+def _http_json(url: str, accept: str) -> dict:
+    """
+    @brief Perform one HTTP GET and parse the JSON response body.
+    @details Sends a `cli-skills` User-Agent with the caller-supplied Accept
+             header and enforces the hardcoded 2-second timeout. Network and
+             protocol errors propagate to the caller.
+    @param url {str} Absolute HTTP/HTTPS endpoint URL.
+    @param accept {str} HTTP Accept header value.
+    @return {Dict} Decoded top-level JSON object.
+    @throws {OSError} On transport or HTTP errors, including 429 and 503.
+    @throws {ValueError} When the response body is not valid JSON.
+    @satisfies CTN-006 DES-042 DES-083
+    """
+    request = Request(url, headers={"Accept": accept, "User-Agent": "cli-skills"})
+    with urlopen(request, timeout=2) as response:
+        return json.load(response)
+
+
+def fetch_pypi_latest() -> str:
+    """
+    @brief Fetch the newest published version from the PyPI JSON API.
+    @details Requests `PYPI_ENDPOINT`, reads `info.version`, and returns it
+             trimmed. Any transport, HTTP, or payload-shape failure raises.
+    @return {str} Newest PyPI version string.
+    @throws {OSError} On transport or HTTP errors, including 429 and 503.
+    @throws {ValueError} When the payload is not valid JSON or omits a
+            non-empty string `info.version`.
+    @throws {KeyError} When the payload omits `info.version`.
+    @satisfies DES-042 REQ-002 REQ-003 REQ-059
+    """
+    version = _http_json(PYPI_ENDPOINT, "application/json")["info"]["version"]
+    if not isinstance(version, str) or not version.strip():
+        raise ValueError("missing PyPI latest version")
+    return version.strip()
+
+
+def fetch_github_latest() -> str:
+    """
+    @brief Fetch the newest GitHub release version in `x.y.z` form.
+    @details Requests `ENDPOINT`, reads `tag_name`, and strips an optional `v`
+             prefix. The returned release is the newest tagged GitHub release
+             regardless of its source branch, matching the `--upgrade --dev`
+             download source.
+    @return {str} Newest GitHub release version as `x.y.z`.
+    @throws {OSError} On transport or HTTP errors, including 429 and 503.
+    @throws {ValueError} When the payload omits or holds an invalid
+            `tag_name`.
+    @throws {KeyError} When the payload omits `tag_name`.
+    @satisfies DES-083 REQ-061 REQ-062 REQ-063
+    """
+    tag = _http_json(ENDPOINT, "application/vnd.github+json")["tag_name"]
+    if not isinstance(tag, str):
+        raise ValueError("missing GitHub latest release tag")
+    match = re.fullmatch(r"v?(\d+\.\d+\.\d+)", tag.strip())
+    if not match:
+        raise ValueError(f"invalid GitHub release tag: {tag}")
+    return match.group(1)
+
+
 def check_version(force: bool = False) -> None:
+    """
+    @brief Run the cached automatic release check against PyPI.
+    @details Skips while the cached idle-time is valid unless `force` is set;
+             otherwise fetches the newest PyPI version via `fetch_pypi_latest`,
+             compares it with `__version__`, prints a bright-green
+             available-versus-installed message when a newer version exists or
+             a bright-red message for a failed or negative check, records
+             last-success timestamps on success only, and writes the cache
+             with a 3600-second (positive) or 86400-second (negative or
+             failed) expiration.
+    @param force {bool} Bypass the cached idle-time and perform the request.
+    @return {None}
+    @note Cache read/write and network failures are reported to stderr and do
+          not raise.
+    @satisfies REQ-001 REQ-002 REQ-003 REQ-004 REQ-005 REQ-016 REQ-017 REQ-018
+               REQ-019 REQ-020 REQ-021 REQ-022 REQ-023 REQ-059 CTN-006 CTN-007
+               CTN-008 DES-042 DES-043 DES-044 DES-045 DES-046
+    """
     path = cache_path()
     cache = {}
     try:
@@ -84,10 +169,7 @@ def check_version(force: bool = False) -> None:
         last_success = None
     delay = 86400
     try:
-        request = Request(ENDPOINT, headers={"Accept": "application/vnd.github+json", "User-Agent": "cli-skills"})
-        with urlopen(request, timeout=2) as response:
-            release = json.load(response)
-        available = release["tag_name"]
+        available = fetch_pypi_latest()
         newer = _version(available) > _version(__version__)
         now = time.time()
         last_success = now
@@ -146,6 +228,25 @@ def _post_upgrade_install(home: Path | None = None) -> int:
     if not load_config(home)["enabled"]:
         return 0
     return _manage(SKILLS_INSTALL)
+
+
+def _run_upgrade(command: list[str]) -> int:
+    """
+    @brief Execute one upgrade command and chain the post-upgrade install.
+    @details Delegates to `_manage` and, on a zero exit code under Linux,
+             chains `_post_upgrade_install` so the freshly upgraded package
+             installs bundled resources into every enabled CLI. Used by both
+             the PyPI `--upgrade` form and the GitHub `--upgrade --dev` form.
+    @param command {list[str]} Upgrade command argv executed on Linux and
+            printed as the manual command on other operating systems.
+    @return {int} Upgrade exit code, or the chained `cli-skills install` exit
+            code when the chained install executes.
+    @satisfies REQ-010 REQ-011 REQ-012 REQ-043 REQ-044 REQ-045 REQ-046 REQ-063
+    """
+    upgraded = _manage(command)
+    if upgraded == 0 and sys.platform.startswith("linux"):
+        return _post_upgrade_install()
+    return upgraded
 
 
 def _unsupported(name: str) -> str:
@@ -286,9 +387,11 @@ def main(argv: list[str] | None = None) -> int:
     @details Executes `check_version` before argument parsing (forced by
              `--ver` or `--version`), then routes to help, version,
              management, enable/disable, install, uninstall, or show
-             handlers. The `--upgrade` branch chains `cli-skills install` after
-             a successful Linux upgrade when the enabled configuration is
-             non-empty and returns the chained exit code.
+             handlers. The `--upgrade` branch with or without `--dev` chains
+             `cli-skills install` after a successful Linux upgrade when the
+             enabled configuration is non-empty and returns the chained exit
+             code. The `--ver` and `--version` branch prints the installed
+             version plus the PyPI and GitHub latest-version lines.
     @param argv {list[str] | None} Command-line arguments; defaults to
             `sys.argv[1:]`.
     @return {int} Process exit code: 0 on success; 1 on upgrade or install
@@ -297,7 +400,7 @@ def main(argv: list[str] | None = None) -> int:
                REQ-013 REQ-014 REQ-015 REQ-024 REQ-025 REQ-026 REQ-029
                REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044
                REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057
-               REQ-058
+               REQ-058 REQ-059 REQ-060 REQ-061 REQ-062 REQ-063 REQ-064
     """
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)
@@ -311,6 +414,7 @@ def main(argv: list[str] | None = None) -> int:
             "--uninstall": "Uninstall cli-skills on Linux; print manual command elsewhere.",
             "--ver": "Print the cli-skills version.",
             "--version": "Print the cli-skills version.",
+            "--dev": "With --upgrade, install the latest GitHub release instead of PyPI.",
             "enable": "Enable skill and prompt installation for a supported CLI.",
             "disable": "Disable skill and prompt installation for a supported CLI.",
             "install": "Install skills and prompts for every enabled CLI.",
@@ -322,12 +426,19 @@ def main(argv: list[str] | None = None) -> int:
             return 0
     if args in (["--ver"], ["--version"]):
         print(__version__)
+        try:
+            print(f"PyPI latest: {fetch_pypi_latest()}")
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            print(f"PyPI latest: unavailable ({exc})")
+        try:
+            print(f"GitHub latest: {fetch_github_latest()}")
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            print(f"GitHub latest: unavailable ({exc})")
         return 0
     if args == ["--upgrade"]:
-        upgraded = _manage(UPGRADE)
-        if upgraded == 0 and sys.platform.startswith("linux"):
-            return _post_upgrade_install()
-        return upgraded
+        return _run_upgrade(UPGRADE)
+    if args in (["--upgrade", "--dev"], ["--upgrade", "--develop"], ["--dev", "--upgrade"], ["--develop", "--upgrade"]):
+        return _run_upgrade(UPGRADE_DEVELOP)
     if args == ["--uninstall"]:
         return _manage(UNINSTALL)
     if len(args) == 1 and args[0] in ("enable", "disable"):

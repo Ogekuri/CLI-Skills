@@ -56,7 +56,7 @@ Manage user-level skills and prompt templates for <code>pi</code>, <code>opencla
 - Replace managed skill directories on every install and remove files that are no longer packaged.
 - Enable or disable each target CLI; the selection persists in `~/.config/cli-skills/config.json`.
 - Inspect packaged resources, CLI configuration, and installation status with `show`.
-- Check GitHub releases automatically with a 2-second timeout and a cached idle delay.
+- Check PyPI releases automatically with a 2-second timeout and a cached idle delay; `--ver` also reports the latest GitHub release.
 - Run from a repository checkout, as a uv tool, or with uvx.
 
 Bundled skills:
@@ -97,7 +97,7 @@ Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).
 1. Install the CLI:
 
    ```bash
-   uv tool install cli-skills --force --from git+https://github.com/Ogekuri/CLI-Skills.git
+   uv tool install cli-skills
    ```
 
 2. Enable one or more target CLIs:
@@ -130,9 +130,10 @@ Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).
 | `cli-skills` | Print the full help screen. |
 | `cli-skills --help` | Print the full help screen. |
 | `cli-skills <command> --help` | Print help for `enable`, `disable`, `install`, `show`, `--upgrade`, `--uninstall`, `--ver`, or `--version`. |
-| `cli-skills --ver` | Print the installed version as `x.y.z` and force a release check. |
-| `cli-skills --version` | Print the installed version as `x.y.z` and force a release check. |
-| `cli-skills --upgrade` | Reinstall the tool with uv on Linux; print the manual command on other platforms. |
+| `cli-skills --ver` | Print the installed version plus the latest PyPI and GitHub versions; force a release check. |
+| `cli-skills --version` | Print the installed version plus the latest PyPI and GitHub versions; force a release check. |
+| `cli-skills --upgrade` | Reinstall from PyPI with uv on Linux; print the manual command on other platforms. |
+| `cli-skills --upgrade --dev` | Reinstall the latest GitHub release instead of PyPI (Linux); print the manual command elsewhere. |
 | `cli-skills --uninstall` | Uninstall the tool with uv on Linux; print the manual command on other platforms. |
 | `cli-skills enable <cli name>` | Enable skill and prompt installation for a supported CLI. |
 | `cli-skills disable <cli name>` | Disable skill and prompt installation for a supported CLI. |
@@ -200,10 +201,10 @@ Example:
 ## Release Checks
 
 - A release check runs before command dispatch.
-- The check requests the latest GitHub release with a 2-second timeout.
+- The check requests the latest published version from the PyPI JSON API with a 2-second timeout.
 - Cache file: `~/.cache/cli-skills/check_version_idle-time.json`.
 - The check is skipped while the cached idle time is valid.
-- `--ver` and `--version` force a check regardless of the cache.
+- `--ver` and `--version` force a check and print the installed version plus the `PyPI latest:` and `GitHub latest:` lines.
 - A newer release prints a bright-green message and sets a 3600-second idle delay.
 - A failed check or no newer release prints a bright-red message and sets an 86400-second idle delay.
 - Notifications are written to stderr.
@@ -211,10 +212,16 @@ Example:
 
 ## Upgrade and Uninstall
 
-The tool is installed with Astral uv (see [Quick Start](#quick-start)). Upgrade through the CLI:
+The tool is installed with Astral uv (see [Quick Start](#quick-start)). Upgrade through the CLI (latest version published on PyPI):
 
 ```bash
 cli-skills --upgrade
+```
+
+Upgrade from the newest tagged GitHub release instead (intermediate and test releases) by combining `--upgrade` with `--dev` or `--develop`:
+
+```bash
+cli-skills --upgrade --dev
 ```
 
 Uninstall through the CLI:
@@ -230,18 +237,37 @@ uv tool uninstall cli-skills
 ```
 
 
-## Live execution with uvx
+## Install from GitHub
 
-Run `cli-skills` from the repository without installing the tool:
+Intermediate and test releases are published on GitHub: `https://github.com/Ogekuri/CLI-Skills`.
+
+Install the latest tagged GitHub release directly:
 
 ```bash
-uvx --from git+https://github.com/Ogekuri/CLI-Skills.git cli-skills --help
+uv tool install cli-skills --force --from git+https://github.com/Ogekuri/CLI-Skills.git
+```
+
+Afterwards, upgrade to the newest GitHub release with the dedicated upgrade option:
+
+```bash
+cli-skills --upgrade --dev
+```
+
+`--dev` (long form `--develop`) is an `--upgrade` option: it always installs the newest tagged release on GitHub, regardless of the branch it was tagged on.
+
+
+## Live execution with uvx
+
+Run `cli-skills` on the fly from PyPI without installing the tool:
+
+```bash
+uvx cli-skills --help
 ```
 
 Use the same form for installation commands, for example:
 
 ```bash
-uvx --from git+https://github.com/Ogekuri/CLI-Skills.git cli-skills install
+uvx cli-skills install
 ```
 
 
