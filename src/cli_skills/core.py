@@ -9,6 +9,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from . import __version__
@@ -129,6 +130,30 @@ def fetch_github_latest() -> str:
     if not match:
         raise ValueError(f"invalid GitHub release tag: {tag}")
     return match.group(1)
+
+
+def _failure_reason(exc: Exception) -> str:
+    """
+    @brief Normalize one release-fetch failure to a concise reason string.
+    @details For `HTTPError`, decodes the error body as JSON and surfaces the
+             API `message` field prefixed with `HTTP <code>`; this exposes
+             GitHub rate-limit causes such as `API rate limit exceeded`
+             that arrive with HTTP 404. Body decode failures fall back to
+             `HTTP <code>`; non-HTTP errors return `str(exc)`. Complexity
+             O(B) where B is the error-body byte length.
+    @param exc {Exception} Failure raised by `_http_json` or its callers.
+    @return {str} Human-readable reason identifying the actual error cause.
+    @satisfies REQ-066
+    """
+    if not isinstance(exc, HTTPError):
+        return str(exc)
+    try:
+        message = json.loads(exc.read().decode("utf-8", "replace")).get("message")
+    except (OSError, ValueError, AttributeError):
+        return f"HTTP {exc.code}"
+    if isinstance(message, str) and message.strip():
+        return f"HTTP {exc.code}: {message.strip()}"
+    return f"HTTP {exc.code}"
 
 
 def check_version(force: bool = False) -> None:
@@ -391,7 +416,9 @@ def main(argv: list[str] | None = None) -> int:
              `cli-skills install` after a successful Linux upgrade when the
              enabled configuration is non-empty and returns the chained exit
              code. The `--ver` and `--version` branch prints the installed
-             version plus the PyPI and GitHub latest-version lines.
+             version plus the PyPI and GitHub latest-version lines, printing
+             `GitHub latest: unknown (<reason>)` with the normalized failure
+             reason when the GitHub request fails.
     @param argv {list[str] | None} Command-line arguments; defaults to
             `sys.argv[1:]`.
     @return {int} Process exit code: 0 on success; 1 on upgrade or install
@@ -401,7 +428,7 @@ def main(argv: list[str] | None = None) -> int:
                REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044
                REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057
                REQ-058 REQ-059 REQ-060 REQ-061 REQ-062 REQ-063 REQ-064
-               REQ-065 DES-089
+               REQ-065 REQ-066 DES-089
     """
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)
@@ -434,7 +461,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             print(f"GitHub latest: {fetch_github_latest()}")
         except (OSError, ValueError, KeyError, TypeError) as exc:
-            print(f"GitHub latest: unavailable ({exc})")
+            print(f"GitHub latest: unknown ({_failure_reason(exc)})")
         return 0
     if args == ["--upgrade"]:
         return _run_upgrade(UPGRADE)

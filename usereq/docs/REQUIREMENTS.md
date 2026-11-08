@@ -260,6 +260,7 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-063**: MUST execute `uv tool install cli-skills --force --from git+https://github.com/Ogekuri/CLI-Skills.git` for `--upgrade --dev` and `--upgrade --develop` on Linux.
 - **REQ-064**: MUST treat `--dev` or `--develop` without `--upgrade` as an unknown command with exit code 2.
 - **REQ-065**: MUST treat `--help` before a command name, or `--dev` or `--develop` before `--upgrade`, as an unknown command with exit code 2.
+- **REQ-066**: MUST print `GitHub latest: unknown (<reason>)` for `--ver` and `--version` when the GitHub latest-release request fails, with `<reason>` identifying the actual error.
 
 Full help template: substitute `cli-skills` for `%PROGRAM%` and the installed version for `x.y.z`; retain all other text and spacing.
 
