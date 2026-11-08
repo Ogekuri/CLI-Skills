@@ -4,11 +4,14 @@
 @brief Verify the release workflow pins only Node24-or-later action versions.
 @details HDT Level 0 static conformance suite. The UUT is the set of `uses:`
          references in `.github/workflows/release-pypi.yml`, validated against
-         the CTN-010 minimum-version policy and against the absence of the
-         transient Node20 fallback environment workarounds described in the
-         GitHub Actions Node20 deprecation communication. External dependency:
-         one deterministic read of the tracked workflow file; no network,
-         clock, filesystem writes, or randomness are involved.
+         the CTN-010 minimum-version policy, against the resolvability of every
+         `astral-sh/setup-uv` reference against the upstream published tag set,
+         and against the absence of the transient Node20 fallback environment
+         workarounds described in the GitHub Actions Node20 deprecation
+         communication. External dependency: one deterministic read of the
+         tracked workflow file plus static fixtures recording verified upstream
+         tag evidence; no network, clock, filesystem writes, or randomness are
+         involved at test runtime.
 @satisfies CTN-010 DES-077
 """
 
@@ -25,7 +28,9 @@ WORKFLOW_PATH = Path(__file__).resolve().parents[1] / ".github" / "workflows" / 
 ## @details Values derive from the `runs.using` fields of each action's verified
 ##          release tag and, for composite actions, from their inner Node-based
 ##          steps: `actions/checkout` v5.0.0, `actions/setup-python` v6.0.0,
-##          `astral-sh/setup-uv` v10.3.3, `actions/attest-build-provenance`
+##          `astral-sh/setup-uv` v7.0.0 (upstream `action.yml` `runs.using`
+##          evidence: v6.8.0 declares node20, v7.0.0 declares node24),
+##          `actions/attest-build-provenance`
 ##          v4.2.2 (composite delegating to `actions/attest` v4.2.1, node24),
 ##          `mikepenz/release-changelog-builder-action` v6.5,
 ##          `softprops/action-gh-release` v3.0.4, and
@@ -35,7 +40,7 @@ WORKFLOW_PATH = Path(__file__).resolve().parents[1] / ".github" / "workflows" / 
 NODE24_MINIMUM_VERSION = {
     "actions/checkout": (5, 0),
     "actions/setup-python": (6, 0),
-    "astral-sh/setup-uv": (10, 0),
+    "astral-sh/setup-uv": (7, 0),
     "actions/attest-build-provenance": (4, 0),
     "mikepenz/release-changelog-builder-action": (6, 0),
     "softprops/action-gh-release": (3, 0),
@@ -51,6 +56,25 @@ NODE20_FALLBACK_ENVIRONMENTS = (
     "ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION",
     "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24",
 )
+
+## @brief Floating major tags published by the upstream `astral-sh/setup-uv` repository.
+## @details Fixture verified via `git ls-remote --tags
+##          https://github.com/astral-sh/setup-uv`: majors 1-7 publish resolvable
+##          floating major tags; majors 8-9 publish full-semver release tags only;
+##          no `v10` ref exists in any form, so any `@v10` reference fails GitHub
+##          Actions resolution with `unable to find version v10`.
+SETUP_UV_FLOATING_MAJOR_TAGS = frozenset({1, 2, 3, 4, 5, 6, 7})
+
+## @brief Published minor versions of `astral-sh/setup-uv` majors lacking a floating major tag.
+## @details Fixture verified via `git ls-remote --tags
+##          https://github.com/astral-sh/setup-uv`: major 8 releases v8.0.0
+##          through v8.3.2; major 9 releases v9.0.0. A reference to one of these
+##          majors resolves only when pinned as `v<major>.<minor>[.<patch>]`
+##          whose minor matches a published release.
+SETUP_UV_SEMVER_ONLY_PUBLISHED_MINORS = {
+    8: frozenset({0, 1, 2, 3}),
+    9: frozenset({0}),
+}
 
 ## @brief Regex extracting every `uses:` action reference line from workflow text.
 ## @details Captures the full `owner/repo@ref` token; anchored per line to avoid
@@ -107,6 +131,58 @@ class ReleaseWorkflowNode24Tests(unittest.TestCase):
                 f"{slug}@v{version[0]}.{version[1]} predates the first Node24 runtime "
                 f"version v{minimum[0]}.{minimum[1]}",
             )
+
+    def test_every_setup_uv_reference_resolves_to_a_published_version(self):
+        """
+        @brief Check every setup-uv pin and the policy minimum are published versions.
+        @details Reproducer for the unresolvable `astral-sh/setup-uv@v10` release
+                 pin: asserts each `astral-sh/setup-uv` workflow reference
+                 resolves against the upstream published tag set (floating major
+                 tag, or full-semver ref whose minor is published), and asserts
+                 the CTN-010 policy minimum itself denotes a published version so
+                 fabricated version data cannot re-enter the policy table.
+        @return {None}
+        @expected_output No assertion failure when every `astral-sh/setup-uv`
+                         reference and the CTN-010 policy minimum resolve to a
+                         published upstream version.
+        @satisfies CTN-010 DES-077
+        """
+        references = USES_PATTERN.findall(self.workflow_text)
+        for reference in references:
+            match = REFERENCE_PATTERN.match(reference)
+            if match is None:
+                self.fail(f"unsupported action reference format: {reference}")
+            if match.group("slug") != "astral-sh/setup-uv":
+                continue
+            major = int(match.group("major"))
+            minor = int(match.group("minor") or 0)
+            if major in SETUP_UV_FLOATING_MAJOR_TAGS:
+                continue
+            published_minors = SETUP_UV_SEMVER_ONLY_PUBLISHED_MINORS.get(
+                major, frozenset()
+            )
+            self.assertNotEqual(
+                published_minors,
+                frozenset(),
+                f"astral-sh/setup-uv major v{major} is not published upstream; "
+                "the workflow reference cannot resolve",
+            )
+            self.assertIn(
+                minor,
+                published_minors,
+                f"astral-sh/setup-uv v{major}.{minor} is not a published release; "
+                "the workflow reference cannot resolve",
+            )
+        policy_major, policy_minor = NODE24_MINIMUM_VERSION["astral-sh/setup-uv"]
+        policy_published = policy_major in SETUP_UV_FLOATING_MAJOR_TAGS or (
+            policy_minor
+            in SETUP_UV_SEMVER_ONLY_PUBLISHED_MINORS.get(policy_major, frozenset())
+        )
+        self.assertTrue(
+            policy_published,
+            f"policy minimum v{policy_major}.{policy_minor} is not a published "
+            "astral-sh/setup-uv version",
+        )
 
     def test_workflow_has_no_node20_fallback_workaround_environments(self):
         """

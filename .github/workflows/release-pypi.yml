@@ -49,7 +49,7 @@ jobs:
           python-version: "3.11"
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v9.0.0
 
       - name: Run unit tests
         run: uv run python -m unittest discover -s tests
@@ -71,7 +71,7 @@ jobs:
           python-version: "3.11"
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v9.0.0
 
       - name: Build distributions
         run: uv run --frozen --with build python -m build
