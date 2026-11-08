@@ -125,6 +125,25 @@ class ReleaseWorkflowNode24Tests(unittest.TestCase):
                 f"transient Node20 fallback workaround present: {name}",
             )
 
+    def test_release_gates_artifacts_and_publish_on_unit_tests(self):
+        """
+        @brief Check the release workflow gates builds and publish on tests.
+        @details Asserts that a dedicated `unit-tests` job exists and runs the
+                 project-defined test command, and that `build-release`
+                 declares a job dependency on it, so failing tests skip
+                 artifact creation, the GitHub release, and the PyPI publish.
+        @return {None}
+        @expected_output No assertion failure when the gating structure is
+                         present in the workflow.
+        @satisfies PRJ-015 PRJ-016 DES-088
+        """
+        self.assertIn("unit-tests:", self.workflow_text)
+        self.assertIn("run: uv run python -m unittest discover -s tests", self.workflow_text)
+        self.assertRegex(
+            self.workflow_text,
+            r"(?m)^  build-release:\n    needs: \[check-branch, unit-tests\]$",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

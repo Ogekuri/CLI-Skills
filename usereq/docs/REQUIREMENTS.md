@@ -47,6 +47,8 @@ Assumptions:
 - **PRJ-012**: MUST publish the `cli-skills` package to PyPI through OIDC Trusted Publishing from the `release-pypi.yml` workflow.
 - **PRJ-013**: MUST run every release-workflow step for a tagged version on any branch and publish to PyPI only when the tag is on `master`.
 - **PRJ-014**: MUST provide `scripts/pre-release-check.sh` running build, metadata, and unit-test checks required before an official release.
+- **PRJ-015**: MUST execute the unit-test suite in a dedicated `release-pypi.yml` job before any build or release step.
+- **PRJ-016**: MUST prevent release-artifact creation and PyPI publication when the unit-test job fails.
 
 ### 2.2 Project Constraints
 
@@ -152,6 +154,7 @@ Assumptions:
 - **DES-085**: MUST validate the built distributions with `twine check` in `scripts/pre-release-check.sh`.
 - **DES-086**: MUST run the unit-test suite through the project-defined uv test command in `scripts/pre-release-check.sh`.
 - **DES-087**: MUST remove every build and test artifact, including the temporary build directory, egg-info directories, and `__pycache__` directories, on success and failure.
+- **DES-088**: MUST verify the PRJ-015 and PRJ-016 gating through a unit test that parses `release-pypi.yml` and checks the test-job dependency and test command.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 

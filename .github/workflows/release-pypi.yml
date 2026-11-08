@@ -35,9 +35,28 @@ jobs:
             echo "is_master=false" >> "$GITHUB_OUTPUT"
           fi
 
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10
+
+      - name: Run unit tests
+        run: uv run python -m unittest discover -s tests
+
   # 2. Effetua la build
   build-release:
-    needs: check-branch
+    needs: [check-branch, unit-tests]
     runs-on: ubuntu-latest
 
     steps:
