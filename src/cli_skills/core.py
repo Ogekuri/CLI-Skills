@@ -277,10 +277,11 @@ def _run_upgrade(command: list[str]) -> int:
 def _unsupported(name: str) -> str:
     """
     @brief Build an unsupported-CLI diagnostic message.
-    @details Lists the canonical CLI names accepted by the adapter registry.
+    @details Lists the canonical CLI names accepted by the adapter registry in
+             alphabetical order.
     @param name {str} Unsupported CLI name from the command line.
     @return {str} Human-readable diagnostic message.
-    @satisfies REQ-026
+    @satisfies REQ-026 DES-092
     """
     return f"Unsupported CLI: {name}. Supported: {', '.join(TARGETS)}."
 

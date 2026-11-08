@@ -128,7 +128,7 @@ canonical support layout.
 
 ---
 
-# core.py | Python | 477L | 24 symbols | 15 imports | 22 comments
+# core.py | Python | 478L | 24 symbols | 15 imports | 22 comments
 > Path: `src/cli_skills/core.py`
 
 ## Imports
@@ -233,14 +233,14 @@ installs its bundled skills into every enabled CLI.
 - @return {int} Upgrade exit code, or the chained `cli-skills install` exit code when the chained install executes.
 - @satisfies REQ-010 REQ-011 REQ-012 REQ-043 REQ-044 REQ-045 REQ-046 REQ-063
 
-### fn `def _unsupported(name: str) -> str` `priv` (L277-287)
+### fn `def _unsupported(name: str) -> str` `priv` (L277-288)
 - @brief Build an unsupported-CLI diagnostic message.
-- @details Lists the canonical CLI names accepted by the adapter registry.
+- @details Lists the canonical CLI names accepted by the adapter registry in alphabetical order.
 - @param name {str} Unsupported CLI name from the command line.
 - @return {str} Human-readable diagnostic message.
-- @satisfies REQ-026
+- @satisfies REQ-026 DES-092
 
-### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L288-313)
+### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L289-314)
 - @brief Enable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, appends the canonical CLI name when absent, and persists the configuration. Re-enabling an enabled CLI leaves configuration unchanged.
 - @param name {str} CLI name from the command line.
@@ -249,7 +249,7 @@ installs its bundled skills into every enabled CLI.
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-024 REQ-026 REQ-027 REQ-028
 
-### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L314-340)
+### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L315-341)
 - @brief Disable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, removes the canonical CLI name when present, and persists the configuration. Disabling an already disabled CLI is a successful no-op.
 - @param name {str} CLI name from the command line.
@@ -258,21 +258,21 @@ installs its bundled skills into every enabled CLI.
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-025 REQ-026 REQ-027 REQ-028
 
-### fn `def _install(home: Path | None = None) -> int` `priv` (L341-364)
+### fn `def _install(home: Path | None = None) -> int` `priv` (L342-365)
 - @brief Install bundled resources for all enabled CLIs.
 - @details Delegates installation to `install_enabled`, prints per-CLI installed skill counts plus the installed skill names, prints an informational message when no CLI is enabled, and reports collected failures.
 - @param home {Path | None} Optional home-directory override.
 - @return {int} Exit code: 0 when no failure occurs; 1 when any failure occurs.
 - @satisfies REQ-029 REQ-030 REQ-031 REQ-032 REQ-057
 
-### fn `def _uninstall(home: Path | None = None) -> int` `priv` (L365-386)
+### fn `def _uninstall(home: Path | None = None) -> int` `priv` (L366-387)
 - @brief Remove installed bundled resources for all enabled CLIs.
 - @details Delegates uninstallation to `uninstall_enabled`, prints per-CLI removed skill counts, prints an informational message when no CLI is enabled, and reports collected failures.
 - @param home {Path | None} Optional home-directory override.
 - @return {int} Exit code: 0 when no failure occurs; 1 when any failure occurs.
 - @satisfies REQ-047 REQ-054 REQ-055 REQ-056
 
-### fn `def _show(home: Path | None = None) -> int` `priv` (L387-399)
+### fn `def _show(home: Path | None = None) -> int` `priv` (L388-400)
 - @brief Print packaged resources, CLI configuration, and installation status.
 - @details Delegates report rendering to `build_show` and prints the result.
 - @param home {Path | None} Optional home-directory override.
@@ -280,7 +280,7 @@ installs its bundled skills into every enabled CLI.
 - @throws {OSError} When bundled resources or the configuration cannot be read.
 - @satisfies REQ-037 REQ-038 REQ-039 REQ-042
 
-### fn `def main(argv: list[str] | None = None) -> int` (L400-478)
+### fn `def main(argv: list[str] | None = None) -> int` (L401-479)
 - @brief Run the automatic release check and dispatch one CLI command.
 - @details Executes `check_version` before argument parsing (forced by `--ver` or `--version`), then routes to help, version, management, enable/disable, install, uninstall, or show handlers. The `--upgrade` branch with or without `--dev` chains `cli-skills install` after a successful Linux upgrade when the enabled configuration is non-empty and returns the chained exit code. The `--ver` and `--version` branch prints the installed version plus the PyPI and GitHub latest-version lines, printing `GitHub latest: unknown (<reason>)` with the normalized failure reason when the GitHub request fails.
 - @param argv {list[str] | None} Command-line arguments; defaults to `sys.argv[1:]`.
@@ -307,13 +307,13 @@ installs its bundled skills into every enabled CLI.
 |`_manage`|fn|priv|222-232|def _manage(command: list[str]) -> int|
 |`_post_upgrade_install`|fn|priv|233-257|def _post_upgrade_install(home: Path | None = None) -> int|
 |`_run_upgrade`|fn|priv|258-276|def _run_upgrade(command: list[str]) -> int|
-|`_unsupported`|fn|priv|277-287|def _unsupported(name: str) -> str|
-|`_enable`|fn|priv|288-313|def _enable(name: str, home: Path | None = None) -> int|
-|`_disable`|fn|priv|314-340|def _disable(name: str, home: Path | None = None) -> int|
-|`_install`|fn|priv|341-364|def _install(home: Path | None = None) -> int|
-|`_uninstall`|fn|priv|365-386|def _uninstall(home: Path | None = None) -> int|
-|`_show`|fn|priv|387-399|def _show(home: Path | None = None) -> int|
-|`main`|fn|pub|400-478|def main(argv: list[str] | None = None) -> int|
+|`_unsupported`|fn|priv|277-288|def _unsupported(name: str) -> str|
+|`_enable`|fn|priv|289-314|def _enable(name: str, home: Path | None = None) -> int|
+|`_disable`|fn|priv|315-341|def _disable(name: str, home: Path | None = None) -> int|
+|`_install`|fn|priv|342-365|def _install(home: Path | None = None) -> int|
+|`_uninstall`|fn|priv|366-387|def _uninstall(home: Path | None = None) -> int|
+|`_show`|fn|priv|388-400|def _show(home: Path | None = None) -> int|
+|`main`|fn|pub|401-479|def main(argv: list[str] | None = None) -> int|
 
 
 ---
@@ -554,15 +554,15 @@ height.
 ### fn `def _files_match(source: Path, destination: Path) -> str` `priv` (L173-191)
 - @brief Build CLI configuration rows from the adapter registry.
 - @brief Compare one packaged file with its installed destination file.
-- @details Reports registry order, enabled state, and the home-relative
-skills destination.
+- @details Reports alphabetical registry order, enabled state, and the
+home-relative skills destination.
 - @param config {dict[str, object]} Normalized user configuration.
 - @param home {Path | None} Optional home-directory override.
 - @param source {Path} Packaged file path.
 - @param destination {Path} Installed destination file path.
 - @return {list[tuple[str, str, str]]} `(cli, enabled, skills path)` rows.
 - @return {str} `OK` for identical bytes, `MISSING` for absent destination, `STALE` for differing bytes or unreadable content.
-- @satisfies REQ-038
+- @satisfies REQ-038 DES-092
 - @satisfies REQ-040
 
 ### fn `def _skill_status(source: Path, destination: Path) -> str` `priv` (L192-215)
@@ -614,18 +614,19 @@ installed)` rows.
 
 ---
 
-# targets.py | Python | 251L | 17 symbols | 5 imports | 22 comments
+# targets.py | Python | 293L | 21 symbols | 5 imports | 27 comments
 > Path: `src/cli_skills/targets.py`
 - @brief Provide per-CLI skill installation adapters.
 - @details Defines the `CliTarget` abstraction and one concrete adapter for each
-supported CLI: `pi`, `openclaw`, `codex`, `antigravity`, and `claude`.
+supported CLI: `antigravity`, `claude`, `codex`, `copilot`, `opencode`,
+`openclaw`, and `pi`.
 Adapters resolve user-level skill destination directories from a home
 root and provide deterministic copy algorithms for skills.
 Shared copy primitives synchronize packaged trees, overwrite changed
 files, and prune destination entries absent from the package.
 Removal primitives delete managed skill directories while preserving
 unmanaged destination entries.
-- @satisfies PRJ-010 PRJ-011 DES-049 DES-050 DES-051 DES-052 DES-053 DES-054 DES-055 DES-056 DES-057 DES-058 DES-063 REQ-048 REQ-051 REQ-052
+- @satisfies PRJ-010 PRJ-011 DES-049 DES-050 DES-051 DES-052 DES-053 DES-054 DES-090 DES-091 DES-092 DES-055 DES-056 DES-057 DES-058 DES-063 REQ-048 REQ-051 REQ-052
 
 ## Imports
 ```
@@ -638,14 +639,14 @@ from typing import Iterable
 
 ## Definitions
 
-### fn `def resolve_home(home: Path | None) -> Path` (L23-35)
+### fn `def resolve_home(home: Path | None) -> Path` (L24-36)
 - @brief Resolve the user home directory used for destination paths.
 - @details Returns the explicit override when provided; otherwise resolves `Path.home()`. Centralizes home resolution for deterministic tests and adapter reuse.
 - @param home {Path | None} Optional home-directory override.
 - @return {Path} Effective home directory path.
 - @satisfies DES-049
 
-### fn `def sync_skill_tree(source: Path, destination: Path) -> None` (L36-68)
+### fn `def sync_skill_tree(source: Path, destination: Path) -> None` (L37-69)
 - @brief Replace a destination skill directory with packaged contents.
 - @details Copies the source tree recursively with overwrite, then removes destination files and directories absent from the source tree. Destination skill files become byte-identical copies of package files. Pruning runs deepest-first to keep directory removal safe.
 - @param source {Path} Packaged skill directory containing `SKILL.md`.
@@ -656,16 +657,16 @@ from typing import Iterable
 - @pre `source` MUST be an existing directory.
 - @post `destination` contains exactly the source tree paths and contents. @complexity O(S + D) where S is source entries and D is destination entries.
 
-### class `class CliTarget(ABC)` : ABC (L69-131)
+### class `class CliTarget(ABC)` : ABC (L70-132)
 - @brief Abstract adapter for a supported CLI installation target.
 - @details Subclasses declare the CLI name and resolve the user-level skill destination directory. Base methods implement deterministic skill-tree synchronization and managed skill removal.
 - @satisfies DES-049 REQ-048
-- fn `def skills_dir(self, home: Path | None = None) -> Path` (L82-89)
+- fn `def skills_dir(self, home: Path | None = None) -> Path` (L83-90)
   - @brief Resolve the CLI user-level skills destination directory.
   - @param home {Path | None} Optional home-directory override.
   - @return {Path} Skills destination directory.
   - @satisfies DES-050 DES-051 DES-052 DES-053 DES-054
-- fn `def install_skills(self, sources: Iterable[Path], home: Path | None = None) -> int` (L90-107)
+- fn `def install_skills(self, sources: Iterable[Path], home: Path | None = None) -> int` (L91-108)
   - @brief Install packaged skill directories into this CLI destination.
   - @details Synchronizes each source directory into `<skills_dir>/<source.name>` using `sync_skill_tree`.
   - @param sources {Iterable[Path]} Packaged skill directories.
@@ -673,7 +674,7 @@ from typing import Iterable
   - @return {int} Number of processed skill directories.
   - @throws {OSError} When synchronization fails.
   - @satisfies DES-055 DES-056 DES-057 DES-063
-- fn `def remove_skills(self, names: Iterable[str], home: Path | None = None) -> int` (L108-131)
+- fn `def remove_skills(self, names: Iterable[str], home: Path | None = None) -> int` (L109-132)
   - @brief Remove managed skill directories from this CLI destination.
   - @details Deletes `<skills_dir>/<name>` recursively for each name. Missing destinations count as removed and do not raise. Destination entries outside `names` are preserved and no directory is created. Complexity O(N) deletions where N is the number of names.
   - @param names {Iterable[str]} Managed skill directory names.
@@ -682,11 +683,11 @@ from typing import Iterable
   - @throws {OSError} When recursive directory deletion fails.
   - @satisfies REQ-048 REQ-051 REQ-052
 
-### class `class PiTarget(CliTarget)` : CliTarget (L132-150)
+### class `class PiTarget(CliTarget)` : CliTarget (L133-151)
 - @brief Installation adapter for the `pi` coding agent.
 - @details Installs skills under `$HOME/.pi/agent/skills`.
 - @satisfies DES-050
-- fn `def skills_dir(self, home: Path | None = None) -> Path` (L141-150)
+- fn `def skills_dir(self, home: Path | None = None) -> Path` (L142-151)
   - @brief Installation adapter for the `pi` coding agent.
   - @brief Resolve the pi user-level skills directory.
   - @details Installs skills under `$HOME/.pi/agent/skills`.
@@ -695,11 +696,11 @@ from typing import Iterable
   - @satisfies DES-050
   - @satisfies DES-050
 
-### class `class OpenClawTarget(CliTarget)` : CliTarget (L151-169)
+### class `class OpenClawTarget(CliTarget)` : CliTarget (L152-170)
 - @brief Installation adapter for the `openclaw` agent workspace.
 - @details Installs skills under `$HOME/.openclaw/workspace/skills`.
 - @satisfies DES-051
-- fn `def skills_dir(self, home: Path | None = None) -> Path` (L160-169)
+- fn `def skills_dir(self, home: Path | None = None) -> Path` (L161-170)
   - @brief Installation adapter for the `openclaw` agent workspace.
   - @brief Resolve the openclaw user-level skills directory.
   - @details Installs skills under `$HOME/.openclaw/workspace/skills`.
@@ -708,11 +709,11 @@ from typing import Iterable
   - @satisfies DES-051
   - @satisfies DES-051
 
-### class `class CodexTarget(CliTarget)` : CliTarget (L170-188)
+### class `class CodexTarget(CliTarget)` : CliTarget (L171-189)
 - @brief Installation adapter for the `codex` CLI.
 - @details Installs skills under `$HOME/.codex/skills`.
 - @satisfies DES-052
-- fn `def skills_dir(self, home: Path | None = None) -> Path` (L179-188)
+- fn `def skills_dir(self, home: Path | None = None) -> Path` (L180-189)
   - @brief Installation adapter for the `codex` CLI.
   - @brief Resolve the codex user-level skills directory.
   - @details Installs skills under `$HOME/.codex/skills`.
@@ -721,11 +722,24 @@ from typing import Iterable
   - @satisfies DES-052
   - @satisfies DES-052
 
-### class `class AntigravityTarget(CliTarget)` : CliTarget (L189-207)
+### class `class CopilotTarget(CliTarget)` : CliTarget (L190-208)
+- @brief Installation adapter for the `copilot` CLI.
+- @details Installs skills under `$HOME/.copilot/skills`.
+- @satisfies DES-091
+- fn `def skills_dir(self, home: Path | None = None) -> Path` (L199-208)
+  - @brief Installation adapter for the `copilot` CLI.
+  - @brief Resolve the copilot user-level skills directory.
+  - @details Installs skills under `$HOME/.copilot/skills`.
+  - @param home {Path | None} Optional home-directory override.
+  - @return {Path} `$HOME/.copilot/skills`.
+  - @satisfies DES-091
+  - @satisfies DES-091
+
+### class `class AntigravityTarget(CliTarget)` : CliTarget (L209-227)
 - @brief Installation adapter for Google Antigravity.
 - @details Installs skills under `$HOME/.gemini/config/skills`.
 - @satisfies DES-053
-- fn `def skills_dir(self, home: Path | None = None) -> Path` (L198-207)
+- fn `def skills_dir(self, home: Path | None = None) -> Path` (L218-227)
   - @brief Installation adapter for Google Antigravity.
   - @brief Resolve the antigravity user-level skills directory.
   - @details Installs skills under `$HOME/.gemini/config/skills`.
@@ -734,11 +748,24 @@ from typing import Iterable
   - @satisfies DES-053
   - @satisfies DES-053
 
-### class `class ClaudeTarget(CliTarget)` : CliTarget (L208-226)
+### class `class OpenCodeTarget(CliTarget)` : CliTarget (L228-246)
+- @brief Installation adapter for the `opencode` CLI.
+- @details Installs skills under `$HOME/.config/opencode/skills`.
+- @satisfies DES-090
+- fn `def skills_dir(self, home: Path | None = None) -> Path` (L237-246)
+  - @brief Installation adapter for the `opencode` CLI.
+  - @brief Resolve the opencode user-level skills directory.
+  - @details Installs skills under `$HOME/.config/opencode/skills`.
+  - @param home {Path | None} Optional home-directory override.
+  - @return {Path} `$HOME/.config/opencode/skills`.
+  - @satisfies DES-090
+  - @satisfies DES-090
+
+### class `class ClaudeTarget(CliTarget)` : CliTarget (L247-265)
 - @brief Installation adapter for the `claude` CLI.
 - @details Installs skills under `$HOME/.claude/skills`.
 - @satisfies DES-054
-- fn `def skills_dir(self, home: Path | None = None) -> Path` (L217-226)
+- fn `def skills_dir(self, home: Path | None = None) -> Path` (L256-265)
   - @brief Installation adapter for the `claude` CLI.
   - @brief Resolve the claude user-level skills directory.
   - @details Installs skills under `$HOME/.claude/skills`.
@@ -747,36 +774,41 @@ from typing import Iterable
   - @satisfies DES-054
   - @satisfies DES-054
 
-### fn `def resolve_target(name: str) -> CliTarget | None` (L242-252)
+### fn `def resolve_target(name: str) -> CliTarget | None` (L284-294)
 - @brief Registry of supported CLI adapters keyed by canonical CLI name.
 - @brief Resolve a CLI adapter by canonical name.
-- @details Insertion order defines the supported-name listing in diagnostics.
+- @details Alphabetical key order defines the supported-name listing in
+diagnostics and `show` tables.
 - @details Trims surrounding whitespace and lowercases the input before a registry lookup.
 - @param name {str} CLI name supplied on the command line.
 - @return {CliTarget | None} Matching adapter; `None` when unsupported.
-- @satisfies DES-049
+- @satisfies DES-049 DES-092
 - @satisfies REQ-026
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`resolve_home`|fn|pub|23-35|def resolve_home(home: Path | None) -> Path|
-|`sync_skill_tree`|fn|pub|36-68|def sync_skill_tree(source: Path, destination: Path) -> None|
-|`CliTarget`|class|pub|69-131|class CliTarget(ABC)|
-|`CliTarget.skills_dir`|fn|pub|82-89|def skills_dir(self, home: Path | None = None) -> Path|
-|`CliTarget.install_skills`|fn|pub|90-107|def install_skills(self, sources: Iterable[Path], home: P...|
-|`CliTarget.remove_skills`|fn|pub|108-131|def remove_skills(self, names: Iterable[str], home: Path ...|
-|`PiTarget`|class|pub|132-150|class PiTarget(CliTarget)|
-|`PiTarget.skills_dir`|fn|pub|141-150|def skills_dir(self, home: Path | None = None) -> Path|
-|`OpenClawTarget`|class|pub|151-169|class OpenClawTarget(CliTarget)|
-|`OpenClawTarget.skills_dir`|fn|pub|160-169|def skills_dir(self, home: Path | None = None) -> Path|
-|`CodexTarget`|class|pub|170-188|class CodexTarget(CliTarget)|
-|`CodexTarget.skills_dir`|fn|pub|179-188|def skills_dir(self, home: Path | None = None) -> Path|
-|`AntigravityTarget`|class|pub|189-207|class AntigravityTarget(CliTarget)|
-|`AntigravityTarget.skills_dir`|fn|pub|198-207|def skills_dir(self, home: Path | None = None) -> Path|
-|`ClaudeTarget`|class|pub|208-226|class ClaudeTarget(CliTarget)|
-|`ClaudeTarget.skills_dir`|fn|pub|217-226|def skills_dir(self, home: Path | None = None) -> Path|
-|`resolve_target`|fn|pub|242-252|def resolve_target(name: str) -> CliTarget | None|
+|`resolve_home`|fn|pub|24-36|def resolve_home(home: Path | None) -> Path|
+|`sync_skill_tree`|fn|pub|37-69|def sync_skill_tree(source: Path, destination: Path) -> None|
+|`CliTarget`|class|pub|70-132|class CliTarget(ABC)|
+|`CliTarget.skills_dir`|fn|pub|83-90|def skills_dir(self, home: Path | None = None) -> Path|
+|`CliTarget.install_skills`|fn|pub|91-108|def install_skills(self, sources: Iterable[Path], home: P...|
+|`CliTarget.remove_skills`|fn|pub|109-132|def remove_skills(self, names: Iterable[str], home: Path ...|
+|`PiTarget`|class|pub|133-151|class PiTarget(CliTarget)|
+|`PiTarget.skills_dir`|fn|pub|142-151|def skills_dir(self, home: Path | None = None) -> Path|
+|`OpenClawTarget`|class|pub|152-170|class OpenClawTarget(CliTarget)|
+|`OpenClawTarget.skills_dir`|fn|pub|161-170|def skills_dir(self, home: Path | None = None) -> Path|
+|`CodexTarget`|class|pub|171-189|class CodexTarget(CliTarget)|
+|`CodexTarget.skills_dir`|fn|pub|180-189|def skills_dir(self, home: Path | None = None) -> Path|
+|`CopilotTarget`|class|pub|190-208|class CopilotTarget(CliTarget)|
+|`CopilotTarget.skills_dir`|fn|pub|199-208|def skills_dir(self, home: Path | None = None) -> Path|
+|`AntigravityTarget`|class|pub|209-227|class AntigravityTarget(CliTarget)|
+|`AntigravityTarget.skills_dir`|fn|pub|218-227|def skills_dir(self, home: Path | None = None) -> Path|
+|`OpenCodeTarget`|class|pub|228-246|class OpenCodeTarget(CliTarget)|
+|`OpenCodeTarget.skills_dir`|fn|pub|237-246|def skills_dir(self, home: Path | None = None) -> Path|
+|`ClaudeTarget`|class|pub|247-265|class ClaudeTarget(CliTarget)|
+|`ClaudeTarget.skills_dir`|fn|pub|256-265|def skills_dir(self, home: Path | None = None) -> Path|
+|`resolve_target`|fn|pub|284-294|def resolve_target(name: str) -> CliTarget | None|
 
 
 ---

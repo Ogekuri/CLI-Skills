@@ -21,7 +21,7 @@
 </p>
 <p align="center">
 <strong>Install and update LLM agent skills for supported CLI tools.</strong><br>
-Manage user-level skills for <code>pi</code>, <code>openclaw</code>, <code>codex</code>, <code>antigravity</code>, and <code>claude</code>.
+Manage user-level skills for <code>antigravity</code>, <code>claude</code>, <code>codex</code>, <code>copilot</code>, <code>opencode</code>, <code>openclaw</code>, and <code>pi</code>.
 </p>
 
 
@@ -150,11 +150,13 @@ Exit codes:
 
 | CLI | Skills directory |
 |---|---|
-| `pi` | `~/.pi/agent/skills` |
-| `openclaw` | `~/.openclaw/workspace/skills` |
-| `codex` | `~/.codex/skills` |
 | `antigravity` | `~/.gemini/config/skills` |
 | `claude` | `~/.claude/skills` |
+| `codex` | `~/.codex/skills` |
+| `copilot` | `~/.copilot/skills` |
+| `opencode` | `~/.config/opencode/skills` |
+| `openclaw` | `~/.openclaw/workspace/skills` |
+| `pi` | `~/.pi/agent/skills` |
 
 Only enabled CLIs are updated. Destinations are user-level configuration directories, not project directories.
 

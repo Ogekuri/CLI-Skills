@@ -26,7 +26,7 @@ Assumptions:
 - On a failed check, the cache preserves the last successful timestamp when available; its idle-time is calculated from the failed attempt so the one-day delay is effective. Before any success, the successful timestamps are null.
 - Cache field names, human-readable timestamp format, version comparison rules, command-specific help content, and exit codes are unspecified and may be selected during implementation.
 - The `astra-uv-project` skill name and routing text are implementation choices; its body is the English rendering of the user-supplied PHASE 0–4 project-scaffold specification.
-- Supported CLI names are `pi`, `openclaw`, `codex`, `antigravity`, and `claude`; prompt installation is out of scope.
+- Supported CLI names are `antigravity`, `claude`, `codex`, `copilot`, `opencode`, `openclaw`, and `pi`; prompt installation is out of scope.
 - The enabled-CLI configuration file is `$HOME/.config/cli-skills/config.json`.
 
 ## 2. Project Requirements
@@ -42,7 +42,7 @@ Assumptions:
 - **PRJ-007**: MUST maintain skills under `src/resources/skills`.
 - **PRJ-008**: MUST distribute an `astra-uv-project` skill under `src/resources/skills/astra-uv-project` for creating new Astral uv Python projects from scratch.
 - **PRJ-009**: MUST install bundled skills into user-level configuration directories of supported LLM agent CLIs.
-- **PRJ-010**: MUST support installation targets `pi`, `openclaw`, `codex`, `antigravity`, and `claude`.
+- **PRJ-010**: MUST support installation targets `antigravity`, `claude`, `codex`, `copilot`, `opencode`, `openclaw`, and `pi`.
 - **PRJ-011**: MUST remove installed bundled skills from enabled CLI destinations through the `uninstall` command.
 - **PRJ-012**: MUST publish the `cli-skills` package to PyPI through OIDC Trusted Publishing from the `release-pypi.yml` workflow.
 - **PRJ-013**: MUST run every release-workflow step for a tagged version on any branch and publish to PyPI only when the tag is on `master`.
@@ -121,6 +121,8 @@ Assumptions:
 - **DES-052**: MUST resolve `codex` skills to `$HOME/.codex/skills`.
 - **DES-053**: MUST resolve `antigravity` skills to `$HOME/.gemini/config/skills`.
 - **DES-054**: MUST resolve `claude` skills to `$HOME/.claude/skills`.
+- **DES-090**: MUST resolve `opencode` skills to `$HOME/.config/opencode/skills`.
+- **DES-091**: MUST resolve `copilot` skills to `$HOME/.copilot/skills`.
 - **DES-055**: MUST install each manifest skill directory as a subdirectory named after its source directory under the adapter skills directory.
 - **DES-056**: MUST overwrite existing destination files with packaged skill file contents during installation.
 - **DES-057**: MUST delete destination files inside an installed skill directory when absent from the packaged skill directory.
@@ -153,6 +155,7 @@ Assumptions:
 - **DES-087**: MUST remove every build and test artifact, including the temporary build directory, egg-info directories, and `__pycache__` directories, on success and failure.
 - **DES-088**: MUST verify the PRJ-015 and PRJ-016 gating through a unit test that parses `release-pypi.yml` and checks the test-job dependency and test command.
 - **DES-089**: MUST document in the help template only user-facing usage of the listed commands, without internal-implementation details or legacy-support references.
+- **DES-092**: MUST print every supported-CLI list, including `show` tables and diagnostics, in alphabetical order.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 

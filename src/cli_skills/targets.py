@@ -2,14 +2,15 @@
 @file targets.py
 @brief Provide per-CLI skill installation adapters.
 @details Defines the `CliTarget` abstraction and one concrete adapter for each
-         supported CLI: `pi`, `openclaw`, `codex`, `antigravity`, and `claude`.
+         supported CLI: `antigravity`, `claude`, `codex`, `copilot`, `opencode`,
+         `openclaw`, and `pi`.
          Adapters resolve user-level skill destination directories from a home
          root and provide deterministic copy algorithms for skills.
          Shared copy primitives synchronize packaged trees, overwrite changed
          files, and prune destination entries absent from the package.
          Removal primitives delete managed skill directories while preserving
          unmanaged destination entries.
-@satisfies PRJ-010 PRJ-011 DES-049 DES-050 DES-051 DES-052 DES-053 DES-054 DES-055 DES-056 DES-057 DES-058 DES-063 REQ-048 REQ-051 REQ-052
+@satisfies PRJ-010 PRJ-011 DES-049 DES-050 DES-051 DES-052 DES-053 DES-054 DES-090 DES-091 DES-092 DES-055 DES-056 DES-057 DES-058 DES-063 REQ-048 REQ-051 REQ-052
 """
 
 from __future__ import annotations
@@ -186,6 +187,25 @@ class CodexTarget(CliTarget):
         return resolve_home(home) / ".codex" / "skills"
 
 
+class CopilotTarget(CliTarget):
+    """
+    @brief Installation adapter for the `copilot` CLI.
+    @details Installs skills under `$HOME/.copilot/skills`.
+    @satisfies DES-091
+    """
+
+    name = "copilot"
+
+    def skills_dir(self, home: Path | None = None) -> Path:
+        """
+        @brief Resolve the copilot user-level skills directory.
+        @param home {Path | None} Optional home-directory override.
+        @return {Path} `$HOME/.copilot/skills`.
+        @satisfies DES-091
+        """
+        return resolve_home(home) / ".copilot" / "skills"
+
+
 class AntigravityTarget(CliTarget):
     """
     @brief Installation adapter for Google Antigravity.
@@ -203,6 +223,25 @@ class AntigravityTarget(CliTarget):
         @satisfies DES-053
         """
         return resolve_home(home) / ".gemini" / "config" / "skills"
+
+
+class OpenCodeTarget(CliTarget):
+    """
+    @brief Installation adapter for the `opencode` CLI.
+    @details Installs skills under `$HOME/.config/opencode/skills`.
+    @satisfies DES-090
+    """
+
+    name = "opencode"
+
+    def skills_dir(self, home: Path | None = None) -> Path:
+        """
+        @brief Resolve the opencode user-level skills directory.
+        @param home {Path | None} Optional home-directory override.
+        @return {Path} `$HOME/.config/opencode/skills`.
+        @satisfies DES-090
+        """
+        return resolve_home(home) / ".config" / "opencode" / "skills"
 
 
 class ClaudeTarget(CliTarget):
@@ -225,16 +264,19 @@ class ClaudeTarget(CliTarget):
 
 
 ## @brief Registry of supported CLI adapters keyed by canonical CLI name.
-# @details Insertion order defines the supported-name listing in diagnostics.
-# @satisfies DES-049
+# @details Alphabetical key order defines the supported-name listing in
+# diagnostics and `show` tables.
+# @satisfies DES-049 DES-092
 TARGETS: dict[str, CliTarget] = {
     target.name: target
     for target in (
-        PiTarget(),
-        OpenClawTarget(),
-        CodexTarget(),
         AntigravityTarget(),
         ClaudeTarget(),
+        CodexTarget(),
+        CopilotTarget(),
+        OpenClawTarget(),
+        OpenCodeTarget(),
+        PiTarget(),
     )
 }
 

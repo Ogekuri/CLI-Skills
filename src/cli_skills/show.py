@@ -149,12 +149,12 @@ def _cli_rows(
 ) -> list[tuple[str, str, str]]:
     """
     @brief Build CLI configuration rows from the adapter registry.
-    @details Reports registry order, enabled state, and the home-relative
-             skills destination.
+    @details Reports alphabetical registry order, enabled state, and the
+             home-relative skills destination.
     @param config {dict[str, object]} Normalized user configuration.
     @param home {Path | None} Optional home-directory override.
     @return {list[tuple[str, str, str]]} `(cli, enabled, skills path)` rows.
-    @satisfies REQ-038
+    @satisfies REQ-038 DES-092
     """
     enabled = set(config.get("enabled", []))
     root = resolve_home(home)
