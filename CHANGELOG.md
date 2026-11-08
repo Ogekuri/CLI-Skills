@@ -1,6 +1,72 @@
 # Changelog
 
-## [0.5.0](https://github.com/Ogekuri/SKILLs/compare/v0.4.0..v0.5.0) - 2026-11-03
+## [0.6.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.5.0..v0.6.0) - 2026-11-08
+### 🚜  Changes
+- BREAKING CHANGE: remove legacy argument orders and legacy program naming [useReq] *(cli)*
+  - Reject undocumented legacy argument orders: --help before a command
+  - name and --dev|--develop before --upgrade now exit 2; canonical
+  - <command> --help and --upgrade --dev|--develop forms are unchanged
+  - (REQ-033, DES-082, REQ-065).
+  - Remove legacy 'skills' program naming from PRJ-006 and the resources
+  - package docstring (PRJ-006).
+  - Add REQ-065 and DES-089; inline help verified user-facing only with
+  - live smoke checks; README verified free of legacy references; tests
+  - updated to canonical orders plus rejection coverage.
+- gate release artifacts and publish on unit tests [useReq] *(release)*
+  - Add dedicated unit-tests job to release-pypi.yml running the
+  - project-defined unittest suite (PRJ-015).
+  - Make build-release depend on [check-branch, unit-tests] so failing
+  - tests skip dist build, attestation, GitHub release, and PyPI
+  - publish (PRJ-016).
+  - Add DES-088 conformance test asserting the test-job dependency and
+  - command in tests/test_release_workflow.py; verified by YAML graph
+  - check and full suite (24/24 OK).
+- add pre-release-check.sh release gate [useReq] *(scripts)*
+  - Add scripts/pre-release-check.sh running the pre-release gate:
+  - build sdist+wheel with the release-workflow command into a temporary
+  - directory, twine check on the artifacts, and the project unittest
+  - suite (PRJ-014, DES-084..DES-086).
+  - EXIT trap removes the temporary build dir, build/, dist/, egg-info,
+  - and __pycache__ directories so the repository stays artifact-free on
+  - success and failure (DES-087).
+  - Verified with two full runs: exit 0, twine PASSED, 23/23 tests,
+  - repository left clean; stale dist/ and __pycache__ removed.
+- publish to PyPI via trusted publishing and check PyPI releases [useReq] *(core)*
+  - Rename release-uvx.yml to release-pypi.yml; keep build, attestation,
+  - changelog, and GitHub release steps on every tagged branch and add
+  - OIDC Trusted Publishing to PyPI gated to master (PRJ-012, PRJ-013,
+  - DES-078, DES-079); pin setuptools>=77 for PEP 639 metadata (DES-080).
+  - Switch automatic release checks and --upgrade to PyPI; add
+  - --dev|--develop to upgrade from the latest tagged GitHub release;
+  - --ver/--version print installed plus PyPI and GitHub latest lines
+  - (REQ-002, REQ-010, REQ-043, REQ-059..REQ-064, DES-040, DES-042,
+  - DES-081..DES-083); README updated with PyPI install and a dedicated
+  - GitHub section.
+- migrate release workflow actions to Node24 runtimes [useReq] *(release)*
+  - Bump actions to Node24-executing majors: checkout v4->v7,
+  - setup-python v5->v7, setup-uv v3->v10, attest-build-provenance
+  - v1->v4, action-gh-release v2->v3; changelog-builder v6 already
+  - runs node24. Runtimes verified from each action action.yml.
+  - Add CTN-010 (pin Node24-or-later action majors) and DES-077
+  - (conformance unit test) to REQUIREMENTS.md.
+  - Add tests/test_release_workflow.py verifying every referenced
+  - action major and the absence of Node20 fallback workaround envs.
+- rename program to cli-skills and repository to CLI-Skills [useReq] *(core)*
+  - Rename package src/skills to src/cli_skills and launcher to
+  - scripts/cli-skills.sh; program name is now cli-skills (PRJ-001, CTN-003).
+  - Update repository references to https://github.com/Ogekuri/CLI-Skills
+  - in ENDPOINT, UPGRADE, pyproject URLs, README, and docs (CTN-005,
+  - REQ-002, REQ-010, REQ-013).
+  - Move user paths to ~/.cache/cli-skills and ~/.config/cli-skills
+  - (DES-009, DES-047); chain cli-skills install after --upgrade
+  - (REQ-043..REQ-046, REQ-058).
+  - Adapt test imports and assertions; regenerate REQUIREMENTS,
+  - WORKFLOW, and REFERENCES documentation.
+
+### 📚  Documentation
+- Update README.md file.
+
+## [0.5.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.4.0..v0.5.0) - 2026-11-03
 ### 🐛  Bug Fixes
 - harden bootstrap validation, cache semantics, verification bounds [useReq] *(astra-uv-project)*
   - PHASE 0: validation gate for keyword values (name/path/URL safety); invalid input causes no writes; data-not-code substitution with TOML escaping (DES-015, DES-028-033)
@@ -15,7 +81,7 @@
   - core: _install prints per-CLI installed names alongside counts; docstrings map REQ-057/REQ-058
   - WORKFLOW/REFERENCES updated for the new reporting surface
 
-## [0.4.0](https://github.com/Ogekuri/SKILLs/compare/v0.3.0..v0.4.0) - 2026-11-02
+## [0.4.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.3.0..v0.4.0) - 2026-11-02
 ### ⛰️  Features
 - add uninstall command removing installed skills and prompts [useReq] *(uninstall)*
   - Add SRS requirements REQ-047..REQ-056 and PRJ-011 defining the reciprocal
@@ -37,11 +103,11 @@
   - Template %OWNER% in skeleton README URLs and skell.sh header (DES-075)
   - Add bounded --help execution check (DES-076, skill verification step 5)
 
-## [0.3.0](https://github.com/Ogekuri/SKILLs/compare/v0.2.0..v0.3.0) - 2026-11-02
+## [0.3.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.2.0..v0.3.0) - 2026-11-02
 ### 🐛  Bug Fixes
 - Fix .gitignore file.
 
-## [0.2.0](https://github.com/Ogekuri/SKILLs/compare/v0.1.0..v0.2.0) - 2026-11-02
+## [0.2.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0) - 2026-11-02
 ### 🚜  Changes
 - chain skills install after successful --upgrade [useReq] *(core)*
   - Requirements: add REQ-043..REQ-046 mandating post-upgrade execution of
@@ -52,7 +118,7 @@
   - Docs: WORKFLOW.md adds PROC:skills-install unit and spawn edge;
   - REFERENCES.md regenerated.
 
-## [0.1.0](https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0) - 2026-10-30
+## [0.1.0](https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0) - 2026-10-30
 ### ⛰️  Features
 - add package inventory, CLI configuration, and install status report *(show)*
   - Add skills show command with three aligned ASCII tables
@@ -103,14 +169,16 @@
 
 # History
 
-- \[0.1.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0
-- \[0.2.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.2.0
-- \[0.3.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.3.0
-- \[0.4.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.4.0
-- \[0.5.0\]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.5.0
+- \[0.1.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
+- \[0.2.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.2.0
+- \[0.3.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.3.0
+- \[0.4.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.4.0
+- \[0.5.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.5.0
+- \[0.6.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.6.0
 
-[0.1.0]: https://github.com/Ogekuri/SKILLs/releases/tag/v0.1.0
-[0.2.0]: https://github.com/Ogekuri/SKILLs/compare/v0.1.0..v0.2.0
-[0.3.0]: https://github.com/Ogekuri/SKILLs/compare/v0.2.0..v0.3.0
-[0.4.0]: https://github.com/Ogekuri/SKILLs/compare/v0.3.0..v0.4.0
-[0.5.0]: https://github.com/Ogekuri/SKILLs/compare/v0.4.0..v0.5.0
+[0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
+[0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
+[0.3.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.2.0..v0.3.0
+[0.4.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.3.0..v0.4.0
+[0.5.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.4.0..v0.5.0
+[0.6.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.5.0..v0.6.0
