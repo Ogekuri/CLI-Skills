@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.10.1](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.1) - 2026-11-09
+### 🚜  Changes
+- add --force option to --upgrade commands [useReq] *(upgrade)*
+Accept the auxiliary --force option on --upgrade and --upgrade --dev/--develop.; Without --force, upgrades run the standard install/update process.; With --force, execute 'uv tool install cli-skills --force --reinstall --refresh'
+from PyPI, or the same options with --from git+... for the GitHub release.
+Requirements: update DES-038/DES-040/DES-081/REQ-010/REQ-063/REQ-064/REQ-065,
+add DES-103 and REQ-067..REQ-069, refresh the help template.
+Tests: cover forced PyPI/GitHub upgrades, forced manual command on non-Linux,
+and usage errors for invalid --force placements.
+Docs: update inline help template and README.md upgrade sections.
+
 ## [0.10.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.10.0) - 2026-11-09
 ### ⛰️  Features
 - add skills console-script entry point [useReq] *(packaging)*
@@ -237,6 +248,7 @@ Add DES-067..DES-073 defining canonical skill support subdirectories.; Validate 
 - \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.0
 - \[0.10.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.0
+- \[0.10.1\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.1
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -248,3 +260,4 @@ Add DES-067..DES-073 defining canonical skill support subdirectories.; Validate 
 [0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0
 [0.10.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.10.0
+[0.10.1]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.1
