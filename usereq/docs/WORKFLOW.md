@@ -4,7 +4,7 @@
 
 | ID | Type | Parent Process | Role | Entrypoint(s) | Defining File(s) |
 |---|---|---|---|---|---|
-| `PROC:main` | process | — | `cli-skills` CLI: dispatch management, enable/disable, installation, uninstallation, and show commands; run automatic release check | `main()` [`src/cli_skills/core.py`]; module trigger `sys.exit(main())` [`src/cli_skills/__main__.py`]; re-export `from .core import main` [`src/cli_skills/__init__.py`] | `src/cli_skills/core.py`, `src/cli_skills/settings.py`, `src/cli_skills/targets.py`, `src/cli_skills/installer.py`, `src/cli_skills/catalog.py`, `src/cli_skills/show.py`, `src/cli_skills/__main__.py`, `src/cli_skills/__init__.py` |
+| `PROC:main` | process | — | `cli-skills` CLI: dispatch management, enable/disable, installation, uninstallation, and show commands; run automatic release check | `main()` [`src/cli_skills/core.py`]; module trigger `sys.exit(main())` [`src/cli_skills/__main__.py`]; re-export `from .core import main` [`src/cli_skills/__init__.py`]; console-script launchers `cli-skills` and `skills` bound to `main()` [`pyproject.toml`] | `src/cli_skills/core.py`, `src/cli_skills/settings.py`, `src/cli_skills/targets.py`, `src/cli_skills/installer.py`, `src/cli_skills/catalog.py`, `src/cli_skills/show.py`, `src/cli_skills/__main__.py`, `src/cli_skills/__init__.py` |
 | `PROC:uv` | process | `PROC:main` | child process executing external `uv` tool for `--upgrade` / `--uninstall` | external `uv` executable (no internal entrypoint) | `src/cli_skills/core.py` (spawn site) |
 | `PROC:cli-skills-install` | process | `PROC:main` | child process executing the freshly upgraded `cli-skills` executable to install bundled resources into enabled CLIs after `--upgrade` | external `cli-skills` executable (no internal entrypoint) | `src/cli_skills/core.py` (spawn site) |
 
@@ -19,6 +19,7 @@
   - `main(argv=None)`: CLI argument dispatch and release-check orchestration [`src/cli_skills/core.py`]
     - module-execution trigger: `sys.exit(main())` [`src/cli_skills/__main__.py`]
     - package re-export: `from .core import main` [`src/cli_skills/__init__.py`]
+    - console-script launchers: `cli-skills` and `skills` console scripts bound to the same `main()` entry point [`pyproject.toml`]
 - **Lifecycle / Trigger**:
   - Start: OS launches the `cli-skills` process (`python -m cli_skills` or console script); `main()` executes once.
   - Loop/Block: no persistent loop; single-pass dispatch. `check_version()` may block on network/file I/O; `_manage()` blocks on `subprocess.run` until the child exits.

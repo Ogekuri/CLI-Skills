@@ -19,6 +19,8 @@ The application installs bundled skills into user-level configuration directorie
 
 The `uninstall` command removes the skills previously installed by `install` from the destinations of every enabled CLI.
 
+The distribution package provides the additional `skills` console-script executable bound to the same application entry point as `cli-skills`.
+
 Assumptions:
 
 - The archive supplies the pre-established source layout, project version, and release workflow; no application-specific commands beyond management commands are specified.
@@ -49,6 +51,7 @@ Assumptions:
 - **PRJ-014**: MUST provide `scripts/pre-release-check.sh` running build, metadata, and unit-test checks required before an official release.
 - **PRJ-015**: MUST execute the unit-test suite in a dedicated `release-pypi.yml` job before any build or release step.
 - **PRJ-016**: MUST prevent release-artifact creation and PyPI publication when the unit-test job fails.
+- **PRJ-017**: MUST distribute the `skills` executable alongside the `cli-skills` executable in the same `cli-skills` distribution package.
 
 ### 2.2 Project Constraints
 
@@ -163,6 +166,8 @@ Assumptions:
 - **DES-098**: MUST make `prompt-skill-architect` record a finite correction budget before verification and report residual blockers when that budget expires.
 - **DES-099**: MUST make `prompt-skill-architect` record case identifiers, inputs, expected and forbidden behavior, methods, observations, results, and evidence for applicable acceptance cases.
 - **DES-100**: MUST make `prompt-skill-architect` distinguish repository packaging constraints from portable conventions and treat size recommendations as review triggers rather than universal host validity limits.
+- **DES-101**: MUST declare the `skills` console-script entry point in the `pyproject.toml` `[project.scripts]` table bound to the same application entry point as `cli-skills`.
+- **DES-102**: MUST make the `skills` executable accept the same commands and options as `cli-skills` and produce identical output and exit codes.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 

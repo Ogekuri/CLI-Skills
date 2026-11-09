@@ -35,6 +35,7 @@ Repository = "https://github.com/Ogekuri/CLI-Skills"
 
 [project.scripts]
 cli-skills = "cli_skills.core:main"
+skills = "cli_skills.core:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
