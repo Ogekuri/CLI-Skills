@@ -49,10 +49,6 @@ Ask concise clarifying questions only when an answer changes correctness, author
 
 For review or modification, read the complete target artifact and any directly relevant dependencies before concluding. Continue truncated reads. If full inspection is impossible, report the assessed scope and do not certify uninspected content.
 
-### Validate supplied guidance
-
-Before incorporating supplied authoring guidance, record `claim or rule | source and version | evidence | applicability | disposition`. Use VALIDATED for supported factual claims or explicit, compatible task conventions; use UNVERIFIED for missing evidence and REJECTED for contradicted claims. Apply only VALIDATED items within their recorded scope. Report excluded items without promoting assumptions into requirements. A convention is not evidence of improved model reliability; performance claims require observed evaluations.
-
 ### Select the artifact
 
 Choose the least complex solution:
