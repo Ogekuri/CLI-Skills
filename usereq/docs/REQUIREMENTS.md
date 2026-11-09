@@ -156,6 +156,14 @@ Assumptions:
 - **DES-088**: MUST verify the PRJ-015 and PRJ-016 gating through a unit test that parses `release-pypi.yml` and checks the test-job dependency and test command.
 - **DES-089**: MUST document in the help template only user-facing usage of the listed commands, without internal-implementation details or legacy-support references.
 - **DES-092**: MUST print every supported-CLI list, including `show` tables and diagnostics, in alphabetical order.
+- **DES-093**: MUST make `prompt-skill-architect` classify supplied authoring guidance by evidence and applicability before incorporating validated rules into instruction artifacts.
+- **DES-094**: MUST make `prompt-skill-architect` select artifact profiles using evidenced host loading, authority, directory scope, lifecycle, persistence, and orchestration ownership.
+- **DES-095**: MUST make `prompt-skill-architect` preserve exact template tokens and output invariants while validating substitutions with synthetic normal, empty, malformed, delimiter-containing, and quoted values.
+- **DES-096**: MUST make `prompt-skill-architect` require linear shell instructions with validated literal arguments, correct quoting, and explicit option termination for hyphen-prefixed `rg` and `git grep` patterns.
+- **DES-097**: MUST make `prompt-skill-architect` verify actual resource dependencies within authorized path boundaries while distinguishing labeled example paths from dependencies.
+- **DES-098**: MUST make `prompt-skill-architect` record a finite correction budget before verification and report residual blockers when that budget expires.
+- **DES-099**: MUST make `prompt-skill-architect` record case identifiers, inputs, expected and forbidden behavior, methods, observations, results, and evidence for applicable acceptance cases.
+- **DES-100**: MUST make `prompt-skill-architect` distinguish repository packaging constraints from portable conventions and treat size recommendations as review triggers rather than universal host validity limits.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
