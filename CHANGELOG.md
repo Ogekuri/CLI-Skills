@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.1](https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.9.1) - 2026-11-09
+### 🚜  Changes
+- remove validate-supplied-guidance handling [useReq] *(prompt-skill-architect)*
+  - Remove the 'Validate supplied guidance' subsection from the
+  - prompt-skill-architect SKILL.md (guidance classification workflow).
+  - Remove requirement DES-093 from usereq/docs/REQUIREMENTS.md.
+  - Regenerate usereq/docs/REFERENCES.md.
+  - Verification: static-check clean; 24 unit tests passed.
+- encode validated authoring guidance [useReq] *(prompt-skill-architect)*
+  - Change-ID: PI-useReq-20261109095120
+  - Add DES-093 through DES-100 and corresponding skill instructions.
+  - Preserve routing metadata, local packaging constraints, and external guidance.
+  - Validate metadata and catalog consistency; run 24 existing unit tests.
+  - Record baseline compliance gaps separately from the requested change.
+
 ## [0.9.0](https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0) - 2026-11-08
 ### 🚜  Changes
 - add opencode and copilot with alphabetical CLI listing [useReq] *(targets)*
@@ -245,6 +260,7 @@
 - \[0.7.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.7.0
 - \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.0
+- \[0.9.1\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.1
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -255,3 +271,4 @@
 [0.7.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.6.0..v0.7.0
 [0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0
+[0.9.1]: https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.9.1
