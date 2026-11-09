@@ -131,8 +131,9 @@ Prerequisites: Python 3.11 or newer and [Astral uv](https://docs.astral.sh/uv/).
 | `cli-skills <command> --help` | Print help for `enable`, `disable`, `install`, `show`, `--upgrade`, `--uninstall`, `--ver`, or `--version`. |
 | `cli-skills --ver` | Print the installed version plus the latest PyPI and GitHub versions; force a release check. |
 | `cli-skills --version` | Print the installed version plus the latest PyPI and GitHub versions; force a release check. |
-| `cli-skills --upgrade` | Reinstall from PyPI with uv on Linux; print the manual command on other platforms. |
-| `cli-skills --upgrade --dev` | Reinstall the latest GitHub release instead of PyPI (Linux); print the manual command elsewhere. |
+| `cli-skills --upgrade` | Upgrade from PyPI with uv on Linux; print the manual command on other platforms. |
+| `cli-skills --upgrade --dev` | Upgrade to the latest GitHub release instead of PyPI (Linux); print the manual command elsewhere. |
+| `cli-skills --upgrade --force` | Force download and complete reinstallation (Linux); print the manual command elsewhere. |
 | `cli-skills --uninstall` | Uninstall the tool with uv on Linux; print the manual command on other platforms. |
 | `cli-skills enable <cli name>` | Enable skill installation for a supported CLI. |
 | `cli-skills disable <cli name>` | Disable skill installation for a supported CLI. |
@@ -222,6 +223,12 @@ Upgrade from the newest tagged GitHub release instead (intermediate and test rel
 cli-skills --upgrade --dev
 ```
 
+Force the download and the complete reinstallation instead of the standard install/update process by combining `--upgrade` with `--force`; the upgrade command appends the uv reinstallation options `--force --reinstall --refresh`:
+
+```bash
+cli-skills --upgrade --force
+```
+
 Uninstall through the CLI:
 
 ```bash
@@ -251,7 +258,7 @@ Afterwards, upgrade to the newest GitHub release with the dedicated upgrade opti
 cli-skills --upgrade --dev
 ```
 
-`--dev` (long form `--develop`) is an `--upgrade` option: it always installs the newest tagged release on GitHub, regardless of the branch it was tagged on.
+`--dev` (long form `--develop`) is an `--upgrade` option: it always installs the newest tagged release on GitHub, regardless of the branch it was tagged on. Combine it with `--force` to force the download and the complete reinstallation of that release.
 
 
 ## Live execution with uvx

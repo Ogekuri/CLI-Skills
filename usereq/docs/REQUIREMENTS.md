@@ -107,9 +107,9 @@ Assumptions:
 - **DES-035**: MUST specify a Python CLI application named `%PROGRAM%` packaged for Astral uv tool installation and uvx on-the-fly execution.
 - **DES-036**: MUST specify local execution support through `scripts/%SHORTNAME%.sh` delegating to `uv run python -m %SRCDIR%`.
 - **DES-037**: MUST specify `pyproject.toml` configuration including every file needed by the `.github/workflows/release-pypi.yml` package build.
-- **DES-038**: MUST include the exact English help template listing `--upgrade`, `--uninstall`, `--ver`, `--version`, `--dev`, and `--help` management commands.
+- **DES-038**: MUST include the exact English help template listing `--upgrade`, `--uninstall`, `--ver`, `--version`, `--dev`, `--force`, and `--help` management commands.
 - **DES-039**: MUST specify `--ver` and `--version` printing the installed version as `x.y.z` followed by `PyPI latest:` and `GitHub latest:` lines.
-- **DES-040**: MUST specify Linux execution of `uv tool install %PROGRAM% --force` for `--upgrade` with manual-command printing on other operating systems.
+- **DES-040**: MUST specify Linux execution of `uv tool install %PROGRAM%` for `--upgrade` with manual-command printing on other operating systems.
 - **DES-041**: MUST specify Linux execution of `uv tool uninstall %PROGRAM%` for `--uninstall` with manual-command printing on other operating systems.
 - **DES-042**: MUST specify the automatic release-check endpoint `https://pypi.org/pypi/%PROGRAM%/json` with a hardcoded 2-second timeout.
 - **DES-043**: MUST specify the release-check cache file `$HOME/.cache/%PROGRAM%/check_version_idle-time.json` storing last-success and idle-time timestamps in epoch and human-readable forms.
@@ -149,7 +149,7 @@ Assumptions:
 - **DES-078**: MUST keep the existing build, attestation, changelog, and GitHub-release steps in `release-pypi.yml` for tagged versions on every branch.
 - **DES-079**: MUST publish built distributions to PyPI with `pypa/gh-action-pypi-publish` using OIDC `id-token: write` and no API token, only on `master`.
 - **DES-080**: MUST declare PyPI-compliant package metadata in `pyproject.toml`, including the PEP 639 SPDX license expression and project URLs.
-- **DES-081**: MUST specify Linux execution of `uv tool install %PROGRAM% --force --from git+https://github.com/%OWNER%/%REPOSITORY%.git` for `--upgrade` combined with `--dev` or `--develop`.
+- **DES-081**: MUST specify Linux execution of `uv tool install %PROGRAM% --from git+https://github.com/%OWNER%/%REPOSITORY%.git` for `--upgrade` combined with `--dev` or `--develop`.
 - **DES-082**: MUST accept `--dev` and `--develop` only as suffixes of `--upgrade`, selecting the latest GitHub release regardless of its branch.
 - **DES-083**: MUST specify `https://api.github.com/repos/%OWNER%/%REPOSITORY%/releases/latest` as the GitHub latest-release endpoint backing `--ver`, `--version`, and `--dev` upgrades.
 - **DES-084**: MUST build the sdist and wheel with the release workflow build command into a temporary directory in `scripts/pre-release-check.sh`.
@@ -168,6 +168,7 @@ Assumptions:
 - **DES-100**: MUST make `prompt-skill-architect` distinguish repository packaging constraints from portable conventions and treat size recommendations as review triggers rather than universal host validity limits.
 - **DES-101**: MUST declare the `skills` console-script entry point in the `pyproject.toml` `[project.scripts]` table bound to the same application entry point as `cli-skills`.
 - **DES-102**: MUST make the `skills` executable accept the same commands and options as `cli-skills` and produce identical output and exit codes.
+- **DES-103**: MUST specify the `--force --reinstall --refresh` uv tool install options appended when the auxiliary `--force` option accompanies `--upgrade`.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
@@ -216,7 +217,7 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-007**: MUST print the full English help template below when invoked without parameters.
 - **REQ-008**: MUST print the full English help template below when invoked with `--help` alone.
 - **REQ-009**: MUST provide command-specific help when `--help` is requested for a specific command.
-- **REQ-010**: MUST execute `uv tool install cli-skills --force` for `--upgrade` on Linux.
+- **REQ-010**: MUST execute `uv tool install cli-skills` for `--upgrade` on Linux.
 - **REQ-011**: MUST NOT execute the upgrade command for `--upgrade` on non-Linux operating systems.
 - **REQ-012**: MUST print a warning and the manual upgrade command for `--upgrade` on non-Linux operating systems.
 - **REQ-013**: MUST execute `uv tool uninstall cli-skills` for `--uninstall` on Linux.
@@ -266,10 +267,13 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-060**: MUST print a `PyPI latest: <version>` line for `--ver` and `--version` reporting the newest PyPI version.
 - **REQ-061**: MUST print a `GitHub latest: <version>` line for `--ver` and `--version` reporting the newest GitHub release as `x.y.z`.
 - **REQ-062**: MUST report on the `GitHub latest:` line the same release that `--upgrade` with `--dev` installs.
-- **REQ-063**: MUST execute `uv tool install cli-skills --force --from git+https://github.com/Ogekuri/CLI-Skills.git` for `--upgrade --dev` and `--upgrade --develop` on Linux.
-- **REQ-064**: MUST treat `--dev` or `--develop` without `--upgrade` as an unknown command with exit code 2.
-- **REQ-065**: MUST treat `--help` before a command name, or `--dev` or `--develop` before `--upgrade`, as an unknown command with exit code 2.
+- **REQ-063**: MUST execute `uv tool install cli-skills --from git+https://github.com/Ogekuri/CLI-Skills.git` for `--upgrade --dev` and `--upgrade --develop` on Linux.
+- **REQ-064**: MUST treat `--dev`, `--develop`, or `--force` without `--upgrade` as an unknown command with exit code 2.
+- **REQ-065**: MUST treat `--help` before a command name, or `--dev`, `--develop`, or `--force` before `--upgrade`, as an unknown command with exit code 2.
 - **REQ-066**: MUST print `GitHub latest: unknown (<reason>)` for `--ver` and `--version` when the GitHub latest-release request fails, with `<reason>` identifying the actual error.
+- **REQ-067**: MUST execute `uv tool install cli-skills --force --reinstall --refresh` for `--upgrade --force` on Linux.
+- **REQ-068**: MUST execute `uv tool install cli-skills --force --reinstall --refresh --from git+https://github.com/Ogekuri/CLI-Skills.git` for `--upgrade` with `--dev` or `--develop` and `--force` on Linux.
+- **REQ-069**: MUST print the manual upgrade command including the selected `--force` options for `--upgrade --force` on non-Linux operating systems.
 
 Full help template: substitute `cli-skills` for `%PROGRAM%` and the installed version for `x.y.z`; retain all other text and spacing.
 
@@ -277,11 +281,12 @@ Full help template: substitute `cli-skills` for `%PROGRAM%` and the installed ve
 Usage: %PROGRAM% [command] [options] (x.y.z)
 
 Management Commands:
-  --upgrade   - Reinstall %PROGRAM% on Linux; print manual command elsewhere.
+  --upgrade   - Upgrade %PROGRAM% on Linux; print manual command elsewhere.
   --uninstall - Uninstall %PROGRAM% on Linux; print manual command elsewhere.
   --ver       - Print the %PROGRAM% version.
   --version   - Print the %PROGRAM% version.
   --dev       - With --upgrade, install the latest GitHub release instead of PyPI.
+  --force     - With --upgrade, force download and complete reinstallation.
   --help      - Print the full help screen or the help text of a specific command.
 
 Installation Commands:

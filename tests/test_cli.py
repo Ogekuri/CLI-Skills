@@ -106,6 +106,91 @@ class CliTests(unittest.TestCase):
         self.assertEqual(run.call_args.args[0], core.UPGRADE_DEVELOP)
         chained.assert_called_with()
 
+    @patch.object(core, "_post_upgrade_install", return_value=7)
+    def test_upgrade_force_reinstalls_from_pypi(self, chained):
+        """
+        @brief Verify `--upgrade --force` forces download and reinstallation.
+        @details Patches the platform to Linux and the chained install; expects
+                 `--upgrade --force` to execute `UPGRADE_FORCE` with the
+                 reinstallation options and to chain the post-upgrade install,
+                 returning its exit code.
+        @param chained {MagicMock} Replacement for `_post_upgrade_install`.
+        @return {None}
+        @expected_output Exit code 7 from the chained install and
+                 `subprocess.run` called with `UPGRADE_FORCE`.
+        @satisfies REQ-067 REQ-043 REQ-046
+        """
+        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            self.assertEqual(core.main(["--upgrade", "--force"]), 7)
+        self.assertEqual(run.call_args.args[0], core.UPGRADE_FORCE)
+        chained.assert_called_with()
+
+    @patch.object(core, "_post_upgrade_install", return_value=7)
+    def test_upgrade_develop_force_reinstalls_from_github(self, chained):
+        """
+        @brief Verify forced `--upgrade --dev` reinstalls the GitHub release.
+        @details Patches the platform to Linux and the chained install; expects
+                 every accepted option order of `--dev`/`--develop` combined
+                 with `--force` to execute `UPGRADE_DEVELOP_FORCE` and to chain
+                 the post-upgrade install, returning its exit code.
+        @param chained {MagicMock} Replacement for `_post_upgrade_install`.
+        @return {None}
+        @expected_output Exit code 7 from the chained install and
+                 `subprocess.run` called with `UPGRADE_DEVELOP_FORCE`.
+        @satisfies REQ-068 REQ-043 REQ-046
+        """
+        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            self.assertEqual(core.main(["--upgrade", "--dev", "--force"]), 7)
+            self.assertEqual(core.main(["--upgrade", "--force", "--develop"]), 7)
+        self.assertEqual(run.call_args.args[0], core.UPGRADE_DEVELOP_FORCE)
+        chained.assert_called_with()
+
+    def test_upgrade_force_prints_manual_command_on_non_linux(self):
+        """
+        @brief Verify `--upgrade --force` prints the forced manual command off Linux.
+        @details Patches the platform to darwin; expects exit code 0 without
+                 spawning a child process and a manual command carrying the
+                 reinstallation options.
+        @return {None}
+        @expected_output Exit code 0, `subprocess.run` not called, and the
+                 forced uv command printed to stdout.
+        @satisfies REQ-069 REQ-011 REQ-012
+        """
+        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "darwin"), patch.object(core.subprocess, "run") as run, contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(core.main(["--upgrade", "--force"]), 0)
+            run.assert_not_called()
+            self.assertIn("uv tool install cli-skills --force --reinstall --refresh", output.getvalue())
+
+    def test_force_without_upgrade_is_usage_error(self):
+        """
+        @brief Verify `--force` without `--upgrade` is a usage error.
+        @details Patches the release check; expects exit code 2 for `--force`
+                 invoked alone and when preceding `--upgrade`.
+        @return {None}
+        @expected_output Exit code 2 for `--force` alone and before `--upgrade`.
+        @satisfies REQ-064 REQ-065
+        """
+        with patch.object(core, "check_version"), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(core.main(["--force"]), 2)
+            self.assertEqual(core.main(["--force", "--upgrade"]), 2)
+
+    def test_invalid_upgrade_option_combinations_are_usage_error(self):
+        """
+        @brief Verify invalid `--upgrade` option combinations are usage errors.
+        @details Patches the release check; expects exit code 2 for duplicate
+                 options, the redundant `--dev` plus `--develop` combination,
+                 and unknown options following `--upgrade`.
+        @return {None}
+        @expected_output Exit code 2 for every invalid option combination.
+        @satisfies REQ-065
+        """
+        with patch.object(core, "check_version"), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(core.main(["--upgrade", "--dev", "--develop"]), 2)
+            self.assertEqual(core.main(["--upgrade", "--force", "--force"]), 2)
+            self.assertEqual(core.main(["--upgrade", "--bogus"]), 2)
+
     def test_develop_without_upgrade_is_usage_error(self):
         """
         @brief Verify `--dev`/`--develop` without `--upgrade` is a usage error.

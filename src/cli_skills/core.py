@@ -22,11 +22,24 @@ from .targets import TARGETS, resolve_target
 ## @satisfies DES-042
 PYPI_ENDPOINT = "https://pypi.org/pypi/cli-skills/json"
 ENDPOINT = "https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest"
-UPGRADE = ["uv", "tool", "install", "cli-skills", "--force"]
+## @brief Standard upgrade argv installing from PyPI without any force option.
+## @details Executed for `--upgrade`; runs the standard install/update process.
+## @satisfies DES-040 REQ-010
+UPGRADE = ["uv", "tool", "install", "cli-skills"]
+## @brief Forced-upgrade argv forcing download and complete reinstallation from PyPI.
+## @details Executed for `--upgrade --force`; appends the uv tool install
+##          reinstallation options `--force --reinstall --refresh`.
+## @satisfies DES-103 REQ-067
+UPGRADE_FORCE = ["uv", "tool", "install", "cli-skills", "--force", "--reinstall", "--refresh"]
 ## @brief Upgrade command argv installing the latest tagged GitHub release via git.
-## @details Executed for `--upgrade --dev`; bypasses PyPI.
+## @details Executed for `--upgrade --dev` and `--upgrade --develop`; bypasses PyPI.
 ## @satisfies DES-081 REQ-063
-UPGRADE_DEVELOP = ["uv", "tool", "install", "cli-skills", "--force", "--from", "git+https://github.com/Ogekuri/CLI-Skills.git"]
+UPGRADE_DEVELOP = ["uv", "tool", "install", "cli-skills", "--from", "git+https://github.com/Ogekuri/CLI-Skills.git"]
+## @brief Forced-upgrade argv forcing download and complete reinstallation from GitHub.
+## @details Executed for `--upgrade` combined with `--dev` or `--develop` and
+##          `--force`; appends the reinstallation options before `--from`.
+## @satisfies DES-103 REQ-068
+UPGRADE_DEVELOP_FORCE = ["uv", "tool", "install", "cli-skills", "--force", "--reinstall", "--refresh", "--from", "git+https://github.com/Ogekuri/CLI-Skills.git"]
 UNINSTALL = ["uv", "tool", "uninstall", "cli-skills"]
 SKILLS_INSTALL = ["cli-skills", "install"]
 """
@@ -38,11 +51,12 @@ SKILLS_INSTALL = ["cli-skills", "install"]
 HELP = f"""Usage: cli-skills [command] [options] ({__version__})
 
 Management Commands:
-  --upgrade   - Reinstall cli-skills on Linux; print manual command elsewhere.
+  --upgrade   - Upgrade cli-skills on Linux; print manual command elsewhere.
   --uninstall - Uninstall cli-skills on Linux; print manual command elsewhere.
   --ver       - Print the cli-skills version.
   --version   - Print the cli-skills version.
   --dev       - With --upgrade, install the latest GitHub release instead of PyPI.
+  --force     - With --upgrade, force download and complete reinstallation.
   --help      - Print the full help screen or the help text of a specific command.
 
 Installation Commands:
@@ -260,13 +274,15 @@ def _run_upgrade(command: list[str]) -> int:
     @brief Execute one upgrade command and chain the post-upgrade install.
     @details Delegates to `_manage` and, on a zero exit code under Linux,
              chains `_post_upgrade_install` so the freshly upgraded package
-             installs bundled resources into every enabled CLI. Used by both
-             the PyPI `--upgrade` form and the GitHub `--upgrade --dev` form.
+             installs bundled resources into every enabled CLI. Used by the
+             PyPI `--upgrade` form (with or without `--force`) and the GitHub
+             `--upgrade --dev` form (with or without `--force`).
     @param command {list[str]} Upgrade command argv executed on Linux and
             printed as the manual command on other operating systems.
     @return {int} Upgrade exit code, or the chained `cli-skills install` exit
             code when the chained install executes.
-    @satisfies REQ-010 REQ-011 REQ-012 REQ-043 REQ-044 REQ-045 REQ-046 REQ-063
+    @satisfies REQ-010 REQ-011 REQ-012 REQ-043 REQ-044 REQ-045 REQ-046
+               REQ-063 REQ-067 REQ-068 REQ-069
     """
     upgraded = _manage(command)
     if upgraded == 0 and sys.platform.startswith("linux"):
@@ -398,13 +414,39 @@ def _show(home: Path | None = None) -> int:
     return 0
 
 
+def _upgrade_command(options: list[str]) -> list[str] | None:
+    """
+    @brief Resolve the upgrade argv for the options following `--upgrade`.
+    @details Accepts any order of the auxiliary options `--dev`, `--develop`,
+             and `--force`; returns `None` for unknown options, duplicate
+             options, and the redundant `--dev` plus `--develop` combination.
+             `--force` selects the `--force --reinstall --refresh`
+             reinstallation argv; `--dev` or `--develop` selects the GitHub
+             `--from` argv. Complexity O(n) where n is the option count.
+    @param options {list[str]} Option tokens following `--upgrade`; empty for
+            the plain `--upgrade` form.
+    @return {list[str]} Matching upgrade argv; `None` when the options are
+            invalid.
+    @satisfies DES-040 DES-081 DES-103 REQ-010 REQ-063 REQ-067 REQ-068
+    """
+    allowed = ("--dev", "--develop", "--force")
+    if any(option not in allowed for option in options):
+        return None
+    if len(set(options)) != len(options) or ("--dev" in options and "--develop" in options):
+        return None
+    if "--dev" in options or "--develop" in options:
+        return UPGRADE_DEVELOP_FORCE if "--force" in options else UPGRADE_DEVELOP
+    return UPGRADE_FORCE if "--force" in options else UPGRADE
+
+
 def main(argv: list[str] | None = None) -> int:
     """
     @brief Run the automatic release check and dispatch one CLI command.
     @details Executes `check_version` before argument parsing (forced by
              `--ver` or `--version`), then routes to help, version,
              management, enable/disable, install, uninstall, or show
-             handlers. The `--upgrade` branch with or without `--dev` chains
+             handlers. The `--upgrade` branch, for any accepted
+             `--dev`/`--develop`/`--force` combination, chains
              `cli-skills install` after a successful Linux upgrade when the
              enabled configuration is non-empty and returns the chained exit
              code. The `--ver` and `--version` branch prints the installed
@@ -420,7 +462,7 @@ def main(argv: list[str] | None = None) -> int:
                REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044
                REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057
                REQ-058 REQ-059 REQ-060 REQ-061 REQ-062 REQ-063 REQ-064
-               REQ-065 REQ-066 DES-089
+               REQ-065 REQ-066 REQ-067 REQ-068 REQ-069 DES-089 DES-103
     """
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)
@@ -430,11 +472,12 @@ def main(argv: list[str] | None = None) -> int:
     if len(args) == 2 and args[1] == "--help":
         command = args[0]
         descriptions = {
-            "--upgrade": "Reinstall cli-skills on Linux; print manual command elsewhere.",
+            "--upgrade": "Upgrade cli-skills on Linux; print manual command elsewhere.",
             "--uninstall": "Uninstall cli-skills on Linux; print manual command elsewhere.",
             "--ver": "Print the cli-skills version.",
             "--version": "Print the cli-skills version.",
             "--dev": "With --upgrade, install the latest GitHub release instead of PyPI.",
+            "--force": "With --upgrade, force download and complete reinstallation.",
             "enable": "Enable skill installation for a supported CLI.",
             "disable": "Disable skill installation for a supported CLI.",
             "install": "Install skills for every enabled CLI.",
@@ -455,10 +498,10 @@ def main(argv: list[str] | None = None) -> int:
         except (OSError, ValueError, KeyError, TypeError) as exc:
             print(f"GitHub latest: unknown ({_failure_reason(exc)})")
         return 0
-    if args == ["--upgrade"]:
-        return _run_upgrade(UPGRADE)
-    if args in (["--upgrade", "--dev"], ["--upgrade", "--develop"]):
-        return _run_upgrade(UPGRADE_DEVELOP)
+    if args and args[0] == "--upgrade":
+        command = _upgrade_command(args[1:])
+        if command is not None:
+            return _run_upgrade(command)
     if args == ["--uninstall"]:
         return _manage(UNINSTALL)
     if len(args) == 1 and args[0] in ("enable", "disable"):
