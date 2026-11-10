@@ -1,7 +1,9 @@
 # Changelog
 
-## [0.10.1](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.1) - 2026-11-09
+## [0.10.2](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.2) - 2026-11-10
 ### 🚜  Changes
+- align --ver/--version output lines [useReq] *(version-report)*
+REQ-006/REQ-060/REQ-061: print Current Installed, Latest @ PyPI, and Latest @ GitHub lines with aligned values for --ver/--version.; REQ-070 (new): left-justify labels to common width via _REPORT_LABEL_WIDTH and the _report_line helper.; REQ-071 (new): Latest @ PyPI unavailable (<reason>) failure line.; REQ-066: GitHub failure value unknown (<reason>) under the Latest @ GitHub label.; DES-039: astra-uv-project skill spec now mandates the aligned report lines.; tests: exact-output assertion updated; full suite 29/29 green.
 - add --force option to --upgrade commands [useReq] *(upgrade)*
 Accept the auxiliary --force option on --upgrade and --upgrade --dev/--develop.; Without --force, upgrades run the standard install/update process.; With --force, execute 'uv tool install cli-skills --force --reinstall --refresh'
 from PyPI, or the same options with --from git+... for the GitHub release.
@@ -248,7 +250,7 @@ Add DES-067..DES-073 defining canonical skill support subdirectories.; Validate 
 - \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.0
 - \[0.10.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.0
-- \[0.10.1\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.1
+- \[0.10.2\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.2
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -260,4 +262,4 @@ Add DES-067..DES-073 defining canonical skill support subdirectories.; Validate 
 [0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0
 [0.10.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.10.0
-[0.10.1]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.1
+[0.10.2]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.2
