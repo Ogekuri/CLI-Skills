@@ -48,6 +48,14 @@ SKILLS_INSTALL = ["cli-skills", "install"]
          installs its bundled skills into every enabled CLI.
 @satisfies REQ-043
 """
+_REPORT_LABEL_WIDTH = 18
+"""
+@brief Common left-justified width of the `--ver` and `--version` report labels.
+@details Width of the longest label `Current Installed` (17 characters) plus
+         one separator space, so the `:` delimiters and version values align
+         vertically across the three report lines.
+@satisfies REQ-070
+"""
 HELP = f"""Usage: cli-skills [command] [options] ({__version__})
 
 Management Commands:
@@ -168,6 +176,21 @@ def _failure_reason(exc: Exception) -> str:
     if isinstance(message, str) and message.strip():
         return f"HTTP {exc.code}: {message.strip()}"
     return f"HTTP {exc.code}"
+
+
+def _report_line(label: str, value: str) -> str:
+    """
+    @brief Format one aligned `--ver`/`--version` report line.
+    @details Left-justifies `label` to `_REPORT_LABEL_WIDTH` characters and
+             appends `: ` plus the value, so the `:` delimiters and version
+             values align vertically across the three report lines.
+    @param label {str} Report label: `Current Installed`, `Latest @ PyPI`,
+            or `Latest @ GitHub`.
+    @param value {str} Rendered version or failure value.
+    @return {str} Aligned report line without trailing newline.
+    @satisfies REQ-006 REQ-060 REQ-061 REQ-070
+    """
+    return f"{label:<{_REPORT_LABEL_WIDTH}}: {value}"
 
 
 def check_version(force: bool = False) -> None:
@@ -449,10 +472,12 @@ def main(argv: list[str] | None = None) -> int:
              `--dev`/`--develop`/`--force` combination, chains
              `cli-skills install` after a successful Linux upgrade when the
              enabled configuration is non-empty and returns the chained exit
-             code. The `--ver` and `--version` branch prints the installed
-             version plus the PyPI and GitHub latest-version lines, printing
-             `GitHub latest: unknown (<reason>)` with the normalized failure
-             reason when the GitHub request fails.
+             code. The `--ver` and `--version` branch prints the installed,
+             PyPI, and GitHub versions on the aligned `Current Installed`,
+             `Latest @ PyPI`, and `Latest @ GitHub` lines built by
+             `_report_line`, printing `unavailable (<reason>)` and
+             `unknown (<reason>)` values when the PyPI or GitHub request
+             fails.
     @param argv {list[str] | None} Command-line arguments; defaults to
             `sys.argv[1:]`.
     @return {int} Process exit code: 0 on success; 1 on upgrade or install
@@ -462,7 +487,8 @@ def main(argv: list[str] | None = None) -> int:
                REQ-030 REQ-031 REQ-032 REQ-037 REQ-042 REQ-043 REQ-044
                REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057
                REQ-058 REQ-059 REQ-060 REQ-061 REQ-062 REQ-063 REQ-064
-               REQ-065 REQ-066 REQ-067 REQ-068 REQ-069 DES-089 DES-103
+               REQ-065 REQ-066 REQ-067 REQ-068 REQ-069 REQ-070 REQ-071
+               DES-089 DES-103
     """
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)
@@ -488,15 +514,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{command} - {descriptions[command]}")
             return 0
     if args in (["--ver"], ["--version"]):
-        print(__version__)
+        print(_report_line("Current Installed", __version__))
         try:
-            print(f"PyPI latest: {fetch_pypi_latest()}")
+            print(_report_line("Latest @ PyPI", fetch_pypi_latest()))
         except (OSError, ValueError, KeyError, TypeError) as exc:
-            print(f"PyPI latest: unavailable ({exc})")
+            print(_report_line("Latest @ PyPI", f"unavailable ({exc})"))
         try:
-            print(f"GitHub latest: {fetch_github_latest()}")
+            print(_report_line("Latest @ GitHub", fetch_github_latest()))
         except (OSError, ValueError, KeyError, TypeError) as exc:
-            print(f"GitHub latest: unknown ({_failure_reason(exc)})")
+            print(_report_line("Latest @ GitHub", f"unknown ({_failure_reason(exc)})"))
         return 0
     if args and args[0] == "--upgrade":
         command = _upgrade_command(args[1:])

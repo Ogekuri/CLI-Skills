@@ -64,11 +64,22 @@ class CliTests(unittest.TestCase):
         self.assertEqual(data["idle_time_epoch"], 87400)
 
     def test_version_forces_check_and_help_output(self):
+        """
+        @brief Verify the `--version` report lines and the forced release check.
+        @details Patches the fetchers with fixed versions; expects exit code 0,
+                 the exact aligned three-line report, and one `check_version`
+                 call with `force=True`.
+        @expected_output `Current Installed : <installed>`, `Latest @ PyPI     : 9.9.9`,
+                 and `Latest @ GitHub   : 8.8.8` lines.
+        @satisfies REQ-005 REQ-006 REQ-060 REQ-061 REQ-070
+        """
         with patch.object(core, "check_version") as check, patch.object(core, "fetch_pypi_latest", return_value="9.9.9"), patch.object(core, "fetch_github_latest", return_value="8.8.8"), contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(core.main(["--version"]), 0)
             self.assertEqual(
                 output.getvalue(),
-                core.__version__ + "\nPyPI latest: 9.9.9\nGitHub latest: 8.8.8\n",
+                "Current Installed : "
+                + core.__version__
+                + "\nLatest @ PyPI     : 9.9.9\nLatest @ GitHub   : 8.8.8\n",
             )
             check.assert_called_once_with(force=True)
         with patch.object(core, "check_version"), contextlib.redirect_stdout(io.StringIO()) as output:

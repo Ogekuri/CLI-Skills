@@ -108,7 +108,7 @@ Assumptions:
 - **DES-036**: MUST specify local execution support through `scripts/%SHORTNAME%.sh` delegating to `uv run python -m %SRCDIR%`.
 - **DES-037**: MUST specify `pyproject.toml` configuration including every file needed by the `.github/workflows/release-pypi.yml` package build.
 - **DES-038**: MUST include the exact English help template listing `--upgrade`, `--uninstall`, `--ver`, `--version`, `--dev`, `--force`, and `--help` management commands.
-- **DES-039**: MUST specify `--ver` and `--version` printing the installed version as `x.y.z` followed by `PyPI latest:` and `GitHub latest:` lines.
+- **DES-039**: MUST specify `--ver` and `--version` printing the aligned `Current Installed`, `Latest @ PyPI`, and `Latest @ GitHub` version-report lines.
 - **DES-040**: MUST specify Linux execution of `uv tool install %PROGRAM%` for `--upgrade` with manual-command printing on other operating systems.
 - **DES-041**: MUST specify Linux execution of `uv tool uninstall %PROGRAM%` for `--uninstall` with manual-command printing on other operating systems.
 - **DES-042**: MUST specify the automatic release-check endpoint `https://pypi.org/pypi/%PROGRAM%/json` with a hardcoded 2-second timeout.
@@ -213,7 +213,7 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-003**: MUST perform a release-check request when the cached idle-time has expired.
 - **REQ-004**: MUST skip the automatic request while the cached idle-time has not expired, except for forced version checks.
 - **REQ-005**: MUST force a release-check request for `--ver` or `--version` regardless of cache contents or idle delay.
-- **REQ-006**: MUST print the installed version as `x.y.z` for `--ver` and `--version`.
+- **REQ-006**: MUST print a `Current Installed : <version>` line for `--ver` and `--version` reporting the installed version.
 - **REQ-007**: MUST print the full English help template below when invoked without parameters.
 - **REQ-008**: MUST print the full English help template below when invoked with `--help` alone.
 - **REQ-009**: MUST provide command-specific help when `--help` is requested for a specific command.
@@ -264,16 +264,18 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-057**: MUST list every installed skill name for each CLI processed by `install`.
 - **REQ-058**: MUST surface the chained `cli-skills install` report as visible `--upgrade` output when the upgrade command and the chained installation both succeed.
 - **REQ-059**: MUST compare the installed version against the PyPI latest version for the automatic release-check outcome.
-- **REQ-060**: MUST print a `PyPI latest: <version>` line for `--ver` and `--version` reporting the newest PyPI version.
-- **REQ-061**: MUST print a `GitHub latest: <version>` line for `--ver` and `--version` reporting the newest GitHub release as `x.y.z`.
-- **REQ-062**: MUST report on the `GitHub latest:` line the same release that `--upgrade` with `--dev` installs.
+- **REQ-060**: MUST print a `Latest @ PyPI : <version>` line for `--ver` and `--version` reporting the newest PyPI version.
+- **REQ-061**: MUST print a `Latest @ GitHub : <version>` line for `--ver` and `--version` reporting the newest GitHub release as `x.y.z`.
+- **REQ-062**: MUST report on the `Latest @ GitHub` line the same release that `--upgrade` with `--dev` installs.
 - **REQ-063**: MUST execute `uv tool install cli-skills --from git+https://github.com/Ogekuri/CLI-Skills.git` for `--upgrade --dev` and `--upgrade --develop` on Linux.
 - **REQ-064**: MUST treat `--dev`, `--develop`, or `--force` without `--upgrade` as an unknown command with exit code 2.
 - **REQ-065**: MUST treat `--help` before a command name, or `--dev`, `--develop`, or `--force` before `--upgrade`, as an unknown command with exit code 2.
-- **REQ-066**: MUST print `GitHub latest: unknown (<reason>)` for `--ver` and `--version` when the GitHub latest-release request fails, with `<reason>` identifying the actual error.
+- **REQ-066**: MUST print a `Latest @ GitHub : unknown (<reason>)` line for `--ver` and `--version` when the GitHub latest-release request fails, with `<reason>` identifying the actual error.
 - **REQ-067**: MUST execute `uv tool install cli-skills --force --reinstall --refresh` for `--upgrade --force` on Linux.
 - **REQ-068**: MUST execute `uv tool install cli-skills --force --reinstall --refresh --from git+https://github.com/Ogekuri/CLI-Skills.git` for `--upgrade` with `--dev` or `--develop` and `--force` on Linux.
 - **REQ-069**: MUST print the manual upgrade command including the selected `--force` options for `--upgrade --force` on non-Linux operating systems.
+- **REQ-070**: MUST left-justify the `Current Installed`, `Latest @ PyPI`, and `Latest @ GitHub` labels to a common width followed by `: ` so colons and version values align vertically.
+- **REQ-071**: MUST print a `Latest @ PyPI : unavailable (<reason>)` line for `--ver` and `--version` when the PyPI latest-version request fails, with `<reason>` identifying the actual error.
 
 Full help template: substitute `cli-skills` for `%PROGRAM%` and the installed version for `x.y.z`; retain all other text and spacing.
 

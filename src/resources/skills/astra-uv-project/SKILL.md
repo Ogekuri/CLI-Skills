@@ -98,7 +98,7 @@ Substitute `%PROGRAM%` with its value and `x.y.z` with the installed version; ke
 
 ### B) Version, upgrade, and uninstall commands
 
-- **`--ver` / `--version`**: print the current version in `x.y.z` format and FORCE the online new-version check, ignoring the delay and the JSON cache file described in PHASE 4.
+- **`--ver` / `--version`**: print the version report lines `Current Installed`, `Latest @ PyPI`, and `Latest @ GitHub`, each rendered as `<label> : <version>` with labels left-justified to a common width so the colons and version numbers align vertically, and FORCE the online new-version check, ignoring the delay and the JSON cache file described in PHASE 4.
 - **`--upgrade`**:
   - Linux: execute `uv tool install %PROGRAM% --force --from git+https://github.com/%OWNER%/%REPOSITORY%.git`.
   - Other operating systems: do NOT execute the command. Print a warning and show the user the manual command to run.
