@@ -48,7 +48,7 @@ Assumptions:
 - **PRJ-011**: MUST remove installed bundled skills from enabled CLI destinations through the `uninstall` command.
 - **PRJ-012**: MUST publish the `cli-skills` package to PyPI through OIDC Trusted Publishing from the `release-pypi.yml` workflow.
 - **PRJ-013**: MUST run every release-workflow step for a tagged version on any branch and publish to PyPI only when the tag is on `master`.
-- **PRJ-014**: MUST provide `scripts/pre-release-check.sh` running build, metadata, and unit-test checks required before an official release.
+- **PRJ-014**: MUST provide `scripts/pre-release-check.sh` as the release-readiness gate, running the project test suite, release build, and distribution validation.
 - **PRJ-015**: MUST execute the unit-test suite in a dedicated `release-pypi.yml` job before any build or release step.
 - **PRJ-016**: MUST prevent release-artifact creation and PyPI publication when the unit-test job fails.
 - **PRJ-017**: MUST distribute the `skills` executable alongside the `cli-skills` executable in the same `cli-skills` distribution package.
@@ -152,10 +152,10 @@ Assumptions:
 - **DES-081**: MUST specify Linux execution of `uv tool install %PROGRAM% --from git+https://github.com/%OWNER%/%REPOSITORY%.git` for `--upgrade` combined with `--dev` or `--develop`.
 - **DES-082**: MUST accept `--dev` and `--develop` only as suffixes of `--upgrade`, selecting the latest GitHub release regardless of its branch.
 - **DES-083**: MUST specify `https://api.github.com/repos/%OWNER%/%REPOSITORY%/releases/latest` as the GitHub latest-release endpoint backing `--ver`, `--version`, and `--dev` upgrades.
-- **DES-084**: MUST build the sdist and wheel with the release workflow build command into a temporary directory in `scripts/pre-release-check.sh`.
+- **DES-084**: MUST build the source distribution and wheel with the release workflow build command in temporary staging before publishing artifacts into `dist/`.
 - **DES-085**: MUST validate the built distributions with `twine check` in `scripts/pre-release-check.sh`.
 - **DES-086**: MUST run the unit-test suite through the project-defined uv test command in `scripts/pre-release-check.sh`.
-- **DES-087**: MUST remove every build and test artifact, including the temporary build directory, egg-info directories, and `__pycache__` directories, on success and failure.
+- **DES-087**: MUST remove only artifacts created by the pre-release run, including distribution, build, egg-info, bytecode, and temporary check files, on success and failure.
 - **DES-088**: MUST verify the PRJ-015 and PRJ-016 gating through a unit test that parses `release-pypi.yml` and checks the test-job dependency and test command.
 - **DES-089**: MUST document in the help template only user-facing usage of the listed commands, without internal-implementation details or legacy-support references.
 - **DES-092**: MUST print every supported-CLI list, including `show` tables and diagnostics, in alphabetical order.
@@ -201,6 +201,23 @@ Assumptions:
 - **DES-133**: MUST emit all configuration identifiers, descriptions, help text, confirmations, and diagnostics in English.
 - **DES-134**: MUST reject read, update, and delete indices outside `0 <= Idx < length` and insert indices outside `0 <= Idx <= length` with a diagnostic naming the path, index, and valid range.
 - **DES-135**: MUST append at index `length`, shift later items right on insert, and compact later items left on delete.
+- **DES-136**: MUST provide `scripts/build.sh` generating the release source distribution and wheel in `dist/`.
+- **DES-137**: MUST resolve the repository root from each script location and support invocation from any working directory.
+- **DES-138**: MUST build release distributions in temporary staging and publish them into `dist/` only after successful build and artifact validation.
+- **DES-139**: MUST preserve pre-existing `dist/` content and remove stale release artifacts only when recorded as build-generated.
+- **DES-140**: MUST record generated distribution names and SHA-256 digests in a `dist/` manifest and verify each digest before replacing or removing that artifact.
+- **DES-141**: MUST fail when a release artifact target is tracked, unrecorded, or differs from its recorded digest.
+- **DES-142**: MUST validate that exactly one non-empty source distribution and one non-empty wheel with valid archive structure exist before reporting build success.
+- **DES-143**: MUST invoke `scripts/build.sh` and validate every generated distribution with `twine check` during pre-release verification.
+- **DES-144**: MUST preserve pre-existing repository status and user files during pre-release checks and cleanup.
+- **DES-145**: MUST refuse pre-release execution before destructive cleanup when pre-existing cleanup targets cannot be distinguished safely.
+- **DES-146**: MUST preserve inverse `.gitignore` rules while ignoring only generated distribution archives, wheels, manifest, and staging directories under `dist/`.
+- **DES-147**: MUST validate required toolchain executables and locked dependencies before running mandatory pre-release checks.
+- **DES-148**: MUST validate the syntax of every release shell script and parse every Python source and test module before running tests.
+- **DES-149**: MUST exit nonzero when any mandatory check or required cleanup fails and exit zero only when all checks and cleanup succeed.
+- **DES-150**: MUST verify that each generated release artifact and the build manifest are ignored by Git before reporting pre-release success.
+- **DES-151**: MUST print the generated release artifact paths under `dist/` after a successful build.
+- **DES-152**: MUST keep `scripts/build.sh` independently usable so a standalone build preserves its artifacts in `dist/`.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
