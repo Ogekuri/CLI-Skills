@@ -23,6 +23,7 @@
 !LICENSE.txt
 !setup.py
 !pyproject.toml
+!MANIFEST.in
 !pyrightconfig.json
 !uv.lock
 !.galias.conf

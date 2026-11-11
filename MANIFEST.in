@@ -1,0 +1,4 @@
+# Source distribution scope: exclude test suite, generated egg-info, and this file.
+prune tests
+prune src/cli_skills.egg-info
+exclude MANIFEST.in
