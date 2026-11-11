@@ -92,7 +92,7 @@ Assumptions:
 - **DES-017**: MUST represent each skill as a directory containing a `SKILL.md` file and related files.
 - **DES-018**: MUST begin every `SKILL.md` with YAML frontmatter declaring the skill `name`.
 - **DES-019**: MUST declare a `description` in every `SKILL.md` frontmatter stating the skill capability and an unambiguous use trigger.
-- **DES-020**: MUST include the `src/resources` directory tree in the `cli-skills` distribution package.
+- **DES-020**: MUST include the `src/resources` directory tree in the `cli-skills` distribution package as the `cli_skills/resources` package path, without a top-level `resources` package.
 - **DES-021**: MUST maintain a JSON manifest file under `src/resources` listing every skill in the `src/resources` folders and subfolders.
 - **DES-022**: MUST record for each manifest entry the file path relative to `src/resources`.
 - **DES-023**: MUST record for each manifest entry the skill `name` from its frontmatter.
@@ -224,7 +224,7 @@ Assumptions:
 - **DES-154**: MUST verify lockfile consistency with `uv lock --check` in `scripts/pre-release-check.sh` as the dependency-integrity phase.
 - **DES-155**: MUST check shell syntax with `bash -n` for every `scripts/*.sh` file and Python syntax with `ast.parse` for every `src` and `tests` Python file in `scripts/pre-release-check.sh`.
 - **DES-156**: MUST parse `pyproject.toml` with `tomllib` and MUST verify that the sdist and wheel versions equal `project.version`.
-- **DES-157**: MUST verify that the wheel contains `cli_skills/__main__.py` and every file under `src/resources`, including the manifest-listed skill files.
+- **DES-157**: MUST verify that the wheel contains `cli_skills/__main__.py` and every file under `src/resources` at path `cli_skills/resources/<relative path>`, including the manifest-listed skill files.
 - **DES-158**: MUST verify that the wheel `entry_points.txt` declares the `cli-skills` and `skills` console scripts bound to `cli_skills.core:main`.
 - **DES-159**: MUST verify that the sdist contains `pyproject.toml`, `README.md`, `LICENSE`, `src/cli_skills/core.py`, and `src/resources/manifest.json`.
 - **DES-161**: MUST run the complete unit-test suite with `uv run python -m unittest discover -s tests` before building distributions in `scripts/pre-release-check.sh`.

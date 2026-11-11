@@ -17,7 +17,9 @@ import importlib.resources as ires
 import json
 from pathlib import Path
 
-RESOURCES_ROOT = Path(str(ires.files("resources")))
+## @brief Bundled resources root resolved through the `cli_skills.resources` package.
+## @details Setuptools maps `src/resources` to the `cli_skills/resources` distribution path, so the wheel installs no top-level `resources` package. @satisfies DES-020 DES-157
+RESOURCES_ROOT = Path(str(ires.files("cli_skills.resources")))
 MANIFEST_PATH = RESOURCES_ROOT / "manifest.json"
 ## @brief Canonical skill support subdirectory names allowed at the skill root.
 ## @details Any other root directory or non-`SKILL.md` root file violates DES-067.

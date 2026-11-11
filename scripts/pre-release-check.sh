@@ -448,11 +448,11 @@ resources = root / "src" / "resources"
 manifest = json.loads((resources / "manifest.json").read_text(encoding="utf-8"))
 required = {"cli_skills/__main__.py", "cli_skills/core.py"}
 required |= {
-    "resources/" + path.relative_to(resources).as_posix()
+    "cli_skills/resources/" + path.relative_to(resources).as_posix()
     for path in resources.rglob("*")
     if path.is_file() and "__pycache__" not in path.parts
 }
-required |= {"resources/" + entry["file"] for entry in manifest["skills"]}
+required |= {"cli_skills/resources/" + entry["file"] for entry in manifest["skills"]}
 with zipfile.ZipFile(wheel) as archive:
     if archive.testzip() is not None:
         raise SystemExit("wheel archive is corrupt")
@@ -460,6 +460,9 @@ with zipfile.ZipFile(wheel) as archive:
     missing = sorted(required - members)
     if missing:
         raise SystemExit(f"wheel is missing files: {missing}")
+    stray = sorted(name for name in members if name.startswith("resources/"))
+    if stray:
+        raise SystemExit(f"wheel installs a top-level resources package: {stray[:3]}")
     entry_points = sorted(name for name in members if name.endswith(".dist-info/entry_points.txt"))
     if len(entry_points) != 1:
         raise SystemExit("wheel must contain exactly one entry_points.txt")

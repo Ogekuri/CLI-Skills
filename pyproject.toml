@@ -38,14 +38,13 @@ cli-skills = "cli_skills.core:main"
 skills = "cli_skills.core:main"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = {"" = "src", "cli_skills.resources" = "src/resources"}
+packages = ["cli_skills", "cli_skills.resources"]
 include-package-data = true
-
-[tool.setuptools.packages.find]
-namespaces = true
-where = ["src"]
-include = ["cli_skills", "cli_skills.*", "resources", "resources.*"]
 
 [tool.setuptools.package-data]
 cli_skills = ["*.py"]
-resources = ["**/*"]
+"cli_skills.resources" = ["**/*"]
+
+[tool.setuptools.exclude-package-data]
+"cli_skills.resources" = ["*.pyc", "__pycache__/*"]

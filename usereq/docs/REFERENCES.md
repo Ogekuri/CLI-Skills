@@ -42,7 +42,7 @@ import sys
 
 ---
 
-# catalog.py | Python | 165L | 10 symbols | 4 imports | 11 comments
+# catalog.py | Python | 167L | 10 symbols | 4 imports | 13 comments
 > Path: `src/cli_skills/catalog.py`
 - @brief Generate the skills manifest for `src/resources`.
 - @details Deterministic generator for `src/resources/manifest.json`. Recursively
@@ -64,20 +64,23 @@ from pathlib import Path
 
 ## Definitions
 
-- var `RESOURCES_ROOT = Path(str(ires.files("resources")))` (L20)
-- var `MANIFEST_PATH = RESOURCES_ROOT / "manifest.json"` (L21)
-- var `SKILL_SUPPORT_DIRECTORIES = ("scripts", "references", "assets", "images")` (L24)
+- var `RESOURCES_ROOT = Path(str(ires.files("cli_skills.resources")))` (L22)
+- @brief Bundled resources root resolved through the `cli_skills.resources` package.
+- @details Setuptools maps `src/resources` to the `cli_skills/resources` distribution path, so the wheel installs no top-level `resources` package.
+- @satisfies DES-020 DES-157
+- var `MANIFEST_PATH = RESOURCES_ROOT / "manifest.json"` (L23)
+- var `SKILL_SUPPORT_DIRECTORIES = ("scripts", "references", "assets", "images")` (L26)
 - @brief Canonical skill support subdirectory names allowed at the skill root.
 - @details Any other root directory or non-`SKILL.md` root file violates DES-067.
-- var `REFERENCE_SUPPORT_DIRECTORIES = ("images",)` (L27)
+- var `REFERENCE_SUPPORT_DIRECTORIES = ("images",)` (L29)
 - @brief Canonical nested subdirectory names allowed directly under `references`.
 - @details Any other nested directory under `references` violates DES-069 and DES-070.
-### class `class SkillLayoutError(ValueError)` : ValueError (L30-39)
+### class `class SkillLayoutError(ValueError)` : ValueError (L32-41)
 - @brief Signal a bundled skill layout that violates the canonical support layout.
 - @details Raised by `validate_skill_layout` when a skill root contains an entry outside the canonical support subdirectories or when `references` contains a non-canonical subdirectory.
 - @satisfies DES-073
 
-### fn `def validate_skill_layout(skill_dir: Path) -> None` (L40-68)
+### fn `def validate_skill_layout(skill_dir: Path) -> None` (L42-70)
 - @brief Validate a bundled skill directory against the canonical support layout.
 - @details Accepts `SKILL.md` plus the canonical support subdirectories at the skill root; accepts only `images` as a nested directory directly under `references`. Non-canonical root files and directories are rejected. Complexity O(E) where E is the number of root entries plus direct `references` entries.
 - @param skill_dir {Path} Packaged skill directory containing `SKILL.md`.
@@ -87,22 +90,22 @@ from pathlib import Path
 - @pre `skill_dir` MUST be an existing directory.
 - @post The directory layout is canonical or an exception is raised.
 
-### fn `def _parse_frontmatter(text: str) -> dict[str, str]` `priv` (L69-101)
+### fn `def _parse_frontmatter(text: str) -> dict[str, str]` `priv` (L71-103)
 - @brief Parse `name` and `description` from a YAML frontmatter block.
 - @details Reads key/value lines up to the closing `---` delimiter, strips surrounding YAML quotes from scalar values, and returns only the `name` and `description` keys when present.
 - @param text {str} Raw file text (UTF-8).
 - @return {Dict[str, str]} Frontmatter `name`/`description` mapping; empty when the block or keys are absent.
 - @pre `text` must be a non-empty string.
 
-### fn `def _discover_skills(root: Path) -> list[Path]` `priv` (L102-114)
+### fn `def _discover_skills(root: Path) -> list[Path]` `priv` (L104-116)
 - @brief Discover `SKILL.md` files under `root/skills`.
 - @details Recursively collects every file named `SKILL.md`, sorted by path.
 - @param root {Path} Resources root directory.
 - @return {List[Path]} Sorted `SKILL.md` file paths.
 
-### fn `def build_catalog(` (L115-116)
+### fn `def build_catalog(` (L117-118)
 
-### fn `def write_catalog(` (L146-148)
+### fn `def write_catalog(` (L148-150)
 - @brief Build the skills catalog dictionary.
 - @details Validates each skill directory layout, then scans the skills
 directory, extracts frontmatter metadata, and emits entries
@@ -118,16 +121,16 @@ canonical support layout.
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`RESOURCES_ROOT`|var|pub|20||
-|`MANIFEST_PATH`|var|pub|21||
-|`SKILL_SUPPORT_DIRECTORIES`|var|pub|24||
-|`REFERENCE_SUPPORT_DIRECTORIES`|var|pub|27||
-|`SkillLayoutError`|class|pub|30-39|class SkillLayoutError(ValueError)|
-|`validate_skill_layout`|fn|pub|40-68|def validate_skill_layout(skill_dir: Path) -> None|
-|`_parse_frontmatter`|fn|priv|69-101|def _parse_frontmatter(text: str) -> dict[str, str]|
-|`_discover_skills`|fn|priv|102-114|def _discover_skills(root: Path) -> list[Path]|
-|`build_catalog`|fn|pub|115-116|def build_catalog(|
-|`write_catalog`|fn|pub|146-148|def write_catalog(|
+|`RESOURCES_ROOT`|var|pub|22||
+|`MANIFEST_PATH`|var|pub|23||
+|`SKILL_SUPPORT_DIRECTORIES`|var|pub|26||
+|`REFERENCE_SUPPORT_DIRECTORIES`|var|pub|29||
+|`SkillLayoutError`|class|pub|32-41|class SkillLayoutError(ValueError)|
+|`validate_skill_layout`|fn|pub|42-70|def validate_skill_layout(skill_dir: Path) -> None|
+|`_parse_frontmatter`|fn|priv|71-103|def _parse_frontmatter(text: str) -> dict[str, str]|
+|`_discover_skills`|fn|priv|104-116|def _discover_skills(root: Path) -> list[Path]|
+|`build_catalog`|fn|pub|117-118|def build_catalog(|
+|`write_catalog`|fn|pub|148-150|def write_catalog(|
 
 
 ---
@@ -1576,11 +1579,12 @@ diagnostics and `show` tables.
 
 ---
 
-# __init__.py | Python | 8L | 0 symbols | 0 imports | 1 comments
+# __init__.py | Python | 9L | 0 symbols | 0 imports | 1 comments
 > Path: `src/resources/__init__.py`
-- @brief Mark `resources` as the bundled skills distribution package.
-- @details Provides an importable namespace for the `src/resources` data tree so
-setuptools packages it with the `cli-skills` distribution and downstream
-LLM agents can resolve bundled artifacts via `importlib.resources`.
+- @brief Mark `src/resources` as the bundled skills package `cli_skills.resources`.
+- @details Provides an importable package for the `src/resources` data tree. Setuptools
+maps this directory to `cli_skills/resources` in the `cli-skills` distribution
+so downstream LLM agents resolve bundled artifacts via `importlib.resources`
+under `cli_skills.resources`.
 - @satisfies PRJ-006 PRJ-007 DES-020
 
