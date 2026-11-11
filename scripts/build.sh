@@ -12,10 +12,12 @@
 # *          artifacts together with SHA256SUMS, and verifies the published
 # *          checksums. Intermediate build/ and src egg-info outputs are removed
 # *          on every exit path. The --clean option removes only generated dist/
-# *          outputs and leaves every other dist/ entry untouched.
+# *          outputs and leaves every other dist/ entry untouched. The
+# *          --output-dir option replaces dist/ with an absolute release output
+# *          directory for every phase.
 # * @satisfies PRJ-018 DES-136 DES-137 DES-138 DES-139 DES-140 DES-141 DES-142
 # *            DES-143 DES-144 DES-145 DES-146 DES-147 DES-148 DES-149 DES-150
-# *            DES-151
+# *            DES-151 DES-171 DES-172
 # */
 
 set -Eeuo pipefail
@@ -40,8 +42,9 @@ SCRIPT_DIRECTORY=$(cd -- "$(dirname -- "$SCRIPT_LOCATION")" && pwd -P)
 PROJECT_ROOT=$(cd -- "$SCRIPT_DIRECTORY/.." && pwd -P)
 
 #/**
-# * @brief Canonical release output directory.
-# * @satisfies PRJ-018
+# * @brief Release output directory; defaults to the canonical dist/ directory.
+# * @details Replaced by the absolute path given to `--output-dir` during argument parsing. Every `dist/` reference in DES-139 through DES-150 denotes this directory.
+# * @satisfies PRJ-018 DES-171
 # */
 DIST_DIRECTORY=$PROJECT_ROOT/dist
 
@@ -104,12 +107,12 @@ PUBLISHED_FILES=()
 
 #/**
 # * @brief Print the usage diagnostic and terminate with status 2.
-# * @details Only the optional `--clean` argument is accepted.
+# * @details Accepts `--clean` and `--output-dir <absolute path>` in any order; nothing else is accepted.
 # * @return {never} Exits with status 2.
-# * @satisfies DES-149
+# * @satisfies DES-149 DES-171 DES-172
 # */
 usage() {
-    printf 'Usage: scripts/build.sh [--clean]\n' >&2
+    printf 'Usage: scripts/build.sh [--clean] [--output-dir <absolute path>]\n' >&2
     exit 2
 }
 
@@ -190,18 +193,18 @@ resolve_project() {
 }
 
 #/**
-# * @brief Reject unsafe dist/ states before any removal or write.
-# * @details Aborts when dist/ is a symbolic link or exists as a non-directory.
+# * @brief Reject unsafe release output directory states before any removal or write.
+# * @details Aborts when the release output directory (DIST_DIRECTORY) is a symbolic link or exists as a non-directory.
 # * @return {None}
 # * @throws {SystemExit} Via `fail` on an unsafe dist/ state.
 # * @satisfies DES-143
 # */
 check_dist_state() {
     if [[ -L $DIST_DIRECTORY ]]; then
-        fail "dist/ is a symbolic link; refusing to remove or write through it"
+        fail "release output directory is a symbolic link; refusing to remove or write through it"
     fi
     if [[ -e $DIST_DIRECTORY && ! -d $DIST_DIRECTORY ]]; then
-        fail "dist exists but is not a directory"
+        fail "release output directory exists but is not a directory"
     fi
 }
 
@@ -512,20 +515,58 @@ finish() {
 }
 
 #/**
-# * @brief Parse arguments, validate the environment, and dispatch the requested mode.
-# * @param args {string...} Zero arguments for build mode, or the single argument `--clean`.
+# * @brief Parse the optional `--clean` and `--output-dir <path>` arguments.
+# * @details Accepts `--clean` and one `--output-dir <path>` pair in any order. Rejects repeated `--output-dir`, a missing value, a relative path, and unknown arguments through `usage`. Sets MODE to `clean` or `build`; a valid `--output-dir` path replaces DIST_DIRECTORY. Complexity O(A) for A arguments.
+# * @param args {string...} Zero or more of `--clean` and `--output-dir <absolute path>`.
 # * @return {None}
-# * @throws {SystemExit} Via `usage` for unsupported arguments.
-# * @satisfies DES-148 DES-149
+# * @throws {SystemExit} Via `usage` with status 2 for unsupported, repeated, or relative arguments.
+# * @satisfies DES-148 DES-149 DES-171 DES-172
 # */
-main() {
-    if (( $# == 0 )); then
-        MODE=build
-    elif (( $# == 1 )) && [[ $1 == --clean ]]; then
+parse_arguments() {
+    local clean=0
+    local output_given=0
+    local output=
+    while (( $# > 0 )); do
+        case $1 in
+            --clean)
+                clean=1
+                shift
+                ;;
+            --output-dir)
+                if (( $# < 2 || output_given == 1 )); then
+                    usage
+                fi
+                output_given=1
+                output=$2
+                shift 2
+                ;;
+            *)
+                usage
+                ;;
+        esac
+    done
+    if (( output_given == 1 )); then
+        if [[ $output != /* ]]; then
+            usage
+        fi
+        DIST_DIRECTORY=$output
+    fi
+    if (( clean == 1 )); then
         MODE=clean
     else
-        usage
+        MODE=build
     fi
+}
+
+#/**
+# * @brief Validate the environment and dispatch the requested mode.
+# * @details Parses arguments, changes to the repository root, validates executables, project layout, and the release output directory state, then dispatches clean or build mode.
+# * @return {None}
+# * @throws {SystemExit} Via `usage` for unsupported arguments and via `fail` for preflight failures.
+# * @satisfies DES-148 DES-149 DES-171
+# */
+main() {
+    parse_arguments "$@"
     cd -- "$PROJECT_ROOT"
     begin_phase preflight "Validating executables, project layout, and dist/ state"
     require_executables
