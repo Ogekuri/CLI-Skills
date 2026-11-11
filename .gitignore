@@ -34,8 +34,6 @@
 !docs/**/*
 !tests/
 !tests/**/*
-!dist/
-!dist/**
 !scripts/
 !scripts/lib/
 !scripts/**/*.sh
@@ -68,10 +66,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/cli_skills-*.tar.gz
-dist/cli_skills-*.whl
-dist/.cli-skills-build-manifest
-dist/.cli-skills-build.*/
+dist/
 downloads/
 eggs/
 .eggs/
