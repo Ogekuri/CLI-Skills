@@ -319,48 +319,6 @@ build_into_staging() {
 }
 
 #/**
-# * @brief Remove setuptools-generated non-operational members from the staged sdist.
-# * @details Requires exactly one staged sdist. Rewrites the archive without the root `setup.cfg` member and every member under `src/*.egg-info/`, which setuptools emits during the sdist step after manifest pruning is applied. The rewrite runs in an isolated uv Python with `tarfile`, targets a sibling temporary archive inside the staging directory, and replaces the original with `os.replace`. Member metadata and payloads of retained entries are copied unchanged. Complexity O(M) where M is the archive member count.
-# * @return {None}
-# * @throws {SystemExit} Via `fail` when the staged sdist count differs from one; the Python rewrite exits with status 1 on an empty or unreadable archive.
-# * @satisfies PRJ-018 DES-008 DES-037 DES-141 DES-159
-# */
-sanitize_sdist() {
-    local -a sdists=()
-    begin_phase sanitization "Removing setuptools-generated setup.cfg and egg-info members from the staged sdist"
-    shopt -s nullglob
-    sdists=("$STAGING_DIRECTORY"/*.tar.gz)
-    shopt -u nullglob
-    if (( ${#sdists[@]} != 1 )); then
-        fail "expected exactly one staged sdist before sanitization, found ${#sdists[@]} sdist(s)"
-    fi
-    uv run --no-project python - "${sdists[0]}" <<'PY'
-import os
-import sys
-import tarfile
-
-source_path = sys.argv[1]
-temporary_path = source_path + ".sanitized"
-with tarfile.open(source_path, "r:gz") as source:
-    members = source.getmembers()
-    if not members:
-        raise SystemExit("sdist archive has no members")
-    root = members[0].name.split("/", 1)[0]
-    with tarfile.open(temporary_path, "w:gz", format=tarfile.PAX_FORMAT) as target:
-        for member in members:
-            parts = member.name.split("/")
-            if member.name == f"{root}/setup.cfg":
-                continue
-            if len(parts) >= 3 and parts[0] == root and parts[1] == "src" and parts[2].endswith(".egg-info"):
-                continue
-            payload = source.extractfile(member) if member.isfile() else None
-            target.addfile(member, payload)
-os.replace(temporary_path, source_path)
-print("sdist sanitization: PASS")
-PY
-}
-
-#/**
 # * @brief Remove previous generated archives and publish the new artifacts.
 # * @details Removes previous generated outputs and moves the staged sdist and wheel into dist/ with same-filesystem renames. Each published path is recorded for rollback.
 # * @return {None}
@@ -405,7 +363,6 @@ run_build() {
     fi
     remove_staging_leftovers
     build_into_staging
-    sanitize_sdist
     validate_staged_archives
     publish_distributions
     print_summary

@@ -40,7 +40,7 @@ skills = "cli_skills.core:main"
 [tool.setuptools]
 package-dir = {"" = "src", "cli_skills.resources" = "src/resources"}
 packages = ["cli_skills", "cli_skills.resources"]
-include-package-data = true
+include-package-data = false
 
 [tool.setuptools.package-data]
 cli_skills = ["*.py"]
