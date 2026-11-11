@@ -34,10 +34,6 @@
 !docs/**/*
 !tests/
 !tests/**/*
-# Release artifacts belong in dist/ but only generated outputs are ignored below.
-# The directory must stay traversable under the inverse-exclusion policy.
-!dist/
-!dist/**
 !scripts/
 !scripts/lib/
 !scripts/**/*.sh
@@ -70,11 +66,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-# Generated release artifacts only; other dist/ content stays versionable.
-dist/*.tar.gz
-dist/*.whl
-dist/.cli-skills-build-manifest
-dist/.cli-skills-build.*/
+dist/
 downloads/
 eggs/
 .eggs/
