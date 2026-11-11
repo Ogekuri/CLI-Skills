@@ -6,7 +6,7 @@
 #/**
 # * @file clean.sh
 # * @brief Remove every artifact created by scripts/build.sh.
-# * @details Removes the generated sdist, wheel, SHA256SUMS, and staging
+# * @details Removes the generated sdist, wheel, and staging
 # *          directories from the release output directory (`dist/` by default or
 # *          the absolute path given by --output-dir), removes the build/ entry of
 # *          the repository root, and removes every *.egg-info directory under
@@ -207,7 +207,7 @@ remove_entry() {
 
 #/**
 # * @brief Remove generated release outputs from the release output directory.
-# * @details Removes `<DIST_PREFIX>-*.tar.gz`, `<DIST_PREFIX>-*.whl`, `SHA256SUMS`, and `.cli-skills-build.*` staging directories from DIST_DIRECTORY. Glob expansion uses nullglob so absent patterns vanish. Every other entry is preserved. Complexity O(M) for M matched entries.
+# * @details Removes `<DIST_PREFIX>-*.tar.gz`, `<DIST_PREFIX>-*.whl`, and `.cli-skills-build.*` staging directories from DIST_DIRECTORY. Glob expansion uses nullglob so absent patterns vanish. Every other entry is preserved. Complexity O(M) for M matched entries.
 # * @return {None}
 # * @satisfies DES-178 DES-180 DES-184
 # */
@@ -217,7 +217,6 @@ remove_release_outputs() {
     shopt -s nullglob
     matches=("$DIST_DIRECTORY/$DIST_PREFIX"-*.tar.gz "$DIST_DIRECTORY/$DIST_PREFIX"-*.whl "$DIST_DIRECTORY"/.cli-skills-build.*)
     shopt -u nullglob
-    matches+=("$DIST_DIRECTORY/SHA256SUMS")
     for entry in "${matches[@]}"; do
         remove_entry "$entry"
     done

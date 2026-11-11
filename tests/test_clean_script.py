@@ -94,7 +94,7 @@ class CleanScriptContractTests(unittest.TestCase):
         """
         @brief Check the release output removal covers every generated-output pattern.
         @details Arranges the `remove_release_outputs` body, then asserts the sdist,
-                 wheel, staging, and checksum patterns are all present.
+                 wheel, and staging patterns are all present.
         @return {None}
         @expected_output No assertion failure when every DES-139 and DES-142 pattern
                          is removed by `remove_release_outputs`.
@@ -105,7 +105,6 @@ class CleanScriptContractTests(unittest.TestCase):
             '$DIST_PREFIX"-*.tar.gz',
             '$DIST_PREFIX"-*.whl',
             '.cli-skills-build.*',
-            'SHA256SUMS',
         ):
             self.assertIn(pattern, body, f"missing removal pattern: {pattern}")
 

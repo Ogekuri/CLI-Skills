@@ -53,7 +53,7 @@ Assumptions:
 - **PRJ-016**: MUST prevent release-artifact creation and PyPI publication when the unit-test job fails.
 - **PRJ-017**: MUST distribute the `skills` executable alongside the `cli-skills` executable in the same `cli-skills` distribution package.
 - **PRJ-018**: MUST provide `scripts/build.sh` generating the complete release distribution set into `dist/`, runnable independently of `scripts/pre-release-check.sh`.
-- **PRJ-019**: MUST version-control the release distribution artifacts and `dist/SHA256SUMS` under `dist/` in the Git repository.
+- **PRJ-019**: MUST version-control the release distribution artifacts under `dist/` in the Git repository.
 - **PRJ-020**: MUST provide `scripts/clean.sh` removing every artifact created by `scripts/build.sh`, runnable independently of other scripts.
 
 ### 2.2 Project Constraints
@@ -210,15 +210,14 @@ Assumptions:
 - **DES-139**: MUST build into a staging directory `dist/.cli-skills-build.*` created inside `dist/`, so that publication is a same-filesystem rename.
 - **DES-140**: MUST require exactly one sdist and exactly one wheel in the staging directory and MUST exit with code 1 when the count differs.
 - **DES-141**: MUST test the archive integrity of every staged sdist and wheel before publication and MUST exit with code 1 on any unreadable or corrupt archive.
-- **DES-142**: MUST remove previously generated `dist/` outputs matching `<dist-name>-*.tar.gz`, `<dist-name>-*.whl`, and `dist/SHA256SUMS` before publication, where `<dist-name>` is the project name with `-` replaced by `_`.
+- **DES-142**: MUST remove previously generated `dist/` outputs matching `<dist-name>-*.tar.gz` and `<dist-name>-*.whl` before publication, where `<dist-name>` is the project name with `-` replaced by `_`.
 - **DES-143**: MUST preserve every `dist/` entry not matching the generated-output patterns of DES-139 or DES-142 during build and cleanup.
-- **DES-144**: MUST publish the sdist, wheel, and `dist/SHA256SUMS` into `dist/` only after all staged validations succeed, and MUST remove already published new files when publication fails.
-- **DES-145**: MUST write `dist/SHA256SUMS` with SHA-256 digests of the published sdist and wheel and MUST verify it with `sha256sum -c` after publication.
+- **DES-144**: MUST publish the sdist and wheel into `dist/` only after all staged validations succeed, and MUST remove already published new files when publication fails.
 - **DES-146**: MUST abort `scripts/build.sh` before any build step when a `build/` entry exists in the repository root, leaving that entry unmodified.
 - **DES-147**: MUST remove the `build/` directory created by the build and every `*.egg-info` directory under `src/` on success and failure, using an EXIT trap.
 - **DES-148**: MUST accept the `--clean` option in `scripts/build.sh` to remove only generated `dist/` outputs and MUST exit with code 0 when the removal succeeds.
 - **DES-149**: MUST reject unsupported arguments with exit code 2 and a usage diagnostic in `scripts/build.sh` and `scripts/pre-release-check.sh`.
-- **DES-150**: MUST print the names and SHA-256 digests of the published artifacts in `scripts/build.sh` after successful publication and verification.
+- **DES-150**: MUST print the names and SHA-256 digests of the published artifacts in `scripts/build.sh` after successful publication.
 - **DES-151**: MUST exit `scripts/build.sh` with a nonzero status and MUST NOT print a success summary when any mandatory build phase fails.
 - **DES-152**: MUST refuse to start `scripts/pre-release-check.sh` when a `build/` entry exists in the repository root, leaving it unmodified.
 - **DES-153**: MUST validate the existence of `pyproject.toml`, `uv.lock`, `.github/workflows/release-pypi.yml`, `src/cli_skills`, and `tests` before the first check phase, exiting with code 1 when any is missing.
@@ -228,7 +227,6 @@ Assumptions:
 - **DES-157**: MUST verify that the wheel contains `cli_skills/__main__.py` and every file under `src/resources`, including the manifest-listed skill files.
 - **DES-158**: MUST verify that the wheel `entry_points.txt` declares the `cli-skills` and `skills` console scripts bound to `cli_skills.core:main`.
 - **DES-159**: MUST verify that the sdist contains `pyproject.toml`, `README.md`, `LICENSE`, `src/cli_skills/core.py`, and `src/resources/manifest.json`.
-- **DES-160**: MUST verify the `SHA256SUMS` digests of the release output directory with `sha256sum -c` in `scripts/pre-release-check.sh` before the artifact content checks.
 - **DES-161**: MUST run the complete unit-test suite with `uv run python -m unittest discover -s tests` before building distributions in `scripts/pre-release-check.sh`.
 - **DES-162**: MUST compare the final `git status --porcelain --untracked-files=all --ignored` output and the tracked staged and unstaged diffs with their pre-run snapshots, and MUST exit with code 1 on mismatch.
 - **DES-163**: MUST register the `scripts/pre-release-check.sh` cleanup in an EXIT trap so cleanup runs on success, failure, and INT, TERM, or HUP interruption.

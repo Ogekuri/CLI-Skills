@@ -9,14 +9,13 @@
 # * @details Builds the sdist and wheel with the release build command into a
 # *          staging directory inside dist/, validates the staged archives,
 # *          replaces previously generated outputs of this project, publishes the
-# *          artifacts together with SHA256SUMS, and verifies the published
-# *          checksums. Intermediate build/ and src egg-info outputs are removed
+# *          sdist and wheel, and prints their SHA-256 digests. Intermediate build/ and src egg-info outputs are removed
 # *          on every exit path. The --clean option removes only generated dist/
 # *          outputs and leaves every other dist/ entry untouched. The
 # *          --output-dir option replaces dist/ with an absolute release output
 # *          directory for every phase.
 # * @satisfies PRJ-018 DES-136 DES-137 DES-138 DES-139 DES-140 DES-141 DES-142
-# *            DES-143 DES-144 DES-145 DES-146 DES-147 DES-148 DES-149 DES-150
+# *            DES-143 DES-144 DES-146 DES-147 DES-148 DES-149 DES-150
 # *            DES-151 DES-171 DES-172
 # */
 
@@ -229,8 +228,8 @@ remove_staging_leftovers() {
 }
 
 #/**
-# * @brief Remove previously generated distribution archives and the checksum manifest.
-# * @details Removes `dist/<DIST_PREFIX>-*.tar.gz`, `dist/<DIST_PREFIX>-*.whl`, and `dist/SHA256SUMS` when present. Every other dist/ entry is preserved.
+# * @brief Remove previously generated distribution archives.
+# * @details Removes `dist/<DIST_PREFIX>-*.tar.gz` and `dist/<DIST_PREFIX>-*.whl` when present. Every other dist/ entry is preserved.
 # * @return {None}
 # * @throws {SystemExit} Via `fail` when a generated file cannot be removed.
 # * @satisfies DES-142 DES-143
@@ -241,7 +240,6 @@ remove_generated_archives() {
     shopt -s nullglob
     matches=("$DIST_DIRECTORY/$DIST_PREFIX"-*.tar.gz "$DIST_DIRECTORY/$DIST_PREFIX"-*.whl)
     shopt -u nullglob
-    matches+=("$DIST_DIRECTORY/SHA256SUMS")
     for entry in "${matches[@]}"; do
         if [[ -e $entry || -L $entry ]]; then
             if ! rm -f -- "$entry"; then
@@ -363,47 +361,35 @@ PY
 }
 
 #/**
-# * @brief Write SHA256SUMS, remove previous generated archives, and publish the new artifacts.
-# * @details Computes SHA-256 digests of the staged sdist and wheel inside the staging directory, removes previous generated outputs, and moves the three files into dist/ with same-filesystem renames. Each published path is recorded for rollback.
+# * @brief Remove previous generated archives and publish the new artifacts.
+# * @details Removes previous generated outputs and moves the staged sdist and wheel into dist/ with same-filesystem renames. Each published path is recorded for rollback.
 # * @return {None}
-# * @satisfies DES-142 DES-144 DES-145
+# * @satisfies DES-142 DES-144
 # */
 publish_distributions() {
     local name
-    begin_phase publication "Writing SHA256SUMS and publishing artifacts into dist/"
-    (cd -- "$STAGING_DIRECTORY" && sha256sum -- "$STAGED_SDIST_NAME" "$STAGED_WHEEL_NAME" > SHA256SUMS)
+    begin_phase publication "Publishing artifacts into dist/"
     remove_generated_archives
-    for name in "$STAGED_SDIST_NAME" "$STAGED_WHEEL_NAME" SHA256SUMS; do
+    for name in "$STAGED_SDIST_NAME" "$STAGED_WHEEL_NAME"; do
         mv -- "$STAGING_DIRECTORY/$name" "$DIST_DIRECTORY/$name"
         PUBLISHED_FILES+=("$DIST_DIRECTORY/$name")
     done
 }
 
 #/**
-# * @brief Verify the published checksums with sha256sum in dist/.
-# * @details Runs `sha256sum -c` against `dist/SHA256SUMS`; a missing or mismatched artifact exits through `on_error`.
-# * @return {None}
-# * @satisfies DES-145
-# */
-verify_published_checksums() {
-    begin_phase verification "Verifying published SHA-256 checksums"
-    (cd -- "$DIST_DIRECTORY" && sha256sum -c -- SHA256SUMS)
-}
-
-#/**
 # * @brief Print the published artifact names and SHA-256 digests.
-# * @details Emits the verified `dist/SHA256SUMS` content, one `<digest>  <name>` line per artifact.
+# * @details Computes SHA-256 digests of the published sdist and wheel inside dist/ and emits one `<digest>  <name>` line per artifact.
 # * @return {None}
 # * @satisfies DES-150
 # */
 print_summary() {
     begin_phase summary "Published release artifacts (SHA-256 digests and names)"
-    cat -- "$DIST_DIRECTORY/SHA256SUMS"
+    (cd -- "$DIST_DIRECTORY" && sha256sum -- "$STAGED_SDIST_NAME" "$STAGED_WHEEL_NAME")
 }
 
 #/**
 # * @brief Execute the default build mode end to end.
-# * @details Refuses a pre-existing build/ entry, enables intermediate cleanup, prepares dist/, builds into staging, validates, publishes, verifies, and prints the summary.
+# * @details Refuses a pre-existing build/ entry, enables intermediate cleanup, prepares dist/, builds into staging, validates, publishes, and prints the summary.
 # * @return {None}
 # * @throws {SystemExit} Via `fail` or `on_error` on any mandatory phase failure.
 # * @satisfies DES-146 DES-147 DES-151
@@ -422,7 +408,6 @@ run_build() {
     sanitize_sdist
     validate_staged_archives
     publish_distributions
-    verify_published_checksums
     print_summary
 }
 
