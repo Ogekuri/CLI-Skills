@@ -13,6 +13,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from . import __version__
+from . import configops, configview, schema
 from .installer import install_enabled, uninstall_enabled
 from .settings import load_config, save_config
 from .show import build_show
@@ -76,8 +77,22 @@ Installation Commands:
 Reporting Commands:
   show               - Show packaged resources, CLI configuration, and installation status.
 
+Configuration Commands:
+  --print [<path>]     - Print the configuration tree or a configuration subtree.
+  --info [<path>]      - Print the configuration schema reference or a schema subtree.
+  --print-raw          - Print the raw configuration JSON file bytes.
+  --get <path>         - Print the JSON value stored at a canonical configuration path.
+  --set <path> <value> - Set a canonical configuration path to a value.
+  --unset <path>       - Reset or remove a canonical configuration path.
+
 Commands:
   ..."""
+
+## @brief Configuration commands dispatched through the shared schema.
+## @details Order defines the dispatch set only; the help template owns the
+##          documented order.
+## @satisfies DES-105 DES-106 DES-130
+CONFIG_COMMANDS = ("--print", "--info", "--print-raw", "--get", "--set", "--unset")
 
 
 def cache_path() -> Path:
@@ -462,13 +477,78 @@ def _upgrade_command(options: list[str]) -> list[str] | None:
     return UPGRADE_FORCE if "--force" in options else UPGRADE
 
 
+def _configure(args: list[str], home: Path | None = None) -> int:
+    """
+    @brief Execute one configuration display or mutation command.
+    @details Dispatches `--print`, `--info`, `--print-raw`, `--get`, `--set`,
+             and `--unset` against the canonical schema. Valid output goes to
+             stdout; every diagnostic goes to stderr with exit status 1 and no
+             partial success output. `--print-raw` writes the stored bytes
+             unchanged and never applies tree formatting.
+    @param args {list[str]} Command token followed by its canonical path and value.
+    @param home {Path | None} Optional home-directory override.
+    @return {int} Exit code: 0 on success; 1 on any configuration failure.
+    @satisfies DES-105 DES-106 DES-111 DES-115 DES-116 DES-117 DES-130
+    """
+    name = args[0]
+    try:
+        if name == "--print":
+            if len(args) > 2:
+                raise configops.ConfigError("Usage: cli-skills --print [<path>]")
+            config = configops.read_config(home)
+            print(configview.render_print(config, args[1] if len(args) == 2 else None))
+            return 0
+        if name == "--info":
+            if len(args) > 2:
+                raise configops.ConfigError("Usage: cli-skills --info [<path>]")
+            print(configview.render_info(args[1] if len(args) == 2 else None))
+            return 0
+        if name == "--print-raw":
+            if len(args) != 1:
+                raise configops.ConfigError("Usage: cli-skills --print-raw")
+            payload = configops.read_raw(home)
+            buffer = getattr(sys.stdout, "buffer", None)
+            if buffer is None:
+                sys.stdout.write(payload.decode("utf-8"))
+            else:
+                buffer.write(payload)
+                buffer.flush()
+            return 0
+        if name == "--get":
+            if len(args) != 2:
+                raise configops.ConfigError("Usage: cli-skills --get <path>")
+            path = schema.parse_path(args[1])
+            value = configops.get_value(configops.read_config(home), path)
+            print(json.dumps(value, ensure_ascii=False))
+            return 0
+        if name == "--set":
+            if len(args) != 3:
+                raise configops.ConfigError("Usage: cli-skills --set <path> <value>")
+            written = configops.set_path(args[1], args[2], home)
+            print(f"Set {written.display}.")
+            return 0
+        if name == "--unset":
+            if len(args) != 2:
+                raise configops.ConfigError("Usage: cli-skills --unset <path>")
+            written = configops.unset_path(args[1], home)
+            print(f"Unset {written.display}.")
+            return 0
+    except (configops.ConfigError, schema.SchemaError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+    print(f"Error: unknown configuration command: {name}", file=sys.stderr)
+    return 1
+
+
 def main(argv: list[str] | None = None) -> int:
     """
     @brief Run the automatic release check and dispatch one CLI command.
     @details Executes `check_version` before argument parsing (forced by
              `--ver` or `--version`), then routes to help, version,
-             management, enable/disable, install, uninstall, or show
-             handlers. The `--upgrade` branch, for any accepted
+             management, enable/disable, install, uninstall, show, or
+             configuration handlers. Configuration commands dispatch through
+             `_configure` against the canonical schema. The `--upgrade`
+             branch, for any accepted
              `--dev`/`--develop`/`--force` combination, chains
              `cli-skills install` after a successful Linux upgrade when the
              enabled configuration is non-empty and returns the chained exit
@@ -488,7 +568,7 @@ def main(argv: list[str] | None = None) -> int:
                REQ-045 REQ-046 REQ-047 REQ-054 REQ-055 REQ-056 REQ-057
                REQ-058 REQ-059 REQ-060 REQ-061 REQ-062 REQ-063 REQ-064
                REQ-065 REQ-066 REQ-067 REQ-068 REQ-069 REQ-070 REQ-071
-               DES-089 DES-103
+               DES-089 DES-103 DES-105 DES-106 DES-130
     """
     args = list(sys.argv[1:] if argv is None else argv)
     check_version(force="--ver" in args or "--version" in args)
@@ -509,6 +589,12 @@ def main(argv: list[str] | None = None) -> int:
             "install": "Install skills for every enabled CLI.",
             "uninstall": "Remove installed skills for every enabled CLI.",
             "show": "Show packaged resources, CLI configuration, and installation status.",
+            "--print": "Print the configuration tree or a configuration subtree.",
+            "--info": "Print the configuration schema reference or a schema subtree.",
+            "--print-raw": "Print the raw configuration JSON file bytes.",
+            "--get": "Print the JSON value stored at a canonical configuration path.",
+            "--set": "Set a canonical configuration path to a value.",
+            "--unset": "Reset or remove a canonical configuration path.",
         }
         if command in descriptions:
             print(f"{command} - {descriptions[command]}")
@@ -543,5 +629,7 @@ def main(argv: list[str] | None = None) -> int:
         return _uninstall()
     if args == ["show"]:
         return _show()
+    if args and args[0] in CONFIG_COMMANDS:
+        return _configure(args)
     print(f"Unknown command or options: {' '.join(args)}", file=sys.stderr)
     return 2

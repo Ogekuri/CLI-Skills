@@ -169,6 +169,38 @@ Assumptions:
 - **DES-101**: MUST declare the `skills` console-script entry point in the `pyproject.toml` `[project.scripts]` table bound to the same application entry point as `cli-skills`.
 - **DES-102**: MUST make the `skills` executable accept the same commands and options as `cli-skills` and produce identical output and exit codes.
 - **DES-103**: MUST specify the `--force --reinstall --refresh` uv tool install options appended when the auxiliary `--force` option accompanies `--upgrade`.
+- **DES-104**: MUST define one canonical configuration schema in `src/cli_skills/schema.py` that drives path resolution, typed validation, defaults, display, and help generation.
+- **DES-105**: MUST expose configuration inspection through `--print [Path]`, `--info [Path]`, and `--print-raw` and configuration mutation through `--set Path Value` and `--unset Path` only.
+- **DES-106**: MUST expose configuration read access through `--get Path` and MUST NOT introduce alternate mutation flags, while unrelated business-logic commands remain unchanged.
+- **DES-107**: MUST define case-sensitive colon-separated canonical paths rooted at the `Global` section, which maps to the `$HOME/.config/cli-skills/config.json` root object.
+- **DES-108**: MUST expose the `enabled` key as `Global:enabled`, an array of unique supported CLI names whose schema default is `[]`.
+- **DES-109**: MUST resolve every path token against the schema and MUST reject unknown sections, unknown keys, unknown operations, and malformed indices with exit code 1.
+- **DES-110**: MUST treat `append`, `+`, and `insert` as array-only operations and MUST reject them as `--get`, `--print`, or `--info` targets.
+- **DES-111**: MUST create missing global configuration directories and initialize the configuration file from schema defaults before executing any configuration command.
+- **DES-112**: MUST validate the entire resulting configuration against the canonical schema before writing any `--set` or `--unset` result.
+- **DES-113**: MUST persist `--set` and `--unset` results through a same-directory temporary file with flush, fsync, atomic replacement, and preserved file mode.
+- **DES-114**: MUST leave the stored configuration unchanged when any `--set` or `--unset` operation fails.
+- **DES-115**: MUST emit `--get` output as one JSON value without labels, tree decoration, confirmations, or extra prose.
+- **DES-116**: MUST emit `--print-raw` as the unmodified on-disk bytes of the global configuration file.
+- **DES-117**: MUST write successful configuration command output to stdout and every configuration diagnostic to stderr with exit status 1 on failure.
+- **DES-118**: MUST implement one deterministic tree renderer in `src/cli_skills/render.py` shared by `--print` and `--info` using `├── `, `└── `, and four-character ancestor segments.
+- **DES-119**: MUST render metadata and tables as attached detail lines that never carry structural markers and reuse the owning node detail prefix.
+- **DES-120**: MUST render every table through one formatter computing column widths from Unicode display width with one padding space per side and aligned borders.
+- **DES-121**: MUST render an empty array without a table as an attached hint containing a complete, schema-valid `--set` command.
+- **DES-122**: MUST render `--print` leaves as `token = <JSON value> (default)` or `token = <JSON value> (custom | default: <JSON default>)`.
+- **DES-123**: MUST attach an `Idx | Value` table with contiguous zero-based indices to every non-empty array parameter rendered by `--print`.
+- **DES-124**: MUST render `--print` selection parameters with an attached `Sel | Value` table containing exactly one active `[*]` row.
+- **DES-125**: MUST render `--info` parameter headings as `token - [Type: constraints] description` followed by attached default, command, and allowed-value details.
+- **DES-126**: MUST render `--info` sections with a `[Path: <canonical path>]` badge and a `Reset block` command detail preceding their children.
+- **DES-127**: MUST render a requested subtree with the requested node as the marker-free root and without synthetic ancestors or dangling vertical columns.
+- **DES-128**: MUST advertise `--unset` only for schema values declaring a default and MUST reject reset of required values without defaults.
+- **DES-129**: MUST shell-quote every published command example and MUST keep single-item array arguments distinct from whole-array JSON arguments.
+- **DES-130**: MUST list the configuration commands in the full help template and in command-specific help.
+- **DES-131**: MUST keep `enable` and `disable` persisting the shared `Global:enabled` array through the canonical configuration store.
+- **DES-132**: MUST store and display configuration values in plain text without masking for `--print`, `--print-raw`, and `--get`.
+- **DES-133**: MUST emit all configuration identifiers, descriptions, help text, confirmations, and diagnostics in English.
+- **DES-134**: MUST reject read, update, and delete indices outside `0 <= Idx < length` and insert indices outside `0 <= Idx <= length` with a diagnostic naming the path, index, and valid range.
+- **DES-135**: MUST append at index `length`, shift later items right on insert, and compact later items left on delete.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
@@ -300,10 +332,22 @@ Installation Commands:
 Reporting Commands:
   show               - Show packaged resources, CLI configuration, and installation status.
 
+Configuration Commands:
+  --print [<path>]     - Print the configuration tree or a configuration subtree.
+  --info [<path>]      - Print the configuration schema reference or a schema subtree.
+  --print-raw          - Print the raw configuration JSON file bytes.
+  --get <path>         - Print the JSON value stored at a canonical configuration path.
+  --set <path> <value> - Set a canonical configuration path to a value.
+  --unset <path>       - Reset or remove a canonical configuration path.
+
 Commands:
   ...
 ```
 
 ## 4. Test Requirements
 
-No unit tests were explicitly requested.
+- **REQ-072**: MUST verify `--print` and `--info` output against exact golden strings covering root, sibling, nested, and detail-prefix permutations.
+- **REQ-073**: MUST verify emitted tree topology through a structural validator checking markers, sibling order, detail prefixes, and `[Path: ...]` badges.
+- **REQ-074**: MUST verify table rectangularity and aligned borders for every rendered table, including wide characters and escaped newlines.
+- **REQ-075**: MUST verify `--get`, `--set`, `--unset`, `--print`, `--info`, and `--print-raw` behavior, exit codes, stream separation, and failure atomicity.
+- **REQ-076**: MUST verify every published command example is shell-parseable and resolves to a schema-valid canonical path.
