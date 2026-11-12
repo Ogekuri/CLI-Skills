@@ -35,7 +35,7 @@ jobs:
             echo "is_master=false" >> "$GITHUB_OUTPUT"
           fi
 
-  # 2. Publish the pre-built artifacts committed in the tagged release
+  # 2. Publish the pre-built artifacts provided in the release workspace
   release:
     needs: [check-branch]
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify committed distribution artifacts
+      - name: Verify distribution artifacts
         run: |
           version=$(sed -n 's/^version = "\([^"]*\)"$/\1/p' pyproject.toml)
           test -n "$version"
@@ -54,7 +54,7 @@ jobs:
           shopt -s nullglob
           wheels=(dist/cli_skills-"$version"-*.whl)
           test "${#wheels[@]}" -eq 1
-          echo "Committed artifacts for $version verified."
+          echo "Distribution artifacts for $version verified."
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v4

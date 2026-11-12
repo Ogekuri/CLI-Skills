@@ -51,10 +51,9 @@ Assumptions:
 - **PRJ-014**: MUST provide `scripts/pre-release-check.sh` performing toolchain, lockfile, syntax, unit-test, build, and release-artifact validation checks before an official release, then cleaning generated outputs.
 - **PRJ-017**: MUST distribute the `skills` executable alongside the `cli-skills` executable in the same `cli-skills` distribution package.
 - **PRJ-018**: MUST provide `scripts/build.sh` generating the complete release distribution set into `dist/`, runnable independently of `scripts/pre-release-check.sh`.
-- **PRJ-019**: MUST version-control the release distribution artifacts under `dist/` in the Git repository.
 - **PRJ-021**: MUST remove every artifact of a previous build at the start of `scripts/build.sh` before generating new distributions.
-- **PRJ-022**: MUST generate GitHub release assets from the `dist/` artifact set committed in the tagged release commit.
-- **PRJ-023**: MUST publish the `dist/` artifact set committed in the tagged release commit to PyPI without executing any build.
+- **PRJ-022**: MUST generate GitHub release assets from the `dist/` artifact set present in the release workflow workspace.
+- **PRJ-023**: MUST publish the `dist/` artifact set present in the release workflow workspace to PyPI without executing any build.
 
 ### 2.2 Project Constraints
 
@@ -150,7 +149,7 @@ Assumptions:
 - **DES-076**: MUST specify a bounded post-implementation execution check such as `scripts/%SHORTNAME%.sh --help` in addition to the build smoke check.
 - **DES-077**: MUST verify the CTN-010 constraint through a unit test that parses `.github/workflows/release-pypi.yml` and validates every referenced action version.
 - **DES-078**: MUST keep the attestation, changelog, and GitHub-release steps in `release-pypi.yml` for tagged versions on every branch, without any build step.
-- **DES-079**: MUST publish the committed `dist/` distributions to PyPI with `pypa/gh-action-pypi-publish` using OIDC `id-token: write` and no API token, only on `master`.
+- **DES-079**: MUST publish the `dist/` distributions present in the release workflow workspace to PyPI with `pypa/gh-action-pypi-publish` using OIDC `id-token: write` and no API token, only on `master`.
 - **DES-080**: MUST declare PyPI-compliant package metadata in `pyproject.toml`, including the PEP 639 SPDX license expression and project URLs.
 - **DES-081**: MUST specify Linux execution of `uv tool install %PROGRAM% --from git+https://github.com/%OWNER%/%REPOSITORY%.git` for `--upgrade` combined with `--dev` or `--develop`.
 - **DES-082**: MUST accept `--dev` and `--develop` only as suffixes of `--upgrade`, selecting the latest GitHub release regardless of its branch.
@@ -245,8 +244,8 @@ Assumptions:
 - **DES-189**: MUST execute no build command and MUST NOT invoke `scripts/build.sh` in `release-pypi.yml`.
 - **DES-190**: MUST NOT invoke `scripts/pre-release-check.sh` in `release-pypi.yml`.
 - **DES-191**: MUST NOT execute build-preparatory toolchain setup or unit-test steps in `release-pypi.yml`.
-- **DES-192**: MUST verify that the tagged commit `dist/` contains exactly one sdist and one wheel embedding `project.version` before attestation, release, and PyPI publication.
-- **DES-193**: MUST verify the committed-artifact reuse and the absence of build, `scripts/build.sh`, `scripts/pre-release-check.sh`, and build-preparatory steps through a unit test that parses `release-pypi.yml`.
+- **DES-192**: MUST verify that the release workflow `dist/` contains exactly one sdist and one wheel embedding `project.version` before attestation, release, and PyPI publication.
+- **DES-193**: MUST verify the release-workflow artifact reuse and the absence of build, `scripts/build.sh`, `scripts/pre-release-check.sh`, and build-preparatory steps through a unit test that parses `release-pypi.yml`.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
