@@ -1,12 +1,14 @@
 # Changelog
 
-## [0.10.3](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.3) - 2026-11-12
+## [0.10.4](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.4) - 2026-11-12
 ### ⛰️  Features
 - Update gitalias config.
 - add release artifact clean script [useReq] *(clean.sh)*
   Requirements: add PRJ-020 and DES-176..DES-185 for scripts/clean.sh.; clean.sh: remove generated sdist, wheel, SHA256SUMS, and staging directories from the release output directory (--output-dir, default dist/).; clean.sh: remove build/ and src *.egg-info directories; preserve foreign dist/ entries; refuse symlinked release output directory.; tests: add static Level 0 suite tests/test_clean_script.py (DES-185).
 
 ### 🐛  Bug Fixes
+- pin --dev upgrade to the latest GitHub release tag [useReq] *(core)*
+  Resolve the latest GitHub release tag and pin the uv git source to it; Keep the unpinned source as a warned fallback when the release lookup fails; Add reproducer tests for pinned and fallback developer upgrades
 - Remove files in dist/ dir.
 - commit current dist artifacts [useReq] *(release)*
   run scripts/build.sh with the default dist/ output directory; add cli_skills-0.10.2 sdist and wheel to version control; add a reproducer test asserting the committed dist set matches project.version; keep packaging, workflow, and requirements unchanged
@@ -14,6 +16,17 @@
   scripts/build.sh: egg-info cleanup now recurses under src/ (DES-147); removed -maxdepth 1.; scripts/build.sh: new sanitize_sdist phase drops setuptools-generated setup.cfg and src/*.egg-info sdist members.; MANIFEST.in: prune tests/, src/cli_skills.egg-info, and exclude MANIFEST.in from the sdist; .gitignore re-includes it.; tests/test_build_script.py: HDT Level 0 reproducer for recursive egg-info cleanup scope (DES-147).; Wheel content and entry points unchanged; sdist keeps DES-159 members; no src/ or REQUIREMENTS.md change.
 
 ### 🚜  Changes
+- empty dist/ before building the new release [useReq] *(build)*
+  Requirements: PRJ-021 and DES-143 updated; DES-148 retargeted; DES-199 added.
+  Source code:
+  scripts/build.sh: new purge_release_directory helper removes every
+  remaining file, directory, and symbolic link inside the release output
+  directory, including hidden entries, while preserving the directory.
+  remove_generated_outputs now runs staging removal, archive removal, and
+  the residual purge, so no artifact of an older version survives into the
+  build phase; --clean shares the same emptying path.
+  Removal stays confined to the release output directory; diagnostics and
+  documentation updated accordingly.
 - build release artifacts only in a temporary directory [useReq] *(pre-release-check)*
   Requirements: DES-084 and DES-173 updated; DES-198 added.
   Source code:
@@ -330,7 +343,7 @@
 - \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.0
 - \[0.10.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.0
-- \[0.10.3\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.3
+- \[0.10.4\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.4
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -342,4 +355,4 @@
 [0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0
 [0.10.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.10.0
-[0.10.3]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.3
+[0.10.4]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.4
