@@ -23,13 +23,15 @@ from .targets import TARGETS, resolve_target
 ## @satisfies DES-042
 PYPI_ENDPOINT = "https://pypi.org/pypi/cli-skills/json"
 ENDPOINT = "https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest"
-## @brief Standard upgrade argv upgrading the PyPI installation without force.
-## @details Executed for `--upgrade`; the uv `--upgrade` option lets the
-##          resolver replace the version already installed in the tool
-##          environment with the newest PyPI release. Without that option uv
-##          audits the installed requirement and keeps the stale version.
+## @brief Standard upgrade argv upgrading to the newest PyPI release without force.
+## @details Executed for `--upgrade`; the explicit `@latest` specifier prevents
+##          uv from treating any installed release as satisfying the package
+##          requirement, and the `--upgrade` option allows the resolver to
+##          replace the installed distribution. An unpinned `cli-skills`
+##          argument reports the installed release as already installed and
+##          leaves it unchanged.
 ## @satisfies DES-040 REQ-010
-UPGRADE = ["uv", "tool", "install", "cli-skills", "--upgrade"]
+UPGRADE = ["uv", "tool", "install", "cli-skills@latest", "--upgrade"]
 ## @brief Forced-upgrade argv forcing download and complete reinstallation from PyPI.
 ## @details Executed for `--upgrade --force`; appends the uv tool install
 ##          reinstallation options `--force --reinstall --refresh`.
