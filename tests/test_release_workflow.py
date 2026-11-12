@@ -1,21 +1,22 @@
 """Release workflow action-runtime and committed-artifact conformance tests.
 
 @file test_release_workflow.py
-@brief Verify the release workflow pins only Node24-or-later actions and reuses committed artifacts.
-@details HDT Level 0 static conformance suite. The UUTs are the `uses:` references
-         and the job/step structure of `.github/workflows/release-pypi.yml`,
-         validated against the CTN-010 minimum-version policy, the resolvability
-         of every `astral-sh/setup-uv` reference, the absence of transient Node20
-         fallback workarounds, the committed-artifact reuse contract, and the
-         prohibition of build, build-preparatory, and pre-release-check steps.
-         External dependency: one deterministic read of the tracked workflow file
+@brief Verify the release workflow pins Node24 actions and reuses committed artifacts.
+@details HDT Level 0 static conformance suite. The UUTs are the `uses:` references,
+         the job/step structure of `.github/workflows/release-pypi.yml`, and the
+         committed `dist/` release set, validated against the CTN-010
+         minimum-version policy, the resolvability of every `astral-sh/setup-uv`
+         reference, the absence of transient Node20 fallback workarounds, the
+         committed-artifact reuse contract, and the prohibition of build,
+         build-preparatory, and pre-release-check steps. External dependency:
+         deterministic reads of the tracked workflow file and `pyproject.toml`
          plus static fixtures recording verified upstream tag evidence; no
-         network, clock, filesystem writes, or randomness are involved at test
-         runtime.
-@satisfies CTN-010 DES-077 DES-189 DES-190 DES-191 DES-192 DES-193 PRJ-022 PRJ-023
+         network, clock, filesystem writes, or randomness are involved.
+@satisfies CTN-010 DES-077 DES-189 DES-190 DES-191 DES-192 DES-193 PRJ-019 PRJ-022 PRJ-023
 """
 
 import re
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -287,6 +288,50 @@ class ReleaseWorkflowCommittedArtifactTests(unittest.TestCase):
         self.assertIn('dist/cli_skills-$version.tar.gz', self.workflow_text)
         self.assertIn('dist/cli_skills-"$version"-*.whl', self.workflow_text)
         self.assertIn('"${#wheels[@]}" -eq 1', self.workflow_text)
+
+
+class ReleaseDistributionArtifactTests(unittest.TestCase):
+    """Level 0: committed `dist/` release-artifact set presence."""
+
+    def setUp(self):
+        """
+        @brief Load the project identity and resolve the tracked `dist/` path.
+        @details Reads `pyproject.toml` with `tomllib` and derives the
+                 distribution prefix from `project.name`. Fails immediately when
+                 the project metadata is missing.
+        @return {None}
+        """
+        self.project_root = Path(__file__).resolve().parents[1]
+        pyproject_path = self.project_root / "pyproject.toml"
+        if not pyproject_path.is_file():
+            self.fail(f"Missing pyproject.toml: {pyproject_path}")
+        self.project = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))["project"]
+        self.dist_directory = self.project_root / "dist"
+
+    def test_committed_dist_contains_current_release_artifacts(self):
+        """
+        @brief Check `dist/` contains the committed sdist and wheel for the version.
+        @details Derives `<prefix>-<version>.tar.gz` and `<prefix>-<version>-*.whl`
+                 from `project.name` and `project.version`, then asserts the
+                 sdist exists and exactly one matching wheel exists.
+        @return {None}
+        @expected_output No assertion failure when the release commit carries the
+                         complete committed distribution set.
+        @satisfies PRJ-019 PRJ-022 PRJ-023
+        """
+        prefix = self.project["name"].replace("-", "_")
+        version = self.project["version"]
+        sdist = self.dist_directory / f"{prefix}-{version}.tar.gz"
+        wheels = sorted(self.dist_directory.glob(f"{prefix}-{version}-*.whl"))
+        self.assertTrue(
+            sdist.is_file(),
+            f"missing committed sdist: {sdist}",
+        )
+        self.assertEqual(
+            len(wheels),
+            1,
+            f"expected exactly one committed wheel for {prefix}-{version}, found {wheels}",
+        )
 
 
 if __name__ == "__main__":
