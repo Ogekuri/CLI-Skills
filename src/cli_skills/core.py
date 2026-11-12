@@ -32,15 +32,41 @@ UPGRADE = ["uv", "tool", "install", "cli-skills"]
 ##          reinstallation options `--force --reinstall --refresh`.
 ## @satisfies DES-103 REQ-067
 UPGRADE_FORCE = ["uv", "tool", "install", "cli-skills", "--force", "--reinstall", "--refresh"]
+## @brief Git source of the GitHub release upgrade.
+## @details Append `@<tag>` to pin the download to one release tag; the
+##          unpinned form resolves the repository default branch only.
+## @satisfies DES-081 DES-082 DES-083 REQ-063
+GITHUB_GIT_URL = "git+https://github.com/Ogekuri/CLI-Skills.git"
+
+
+def _develop_argv(force: bool, revision: str | None = None) -> list[str]:
+    """
+    @brief Build the GitHub upgrade argv, optionally pinned to one release tag.
+    @details `revision` is the raw release tag such as `v0.10.3`; `None`
+             selects the unpinned git source. `force` appends the uv
+             reinstallation options before `--from`.
+    @param force {bool} When `True`, append `--force --reinstall --refresh`.
+    @param revision {str | None} Raw release tag pinning the git source.
+    @return {list[str]} Upgrade argv for `uv tool install`.
+    @satisfies DES-081 DES-082 DES-103 REQ-063 REQ-067 REQ-068
+    @post The returned source is `GITHUB_GIT_URL` or
+          `GITHUB_GIT_URL@<revision>`.
+    """
+    source = GITHUB_GIT_URL if revision is None else f"{GITHUB_GIT_URL}@{revision}"
+    options = ["--force", "--reinstall", "--refresh"] if force else []
+    return ["uv", "tool", "install", "cli-skills", *options, "--from", source]
+
+
 ## @brief Upgrade command argv installing the latest tagged GitHub release via git.
-## @details Executed for `--upgrade --dev` and `--upgrade --develop`; bypasses PyPI.
+## @details Fallback form used when the latest release tag cannot be resolved;
+##          resolves the repository default branch instead.
 ## @satisfies DES-081 REQ-063
-UPGRADE_DEVELOP = ["uv", "tool", "install", "cli-skills", "--from", "git+https://github.com/Ogekuri/CLI-Skills.git"]
+UPGRADE_DEVELOP = _develop_argv(False)
 ## @brief Forced-upgrade argv forcing download and complete reinstallation from GitHub.
-## @details Executed for `--upgrade` combined with `--dev` or `--develop` and
-##          `--force`; appends the reinstallation options before `--from`.
+## @details Fallback form used when the latest release tag cannot be resolved;
+##          appends the reinstallation options before `--from`.
 ## @satisfies DES-103 REQ-068
-UPGRADE_DEVELOP_FORCE = ["uv", "tool", "install", "cli-skills", "--force", "--reinstall", "--refresh", "--from", "git+https://github.com/Ogekuri/CLI-Skills.git"]
+UPGRADE_DEVELOP_FORCE = _develop_argv(True)
 UNINSTALL = ["uv", "tool", "uninstall", "cli-skills"]
 SKILLS_INSTALL = ["cli-skills", "install"]
 """
@@ -146,13 +172,31 @@ def fetch_pypi_latest() -> str:
     return version.strip()
 
 
+def _github_tag() -> str:
+    """
+    @brief Fetch the raw `tag_name` of the newest GitHub release.
+    @details Returns the tag exactly as published, so callers that need a git
+             revision keep the `v` prefix required by the repository tag
+             convention.
+    @return {str} Raw release tag such as `v0.10.3`.
+    @throws {OSError} On transport or HTTP errors, including 429 and 503.
+    @throws {ValueError} When the payload omits or holds an empty `tag_name`.
+    @throws {KeyError} When the payload omits `tag_name`.
+    @satisfies DES-083 REQ-061 REQ-062
+    """
+    tag = _http_json(ENDPOINT, "application/vnd.github+json")["tag_name"]
+    if not isinstance(tag, str) or not tag.strip():
+        raise ValueError("missing GitHub latest release tag")
+    return tag.strip()
+
+
 def fetch_github_latest() -> str:
     """
     @brief Fetch the newest GitHub release version in `x.y.z` form.
     @details Requests `ENDPOINT`, reads `tag_name`, and strips an optional `v`
              prefix. The returned release is the newest tagged GitHub release
-             regardless of its source branch, matching the `--upgrade --dev`
-             download source.
+             regardless of its source branch; `--upgrade --dev` pins its git
+             source to the same tag through `_latest_release_ref`.
     @return {str} Newest GitHub release version as `x.y.z`.
     @throws {OSError} On transport or HTTP errors, including 429 and 503.
     @throws {ValueError} When the payload omits or holds an invalid
@@ -160,10 +204,8 @@ def fetch_github_latest() -> str:
     @throws {KeyError} When the payload omits `tag_name`.
     @satisfies DES-083 REQ-061 REQ-062 REQ-063
     """
-    tag = _http_json(ENDPOINT, "application/vnd.github+json")["tag_name"]
-    if not isinstance(tag, str):
-        raise ValueError("missing GitHub latest release tag")
-    match = re.fullmatch(r"v?(\d+\.\d+\.\d+)", tag.strip())
+    tag = _github_tag()
+    match = re.fullmatch(r"v?(\d+\.\d+\.\d+)", tag)
     if not match:
         raise ValueError(f"invalid GitHub release tag: {tag}")
     return match.group(1)
@@ -191,6 +233,27 @@ def _failure_reason(exc: Exception) -> str:
     if isinstance(message, str) and message.strip():
         return f"HTTP {exc.code}: {message.strip()}"
     return f"HTTP {exc.code}"
+
+
+def _latest_release_ref() -> str | None:
+    """
+    @brief Resolve the git revision of the latest GitHub release.
+    @details Returns the raw release tag for the `--upgrade --dev` git source.
+             Fetch failures print a stderr warning and yield `None`, so the
+             upgrade falls back to the unpinned source instead of installing
+             an unresolved revision.
+    @return {str | None} Raw release tag such as `v0.10.3`; `None` on failure.
+    @satisfies DES-082 DES-083 REQ-062 REQ-066
+    @note Never raises; failures are reported on stderr.
+    """
+    try:
+        return _github_tag()
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        print(
+            f"Warning: cannot resolve the latest GitHub release ({_failure_reason(exc)}); installing the repository default branch.",
+            file=sys.stderr,
+        )
+        return None
 
 
 def _report_line(label: str, value: str) -> str:
@@ -452,7 +515,7 @@ def _show(home: Path | None = None) -> int:
     return 0
 
 
-def _upgrade_command(options: list[str]) -> list[str] | None:
+def _upgrade_command(options: list[str], revision: str | None = None) -> list[str] | None:
     """
     @brief Resolve the upgrade argv for the options following `--upgrade`.
     @details Accepts any order of the auxiliary options `--dev`, `--develop`,
@@ -460,12 +523,15 @@ def _upgrade_command(options: list[str]) -> list[str] | None:
              options, and the redundant `--dev` plus `--develop` combination.
              `--force` selects the `--force --reinstall --refresh`
              reinstallation argv; `--dev` or `--develop` selects the GitHub
-             `--from` argv. Complexity O(n) where n is the option count.
+             `--from` argv, pinned to `revision` when supplied. Complexity
+             O(n) where n is the option count.
     @param options {list[str]} Option tokens following `--upgrade`; empty for
             the plain `--upgrade` form.
+    @param revision {str | None} Raw latest-release tag pinning the GitHub
+            source; `None` leaves the source unpinned.
     @return {list[str]} Matching upgrade argv; `None` when the options are
             invalid.
-    @satisfies DES-040 DES-081 DES-103 REQ-010 REQ-063 REQ-067 REQ-068
+    @satisfies DES-040 DES-081 DES-082 DES-103 REQ-010 REQ-063 REQ-067 REQ-068
     """
     allowed = ("--dev", "--develop", "--force")
     if any(option not in allowed for option in options):
@@ -473,7 +539,7 @@ def _upgrade_command(options: list[str]) -> list[str] | None:
     if len(set(options)) != len(options) or ("--dev" in options and "--develop" in options):
         return None
     if "--dev" in options or "--develop" in options:
-        return UPGRADE_DEVELOP_FORCE if "--force" in options else UPGRADE_DEVELOP
+        return _develop_argv("--force" in options, revision)
     return UPGRADE_FORCE if "--force" in options else UPGRADE
 
 
@@ -549,7 +615,9 @@ def main(argv: list[str] | None = None) -> int:
              configuration handlers. Configuration commands dispatch through
              `_configure` against the canonical schema. The `--upgrade`
              branch, for any accepted
-             `--dev`/`--develop`/`--force` combination, chains
+             `--dev`/`--develop`/`--force` combination, pins the GitHub git
+             source to the latest release tag resolved by
+             `_latest_release_ref` and chains
              `cli-skills install` after a successful Linux upgrade when the
              enabled configuration is non-empty and returns the chained exit
              code. The `--ver` and `--version` branch prints the installed,
@@ -611,8 +679,13 @@ def main(argv: list[str] | None = None) -> int:
             print(_report_line("Latest @ GitHub", f"unknown ({_failure_reason(exc)})"))
         return 0
     if args and args[0] == "--upgrade":
-        command = _upgrade_command(args[1:])
+        options = args[1:]
+        command = _upgrade_command(options)
         if command is not None:
+            if "--dev" in options or "--develop" in options:
+                pinned = _upgrade_command(options, _latest_release_ref())
+                if pinned is not None:
+                    command = pinned
             return _run_upgrade(command)
     if args == ["--uninstall"]:
         return _manage(UNINSTALL)

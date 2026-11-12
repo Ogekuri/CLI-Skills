@@ -100,21 +100,22 @@ class CliTests(unittest.TestCase):
     def test_upgrade_develop_installs_from_github(self, chained):
         """
         @brief Verify `--upgrade --dev` installs the latest GitHub release.
-        @details Patches the platform to Linux and the chained install; expects
-                 both `--upgrade --dev` and `--develop --upgrade` argument
-                 orders to execute `UPGRADE_DEVELOP` and to chain the
+        @details Patches the platform to Linux, the latest-release lookup, and
+                 the chained install; expects both `--upgrade --dev` and
+                 `--develop --upgrade` argument orders to execute the
+                 release-tag-pinned GitHub source and to chain the
                  post-upgrade install, returning its exit code.
         @param chained {MagicMock} Replacement for `_post_upgrade_install`.
         @return {None}
         @expected_output Exit code 7 from the chained install and
-                 `subprocess.run` called with `UPGRADE_DEVELOP`.
-        @satisfies REQ-063 REQ-043 REQ-046
+                 `subprocess.run` called with the pinned GitHub source.
+        @satisfies REQ-063 REQ-062 REQ-043 REQ-046
         """
-        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core.subprocess, "run") as run:
+        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core, "_latest_release_ref", return_value="v9.9.9"), patch.object(core.subprocess, "run") as run:
             run.return_value.returncode = 0
             self.assertEqual(core.main(["--upgrade", "--dev"]), 7)
             self.assertEqual(core.main(["--upgrade", "--develop"]), 7)
-        self.assertEqual(run.call_args.args[0], core.UPGRADE_DEVELOP)
+        self.assertEqual(run.call_args.args[0], core.UPGRADE_DEVELOP[:-1] + [core.GITHUB_GIT_URL + "@v9.9.9"])
         chained.assert_called_with()
 
     @patch.object(core, "_post_upgrade_install", return_value=7)
@@ -141,21 +142,61 @@ class CliTests(unittest.TestCase):
     def test_upgrade_develop_force_reinstalls_from_github(self, chained):
         """
         @brief Verify forced `--upgrade --dev` reinstalls the GitHub release.
-        @details Patches the platform to Linux and the chained install; expects
-                 every accepted option order of `--dev`/`--develop` combined
-                 with `--force` to execute `UPGRADE_DEVELOP_FORCE` and to chain
-                 the post-upgrade install, returning its exit code.
+        @details Patches the platform to Linux, the latest-release lookup, and
+                 the chained install; expects every accepted option order of
+                 `--dev`/`--develop` combined with `--force` to execute the
+                 release-tag-pinned forced GitHub source and to chain the
+                 post-upgrade install, returning its exit code.
         @param chained {MagicMock} Replacement for `_post_upgrade_install`.
         @return {None}
         @expected_output Exit code 7 from the chained install and
-                 `subprocess.run` called with `UPGRADE_DEVELOP_FORCE`.
-        @satisfies REQ-068 REQ-043 REQ-046
+                 `subprocess.run` called with the pinned forced GitHub source.
+        @satisfies REQ-068 REQ-062 REQ-043 REQ-046
         """
-        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core.subprocess, "run") as run:
+        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core, "_latest_release_ref", return_value="v9.9.9"), patch.object(core.subprocess, "run") as run:
             run.return_value.returncode = 0
             self.assertEqual(core.main(["--upgrade", "--dev", "--force"]), 7)
             self.assertEqual(core.main(["--upgrade", "--force", "--develop"]), 7)
-        self.assertEqual(run.call_args.args[0], core.UPGRADE_DEVELOP_FORCE)
+        self.assertEqual(run.call_args.args[0], core.UPGRADE_DEVELOP_FORCE[:-1] + [core.GITHUB_GIT_URL + "@v9.9.9"])
+        chained.assert_called_with()
+
+    @patch.object(core, "_post_upgrade_install", return_value=7)
+    def test_upgrade_develop_pins_latest_github_release_tag(self, chained):
+        """
+        @brief Verify `--upgrade --dev` downloads the latest GitHub release tag.
+        @details Patches the platform to Linux, the latest-release lookup, and
+                 the chained install; expects the uv git source to pin the
+                 resolved release tag so a default branch behind the latest
+                 release cannot be installed instead.
+        @param chained {MagicMock} Replacement for `_post_upgrade_install`.
+        @return {None}
+        @expected_output Exit code 7 from the chained install and
+                 `subprocess.run` called with the release-tag-pinned source.
+        @satisfies REQ-062 REQ-063 DES-082 DES-083
+        """
+        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core, "_latest_release_ref", return_value="v9.9.9"), patch.object(core.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            self.assertEqual(core.main(["--upgrade", "--dev"]), 7)
+        self.assertEqual(run.call_args.args[0], ["uv", "tool", "install", "cli-skills", "--from", core.GITHUB_GIT_URL + "@v9.9.9"])
+        chained.assert_called_with()
+
+    @patch.object(core, "_post_upgrade_install", return_value=7)
+    def test_upgrade_develop_falls_back_when_release_lookup_fails(self, chained):
+        """
+        @brief Verify `--upgrade --dev` keeps the unpinned source on lookup failure.
+        @details Patches the latest-release lookup to fail and expects the
+                 unpinned GitHub source to be executed with a stderr warning.
+        @param chained {MagicMock} Replacement for `_post_upgrade_install`.
+        @return {None}
+        @expected_output Exit code 7, `subprocess.run` called with
+                 `UPGRADE_DEVELOP`, and a warning on stderr.
+        @satisfies REQ-063 DES-082 REQ-066
+        """
+        with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core, "_github_tag", side_effect=OSError("lookup failed")), patch.object(core.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            self.assertEqual(core.main(["--upgrade", "--dev"]), 7)
+        self.assertEqual(run.call_args.args[0], core.UPGRADE_DEVELOP)
+        self.assertIn("Warning", self.err.getvalue())
         chained.assert_called_with()
 
     def test_upgrade_force_prints_manual_command_on_non_linux(self):
