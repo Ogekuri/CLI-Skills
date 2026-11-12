@@ -1,18 +1,18 @@
-"""Release workflow Node24 action-runtime conformance tests.
+"""Release workflow action-runtime and committed-artifact conformance tests.
 
 @file test_release_workflow.py
-@brief Verify the release workflow pins only Node24-or-later action versions.
-@details HDT Level 0 static conformance suite. The UUT is the set of `uses:`
-         references in `.github/workflows/release-pypi.yml`, validated against
-         the CTN-010 minimum-version policy, against the resolvability of every
-         `astral-sh/setup-uv` reference against the upstream published tag set,
-         and against the absence of the transient Node20 fallback environment
-         workarounds described in the GitHub Actions Node20 deprecation
-         communication. External dependency: one deterministic read of the
-         tracked workflow file plus static fixtures recording verified upstream
-         tag evidence; no network, clock, filesystem writes, or randomness are
-         involved at test runtime.
-@satisfies CTN-010 DES-077
+@brief Verify the release workflow pins only Node24-or-later actions and reuses committed artifacts.
+@details HDT Level 0 static conformance suite. The UUTs are the `uses:` references
+         and the job/step structure of `.github/workflows/release-pypi.yml`,
+         validated against the CTN-010 minimum-version policy, the resolvability
+         of every `astral-sh/setup-uv` reference, the absence of transient Node20
+         fallback workarounds, the committed-artifact reuse contract, and the
+         prohibition of build, build-preparatory, and pre-release-check steps.
+         External dependency: one deterministic read of the tracked workflow file
+         plus static fixtures recording verified upstream tag evidence; no
+         network, clock, filesystem writes, or randomness are involved at test
+         runtime.
+@satisfies CTN-010 DES-077 DES-189 DES-190 DES-191 DES-192 DES-193 PRJ-022 PRJ-023
 """
 
 import re
@@ -201,24 +201,92 @@ class ReleaseWorkflowNode24Tests(unittest.TestCase):
                 f"transient Node20 fallback workaround present: {name}",
             )
 
-    def test_release_gates_artifacts_and_publish_on_unit_tests(self):
+class ReleaseWorkflowCommittedArtifactTests(unittest.TestCase):
+    """Level 0: committed-artifact reuse and build-free automation conformance."""
+
+    def setUp(self):
         """
-        @brief Check the release workflow gates builds and publish on tests.
-        @details Asserts that a dedicated `unit-tests` job exists and runs the
-                 project-defined test command, and that `build-release`
-                 declares a job dependency on it, so failing tests skip
-                 artifact creation, the GitHub release, and the PyPI publish.
+        @brief Load the deterministic workflow fixture for one test.
+        @details Reads the tracked workflow file into `self.workflow_text`;
+                 fails immediately with a diagnostic when the file is missing.
         @return {None}
-        @expected_output No assertion failure when the gating structure is
-                         present in the workflow.
-        @satisfies PRJ-015 PRJ-016 DES-088
         """
-        self.assertIn("unit-tests:", self.workflow_text)
-        self.assertIn("run: uv run python -m unittest discover -s tests", self.workflow_text)
+        if not WORKFLOW_PATH.is_file():
+            self.fail(f"Missing release workflow file: {WORKFLOW_PATH}")
+        self.workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
+
+    def test_workflow_executes_no_build_or_release_check(self):
+        """
+        @brief Check the workflow never builds or runs the release gate.
+        @details Asserts the absence of every build command, of
+                 `scripts/build.sh`, and of `scripts/pre-release-check.sh`.
+        @return {None}
+        @expected_output No assertion failure when the workflow only consumes
+                         committed artifacts.
+        @satisfies DES-189 DES-190
+        """
+        for forbidden in (
+            "python -m build",
+            "uv build",
+            "uv run --frozen --with build",
+            "scripts/build.sh",
+            "scripts/pre-release-check.sh",
+        ):
+            self.assertNotIn(forbidden, self.workflow_text)
+
+    def test_workflow_has_no_build_preparatory_steps(self):
+        """
+        @brief Check the workflow performs no build-preparatory checks.
+        @details Asserts the absence of a unit-test job, Python and uv toolchain
+                 setup, unit-test execution, and lockfile validation.
+        @return {None}
+        @expected_output No assertion failure when no build-preparatory step
+                         remains in the automation.
+        @satisfies DES-191
+        """
+        for forbidden in (
+            "unit-tests:",
+            "actions/setup-python",
+            "astral-sh/setup-uv",
+            "uv run python -m unittest",
+            "uv lock --check",
+        ):
+            self.assertNotIn(forbidden, self.workflow_text)
+
+    def test_release_publishes_only_committed_artifacts(self):
+        """
+        @brief Check attestation, release assets, and PyPI reuse `dist/`.
+        @details Asserts the attestation subject path, the GitHub release asset
+                 glob, the PyPI packages directory, and the release job
+                 dependency on the branch check only.
+        @return {None}
+        @expected_output No assertion failure when every publication step reads
+                         the committed `dist/` artifact set.
+        @satisfies PRJ-022 PRJ-023 DES-079
+        """
+        self.assertIn("subject-path: dist/*", self.workflow_text)
+        self.assertIn("files: dist/**/*", self.workflow_text)
+        self.assertIn("packages-dir: dist/", self.workflow_text)
         self.assertRegex(
             self.workflow_text,
-            r"(?m)^  build-release:\n    needs: \[check-branch, unit-tests\]$",
+            r"(?m)^  release:\n    needs: \[check-branch\]$",
         )
+
+    def test_workflow_verifies_committed_artifact_versions(self):
+        """
+        @brief Check the workflow verifies committed sdist and wheel versions.
+        @details Asserts a verification step derives `project.version` from
+                 `pyproject.toml`, requires the matching sdist, and requires
+                 exactly one matching wheel before publication.
+        @return {None}
+        @expected_output No assertion failure when the committed artifact set is
+                         validated against the project version.
+        @satisfies DES-192
+        """
+        self.assertIn("Verify committed distribution artifacts", self.workflow_text)
+        self.assertIn('dist/cli_skills-$version.tar.gz', self.workflow_text)
+        self.assertIn('dist/cli_skills-"$version"-*.whl', self.workflow_text)
+        self.assertIn('"${#wheels[@]}" -eq 1', self.workflow_text)
 
 
 if __name__ == "__main__":

@@ -49,12 +49,12 @@ Assumptions:
 - **PRJ-012**: MUST publish the `cli-skills` package to PyPI through OIDC Trusted Publishing from the `release-pypi.yml` workflow.
 - **PRJ-013**: MUST run every release-workflow step for a tagged version on any branch and publish to PyPI only when the tag is on `master`.
 - **PRJ-014**: MUST provide `scripts/pre-release-check.sh` performing toolchain, lockfile, syntax, unit-test, build, and release-artifact validation checks before an official release, then cleaning generated outputs.
-- **PRJ-015**: MUST execute the unit-test suite in a dedicated `release-pypi.yml` job before any build or release step.
-- **PRJ-016**: MUST prevent release-artifact creation and PyPI publication when the unit-test job fails.
 - **PRJ-017**: MUST distribute the `skills` executable alongside the `cli-skills` executable in the same `cli-skills` distribution package.
 - **PRJ-018**: MUST provide `scripts/build.sh` generating the complete release distribution set into `dist/`, runnable independently of `scripts/pre-release-check.sh`.
 - **PRJ-019**: MUST version-control the release distribution artifacts under `dist/` in the Git repository.
 - **PRJ-021**: MUST remove every artifact of a previous build at the start of `scripts/build.sh` before generating new distributions.
+- **PRJ-022**: MUST generate GitHub release assets from the `dist/` artifact set committed in the tagged release commit.
+- **PRJ-023**: MUST publish the `dist/` artifact set committed in the tagged release commit to PyPI without executing any build.
 
 ### 2.2 Project Constraints
 
@@ -149,8 +149,8 @@ Assumptions:
 - **DES-075**: MUST ship `%OWNER%` in `README.md` repository URLs and the `scripts/skell.sh` author header inside `assets/skell.tgz` instead of hardcoded owner names.
 - **DES-076**: MUST specify a bounded post-implementation execution check such as `scripts/%SHORTNAME%.sh --help` in addition to the build smoke check.
 - **DES-077**: MUST verify the CTN-010 constraint through a unit test that parses `.github/workflows/release-pypi.yml` and validates every referenced action version.
-- **DES-078**: MUST keep the existing build, attestation, changelog, and GitHub-release steps in `release-pypi.yml` for tagged versions on every branch.
-- **DES-079**: MUST publish built distributions to PyPI with `pypa/gh-action-pypi-publish` using OIDC `id-token: write` and no API token, only on `master`.
+- **DES-078**: MUST keep the attestation, changelog, and GitHub-release steps in `release-pypi.yml` for tagged versions on every branch, without any build step.
+- **DES-079**: MUST publish the committed `dist/` distributions to PyPI with `pypa/gh-action-pypi-publish` using OIDC `id-token: write` and no API token, only on `master`.
 - **DES-080**: MUST declare PyPI-compliant package metadata in `pyproject.toml`, including the PEP 639 SPDX license expression and project URLs.
 - **DES-081**: MUST specify Linux execution of `uv tool install %PROGRAM% --from git+https://github.com/%OWNER%/%REPOSITORY%.git` for `--upgrade` combined with `--dev` or `--develop`.
 - **DES-082**: MUST accept `--dev` and `--develop` only as suffixes of `--upgrade`, selecting the latest GitHub release regardless of its branch.
@@ -159,7 +159,6 @@ Assumptions:
 - **DES-085**: MUST validate the built distributions with `twine check` in `scripts/pre-release-check.sh`.
 - **DES-086**: MUST run the unit-test suite through the project-defined uv test command in `scripts/pre-release-check.sh`.
 - **DES-087**: MUST remove every build and test artifact created by `scripts/pre-release-check.sh`, including the temporary release output directory, `build/`, egg-info directories, and `__pycache__` directories, on success and failure.
-- **DES-088**: MUST verify the PRJ-015 and PRJ-016 gating through a unit test that parses `release-pypi.yml` and checks the test-job dependency and test command.
 - **DES-089**: MUST document in the help template only user-facing usage of the listed commands, without internal-implementation details or legacy-support references.
 - **DES-092**: MUST print every supported-CLI list, including `show` tables and diagnostics, in alphabetical order.
 - **DES-094**: MUST make `prompt-skill-architect` select artifact profiles using evidenced host loading, authority, directory scope, lifecycle, persistence, and orchestration ownership.
@@ -243,6 +242,11 @@ Assumptions:
 - **DES-186**: MUST remove the repository-root `build/` entry, every `*.egg-info` directory under `src/`, and every `__pycache__` directory under `src/` and `tests/` before the build phase.
 - **DES-187**: MUST remove the staging directory and the temporary uv project environment on success and failure using the EXIT trap.
 - **DES-188**: MUST verify the pre-build and post-build cleanup patterns of `scripts/build.sh` through a unit test that statically checks the script text.
+- **DES-189**: MUST execute no build command and MUST NOT invoke `scripts/build.sh` in `release-pypi.yml`.
+- **DES-190**: MUST NOT invoke `scripts/pre-release-check.sh` in `release-pypi.yml`.
+- **DES-191**: MUST NOT execute build-preparatory toolchain setup or unit-test steps in `release-pypi.yml`.
+- **DES-192**: MUST verify that the tagged commit `dist/` contains exactly one sdist and one wheel embedding `project.version` before attestation, release, and PyPI publication.
+- **DES-193**: MUST verify the committed-artifact reuse and the absence of build, `scripts/build.sh`, `scripts/pre-release-check.sh`, and build-preparatory steps through a unit test that parses `release-pypi.yml`.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
