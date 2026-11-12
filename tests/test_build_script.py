@@ -1,15 +1,17 @@
-"""Release build script egg-info cleanup conformance tests.
+"""Release build script cleanup conformance tests.
 
 @file test_build_script.py
-@brief Verify `scripts/build.sh` egg-info cleanup scope and `--output-dir` argument contract.
-@details HDT Level 0 static conformance suite. The UUT is the egg-info cleanup
-         `find` command of `scripts/build.sh`, located by its unique egg-info
-         pattern. The suite asserts that the command searches `src/` without a
-         depth limit, so nested egg-info directories are removed as DES-147
-         requires. External dependency: one deterministic read of the tracked
-         `scripts/build.sh`; no subprocess, network, clock, randomness, or
-         filesystem writes are involved.
-@satisfies DES-147 DES-171 DES-172 DES-175
+@brief Verify `scripts/build.sh` cleanup scope, cleanup ordering, and `--output-dir` argument contract.
+@details HDT Level 0 static conformance suite. The UUTs are the cleanup helpers
+         of `scripts/build.sh` and its argument parser, located by their function
+         headers. The suite asserts that the pre-build phase removes every
+         previous build artifact, that the post-build phase removes every
+         intermediate artifact, and that the release output cleanup removes
+         archives of every distribution name and version. External dependency:
+         deterministic reads of the tracked `scripts/build.sh` and of the
+         repository scripts directory; no subprocess, network, clock,
+         randomness, or filesystem writes are involved.
+@satisfies DES-142 DES-147 DES-171 DES-172 DES-175 DES-186 DES-187 DES-188
 """
 
 import unittest
@@ -152,6 +154,109 @@ class BuildScriptOutputDirectoryTests(unittest.TestCase):
             if line.strip() == "DIST_DIRECTORY=$PROJECT_ROOT/dist"
         ]
         self.assertEqual(len(assignments), 1)
+
+
+class BuildScriptCleanupTests(unittest.TestCase):
+    """Level 0: pre-build and post-build cleanup scope of the release build script."""
+
+    def setUp(self):
+        """
+        @brief Load the tracked release build script text for one test.
+        @details Reads `scripts/build.sh` once per test and fails immediately
+                 when the script is missing.
+        @return {None}
+        """
+        if not BUILD_SCRIPT_PATH.is_file():
+            self.fail(f"Missing build script: {BUILD_SCRIPT_PATH}")
+        self.script_text = BUILD_SCRIPT_PATH.read_text(encoding="utf-8")
+
+    def _function_body(self, name):
+        """
+        @brief Extract the body of one top-level bash function.
+        @param name {str} Bash function name without parentheses.
+        @return {str} Newline-joined function body lines.
+        """
+        lines = self.script_text.splitlines()
+        header = f"{name}() {{"
+        if header not in lines:
+            self.fail(f"missing function header: {header}")
+        start = lines.index(header) + 1
+        for end in range(start, len(lines)):
+            if lines[end] == "}":
+                return "\n".join(lines[start:end])
+        self.fail(f"missing closing brace of function: {name}")
+
+    def test_release_output_cleanup_matches_every_build(self):
+        """
+        @brief Check the release output cleanup ignores distribution name and version.
+        @details Arranges the `remove_generated_archives` body, then asserts the
+                 `*.tar.gz` and `*.whl` patterns exist and that no
+                 `$DIST_PREFIX` restriction narrows the selection.
+        @return {None}
+        @expected_output No assertion failure when every archive of every
+                         previous build is removed.
+        @satisfies DES-142
+        """
+        body = self._function_body("remove_generated_archives")
+        self.assertIn("*.tar.gz", body)
+        self.assertIn("*.whl", body)
+        self.assertNotIn("DIST_PREFIX", body)
+
+    def test_pre_build_cleanup_precedes_the_build_phase(self):
+        """
+        @brief Check previous build artifacts are removed before the build starts.
+        @details Arranges the `run_build` body, then asserts the cleanup phase
+                 invokes `remove_generated_outputs` and `remove_build_intermediates`
+                 before `build_into_staging`.
+        @return {None}
+        @expected_output No assertion failure when cleanup precedes the build phase.
+        @satisfies PRJ-021 DES-186
+        """
+        body = self._function_body("run_build")
+        self.assertLess(body.index("remove_generated_outputs"), body.index("build_into_staging"))
+        self.assertLess(body.index("remove_build_intermediates"), body.index("build_into_staging"))
+
+    def test_intermediate_cleanup_covers_build_egg_info_and_pycache(self):
+        """
+        @brief Check the intermediate cleanup covers every build artifact class.
+        @details Arranges the `remove_build_intermediates` body, then asserts the
+                 repository `build/` entry, the `src` egg-info pattern, and the
+                 `src` plus `tests` `__pycache__` pattern are all present.
+        @return {None}
+        @expected_output No assertion failure when every intermediate artifact is
+                         removed at the start and at the end of the build.
+        @satisfies DES-147 DES-186
+        """
+        body = self._function_body("remove_build_intermediates")
+        self.assertIn('"$PROJECT_ROOT/build"', body)
+        self.assertIn("-name '*.egg-info'", body)
+        self.assertIn("-name '__pycache__'", body)
+        self.assertIn('"$PROJECT_ROOT/src" "$PROJECT_ROOT/tests"', body)
+
+    def test_exit_cleanup_removes_intermediate_artifacts(self):
+        """
+        @brief Check the EXIT-trap cleanup removes intermediates on every exit path.
+        @details Arranges the `cleanup_owned_outputs` body, then asserts the shared
+                 intermediate cleanup helper runs when cleanup is enabled.
+        @return {None}
+        @expected_output No assertion failure when a successful build leaves no
+                         intermediate artifact behind.
+        @satisfies DES-147 DES-187
+        """
+        body = self._function_body("cleanup_owned_outputs")
+        self.assertIn("CLEANUP_ENABLED", body)
+        self.assertIn("remove_build_intermediates", body)
+
+    def test_clean_script_is_absent(self):
+        """
+        @brief Check the removed standalone clean script stays removed.
+        @details Asserts `scripts/clean.sh` does not exist in the repository.
+        @return {None}
+        @expected_output No assertion failure when cleanup lives only in
+                         `scripts/build.sh`.
+        @satisfies PRJ-021
+        """
+        self.assertFalse((BUILD_SCRIPT_PATH.parent / "clean.sh").exists())
 
 
 if __name__ == "__main__":

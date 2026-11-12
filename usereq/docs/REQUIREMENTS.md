@@ -54,7 +54,7 @@ Assumptions:
 - **PRJ-017**: MUST distribute the `skills` executable alongside the `cli-skills` executable in the same `cli-skills` distribution package.
 - **PRJ-018**: MUST provide `scripts/build.sh` generating the complete release distribution set into `dist/`, runnable independently of `scripts/pre-release-check.sh`.
 - **PRJ-019**: MUST version-control the release distribution artifacts under `dist/` in the Git repository.
-- **PRJ-020**: MUST provide `scripts/clean.sh` removing every artifact created by `scripts/build.sh`, runnable independently of other scripts.
+- **PRJ-021**: MUST remove every artifact of a previous build at the start of `scripts/build.sh` before generating new distributions.
 
 ### 2.2 Project Constraints
 
@@ -210,11 +210,10 @@ Assumptions:
 - **DES-139**: MUST build into a staging directory `dist/.cli-skills-build.*` created inside `dist/`, so that publication is a same-filesystem rename.
 - **DES-140**: MUST require exactly one sdist and exactly one wheel in the staging directory and MUST exit with code 1 when the count differs.
 - **DES-141**: MUST test the archive integrity of every staged sdist and wheel before publication and MUST exit with code 1 on any unreadable or corrupt archive.
-- **DES-142**: MUST remove previously generated `dist/` outputs matching `<dist-name>-*.tar.gz` and `<dist-name>-*.whl` before publication, where `<dist-name>` is the project name with `-` replaced by `_`.
+- **DES-142**: MUST remove every `*.tar.gz`, `*.whl`, and `.cli-skills-build.*` entry from the release output directory before publication, independently of distribution name and version.
 - **DES-143**: MUST preserve every `dist/` entry not matching the generated-output patterns of DES-139 or DES-142 during build and cleanup.
 - **DES-144**: MUST publish the sdist and wheel into `dist/` only after all staged validations succeed, and MUST remove already published new files when publication fails.
-- **DES-146**: MUST abort `scripts/build.sh` before any build step when a `build/` entry exists in the repository root, leaving that entry unmodified.
-- **DES-147**: MUST remove the `build/` directory created by the build and every `*.egg-info` directory under `src/` on success and failure, using an EXIT trap.
+- **DES-147**: MUST remove every intermediate artifact created by the build, including `build/`, `*.egg-info` under `src/`, and `__pycache__` under `src/` and `tests/`, on success and failure using an EXIT trap.
 - **DES-148**: MUST accept the `--clean` option in `scripts/build.sh` to remove only generated `dist/` outputs and MUST exit with code 0 when the removal succeeds.
 - **DES-149**: MUST reject unsupported arguments with exit code 2 and a usage diagnostic in `scripts/build.sh` and `scripts/pre-release-check.sh`.
 - **DES-150**: MUST print the names and SHA-256 digests of the published artifacts in `scripts/build.sh` after successful publication.
@@ -241,16 +240,9 @@ Assumptions:
 - **DES-173**: MUST NOT create, modify, or remove any `dist/` entry in `scripts/pre-release-check.sh`.
 - **DES-174**: MUST verify the `dist/` re-inclusion rules and the absence of `dist/`-targeting exclusion rules through a unit test that parses `.gitignore`.
 - **DES-175**: MUST verify the `--output-dir` argument contract of `scripts/build.sh` through a unit test that statically checks its argument parser.
-- **DES-176**: MUST resolve the repository root in `scripts/clean.sh` from the script location, independent of the invocation directory and of spaces in paths.
-- **DES-177**: MUST accept `--output-dir <absolute path>` in `scripts/clean.sh` with the DES-171 and DES-172 semantics, defaulting to `dist/`.
-- **DES-178**: MUST remove every release output directory entry matching the DES-139 or DES-142 generated-output patterns in `scripts/clean.sh`.
-- **DES-179**: MUST remove the `build/` entry of the repository root and every `*.egg-info` directory under `src/` in `scripts/clean.sh`.
-- **DES-180**: MUST preserve every release output directory entry not matching the DES-139 or DES-142 patterns in `scripts/clean.sh`.
-- **DES-181**: MUST exit `scripts/clean.sh` with code 1 without removing any entry when the release output directory is a symbolic link or exists as a non-directory.
-- **DES-182**: MUST reject unsupported arguments with exit code 2 and a usage diagnostic in `scripts/clean.sh`.
-- **DES-183**: MUST validate the required executables and the `pyproject.toml` project name in `scripts/clean.sh` before its first removal, exiting with code 1 naming every missing item.
-- **DES-184**: MUST exit `scripts/clean.sh` with code 0 when every matched entry is removed and with code 1 naming each path whose removal fails.
-- **DES-185**: MUST verify the `scripts/clean.sh` removal patterns and argument parser through a unit test that statically checks the script text.
+- **DES-186**: MUST remove the repository-root `build/` entry, every `*.egg-info` directory under `src/`, and every `__pycache__` directory under `src/` and `tests/` before the build phase.
+- **DES-187**: MUST remove the staging directory and the temporary uv project environment on success and failure using the EXIT trap.
+- **DES-188**: MUST verify the pre-build and post-build cleanup patterns of `scripts/build.sh` through a unit test that statically checks the script text.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
