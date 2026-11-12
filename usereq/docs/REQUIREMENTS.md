@@ -51,7 +51,7 @@ Assumptions:
 - **PRJ-014**: MUST provide `scripts/pre-release-check.sh` performing toolchain, lockfile, syntax, unit-test, build, and release-artifact validation checks before an official release, then cleaning generated outputs.
 - **PRJ-017**: MUST distribute the `skills` executable alongside the `cli-skills` executable in the same `cli-skills` distribution package.
 - **PRJ-018**: MUST provide `scripts/build.sh` generating the complete release distribution set into `dist/`, runnable independently of `scripts/pre-release-check.sh`.
-- **PRJ-021**: MUST remove every artifact of a previous build at the start of `scripts/build.sh` before generating new distributions.
+- **PRJ-021**: MUST empty the release output directory, preserving the directory itself, at the start of `scripts/build.sh` before generating new distributions.
 - **PRJ-022**: MUST generate GitHub release assets from the `dist/` artifact set present in the release workflow workspace.
 - **PRJ-023**: MUST publish the `dist/` artifact set present in the release workflow workspace to PyPI without executing any build.
 
@@ -209,10 +209,10 @@ Assumptions:
 - **DES-140**: MUST require exactly one sdist and exactly one wheel in the staging directory and MUST exit with code 1 when the count differs.
 - **DES-141**: MUST test the archive integrity of every staged sdist and wheel before publication and MUST exit with code 1 on any unreadable or corrupt archive.
 - **DES-142**: MUST remove every `*.tar.gz`, `*.whl`, and `.cli-skills-build.*` entry from the release output directory before publication, independently of distribution name and version.
-- **DES-143**: MUST preserve every `dist/` entry not matching the generated-output patterns of DES-139 or DES-142 during build and cleanup.
+- **DES-143**: MUST confine every release output removal to entries inside the release output directory and MUST NOT remove or modify any path outside it.
 - **DES-144**: MUST publish the sdist and wheel into `dist/` only after all staged validations succeed, and MUST remove already published new files when publication fails.
 - **DES-147**: MUST remove every intermediate artifact created by the build, including `build/`, `*.egg-info` under `src/`, and `__pycache__` under `src/` and `tests/`, on success and failure using an EXIT trap.
-- **DES-148**: MUST accept the `--clean` option in `scripts/build.sh` to remove only generated `dist/` outputs and MUST exit with code 0 when the removal succeeds.
+- **DES-148**: MUST accept the `--clean` option in `scripts/build.sh` to empty the release output directory while preserving the directory, and MUST exit with code 0 on success.
 - **DES-149**: MUST reject unsupported arguments with exit code 2 and a usage diagnostic in `scripts/build.sh` and `scripts/pre-release-check.sh`.
 - **DES-150**: MUST print the names and SHA-256 digests of the published artifacts in `scripts/build.sh` after successful publication.
 - **DES-151**: MUST exit `scripts/build.sh` with a nonzero status and MUST NOT print a success summary when any mandatory build phase fails.
@@ -247,6 +247,7 @@ Assumptions:
 - **DES-192**: MUST verify that the release workflow `dist/` contains exactly one sdist and one wheel embedding `project.version` before attestation, release, and PyPI publication.
 - **DES-193**: MUST verify the release-workflow artifact reuse and the absence of build, `scripts/build.sh`, `scripts/pre-release-check.sh`, and build-preparatory steps through a unit test that parses `release-pypi.yml`.
 - **DES-198**: MUST verify through a unit test that `scripts/pre-release-check.sh` performs no `dist/` filesystem operation and builds into a temporary directory outside the repository.
+- **DES-199**: MUST remove files, directories, and symbolic links inside the release output directory without filtering by entry name, type, or version.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
