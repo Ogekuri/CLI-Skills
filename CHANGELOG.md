@@ -1,12 +1,18 @@
 # Changelog
 
-## [0.10.5](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.5) - 2026-11-12
+## [0.10.6](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.6) - 2026-11-12
 ### ⛰️  Features
 - Update gitalias config.
 - add release artifact clean script [useReq] *(clean.sh)*
   Requirements: add PRJ-020 and DES-176..DES-185 for scripts/clean.sh.; clean.sh: remove generated sdist, wheel, SHA256SUMS, and staging directories from the release output directory (--output-dir, default dist/).; clean.sh: remove build/ and src *.egg-info directories; preserve foreign dist/ entries; refuse symlinked release output directory.; tests: add static Level 0 suite tests/test_clean_script.py (DES-185).
 
 ### 🐛  Bug Fixes
+- upgrade installed PyPI tool on --upgrade [useReq] *(core)*
+  Run uv tool install cli-skills --upgrade so uv replaces the release already
+  installed in the tool environment instead of auditing the stale version,
+  restoring the documented --upgrade behavior.
+  Add a reproducer unit test for the plain upgrade argv.
+  Update WORKFLOW.md and REFERENCES.md.
 - pin --dev upgrade to the latest GitHub release tag [useReq] *(core)*
   Resolve the latest GitHub release tag and pin the uv git source to it; Keep the unpinned source as a warned fallback when the release lookup fails; Add reproducer tests for pinned and fallback developer upgrades
 - Remove files in dist/ dir.
@@ -343,7 +349,7 @@
 - \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.0
 - \[0.10.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.0
-- \[0.10.5\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.5
+- \[0.10.6\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.6
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -355,4 +361,4 @@
 [0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0
 [0.10.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.10.0
-[0.10.5]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.5
+[0.10.6]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.6
