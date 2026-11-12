@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.10.4](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.4) - 2026-11-12
+## [0.10.5](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.5) - 2026-11-12
 ### ⛰️  Features
 - Update gitalias config.
 - add release artifact clean script [useReq] *(clean.sh)*
@@ -343,7 +343,7 @@
 - \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.0
 - \[0.10.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.0
-- \[0.10.4\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.4
+- \[0.10.5\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.5
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -355,4 +355,4 @@
 [0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0
 [0.10.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.10.0
-[0.10.4]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.4
+[0.10.5]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.5
