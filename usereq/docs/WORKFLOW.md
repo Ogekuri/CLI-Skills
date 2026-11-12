@@ -50,7 +50,7 @@
       - `_failure_reason(exc)`: normalize a failed tag lookup to the stderr warning reason (`--upgrade` lookup-failure path) [`src/cli_skills/core.py`]
     - `_upgrade_command(options, revision)`: rebuild the GitHub upgrade argv pinned to the resolved release tag (`--upgrade` branch with `--dev`/`--develop`) [`src/cli_skills/core.py`]
       - `_develop_argv(force, revision)`: build the release-tag-pinned GitHub upgrade argv [`src/cli_skills/core.py`]
-    - `_run_upgrade(UPGRADE)`: execute external `uv tool install ...` from PyPI without force options and chain the install (`--upgrade` branch) [`src/cli_skills/core.py`]
+    - `_run_upgrade(UPGRADE)`: execute external `uv tool install ... --upgrade` from PyPI without force options and chain the install (`--upgrade` branch) [`src/cli_skills/core.py`]
       - `_post_upgrade_install(home)`: chain the post-upgrade install when the upgrade succeeded on Linux [`src/cli_skills/core.py`]
         - `load_config(home)`: load the enabled CLI set to gate the chained install [`src/cli_skills/settings.py`]
           - `config_path(home)`: resolve configuration file path [`src/cli_skills/settings.py`]
@@ -265,7 +265,7 @@
 
 | ID | Direction | Mechanism | Endpoint / Channel | Payload / Data-Shape | Declaration File(s) |
 |---|---|---|---|---|---|
-| `EDGE:main→uv-install` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","install","cli-skills"]` | `UPGRADE` `list[str]` in; returncode `int` out | `src/cli_skills/core.py` |
+| `EDGE:main→uv-install` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","install","cli-skills","--upgrade"]` | `UPGRADE` `list[str]` in; returncode `int` out | `src/cli_skills/core.py` |
 | `EDGE:main→uv-install-force` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","install","cli-skills","--force","--reinstall","--refresh"]` | `UPGRADE_FORCE` `list[str]` in; returncode `int` out | `src/cli_skills/core.py` |
 | `EDGE:main→uv-install-develop` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","install","cli-skills","--from","git+https://github.com/Ogekuri/CLI-Skills.git[@<release tag>]"]` | release-tag-pinned `list[str]` (or `UPGRADE_DEVELOP` on lookup failure) in; returncode `int` out | `src/cli_skills/core.py` |
 | `EDGE:main→uv-install-develop-force` | `PROC:main` → `PROC:uv` | OS process spawn (blocking `subprocess.run`) | child argv `["uv","tool","install","cli-skills","--force","--reinstall","--refresh","--from","git+https://github.com/Ogekuri/CLI-Skills.git[@<release tag>]"]` | release-tag-pinned `list[str]` (or `UPGRADE_DEVELOP_FORCE` on lookup failure) in; returncode `int` out | `src/cli_skills/core.py` |

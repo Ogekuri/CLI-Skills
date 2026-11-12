@@ -96,6 +96,27 @@ class CliTests(unittest.TestCase):
             run.assert_not_called()
             self.assertIn("uv tool uninstall cli-skills", output.getvalue())
 
+    def test_upgrade_requests_latest_pypi_release(self):
+        """
+        @brief Verify plain `--upgrade` lets uv replace the installed version.
+        @details Patches the platform to Linux and the child process; expects
+                 the PyPI install argv to keep the mandated
+                 `uv tool install cli-skills` prefix while carrying the uv
+                 `--upgrade` option, so uv re-resolves the newest PyPI release
+                 instead of auditing the stale installed version.
+        @return {None}
+        @expected_output Exit code 0 and `subprocess.run` called with an argv
+                 whose first four tokens are `uv tool install cli-skills` and
+                 that contains `--upgrade`.
+        @satisfies REQ-010 DES-040
+        """
+        with patch.object(core, "check_version"), patch.object(core, "load_config", return_value={"enabled": []}), patch.object(core.sys, "platform", "linux"), patch.object(core.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            self.assertEqual(core.main(["--upgrade"]), 0)
+        command = run.call_args.args[0]
+        self.assertEqual(command[:4], ["uv", "tool", "install", "cli-skills"])
+        self.assertIn("--upgrade", command[4:])
+
     @patch.object(core, "_post_upgrade_install", return_value=7)
     def test_upgrade_develop_installs_from_github(self, chained):
         """
