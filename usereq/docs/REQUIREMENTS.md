@@ -154,7 +154,7 @@ Assumptions:
 - **DES-081**: MUST specify Linux execution of `uv tool install %PROGRAM% --from git+https://github.com/%OWNER%/%REPOSITORY%.git` for `--upgrade` combined with `--dev` or `--develop`.
 - **DES-082**: MUST accept `--dev` and `--develop` only as suffixes of `--upgrade`, selecting the latest GitHub release regardless of its branch.
 - **DES-083**: MUST specify `https://api.github.com/repos/%OWNER%/%REPOSITORY%/releases/latest` as the GitHub latest-release endpoint backing `--ver`, `--version`, and `--dev` upgrades.
-- **DES-084**: MUST invoke `scripts/build.sh --output-dir <temporary directory>` from `scripts/pre-release-check.sh` to generate the sdist and wheel distributions outside `dist/`.
+- **DES-084**: MUST invoke `scripts/build.sh --output-dir <temporary directory outside the repository>` from `scripts/pre-release-check.sh` to generate and validate the sdist and wheel entirely outside `dist/`.
 - **DES-085**: MUST validate the built distributions with `twine check` in `scripts/pre-release-check.sh`.
 - **DES-086**: MUST run the unit-test suite through the project-defined uv test command in `scripts/pre-release-check.sh`.
 - **DES-087**: MUST remove every build and test artifact created by `scripts/pre-release-check.sh`, including the temporary release output directory, `build/`, egg-info directories, and `__pycache__` directories, on success and failure.
@@ -235,7 +235,7 @@ Assumptions:
 - **DES-170**: MUST keep the general `/*`, `*.*`, and `*/**` exclusion rules and every other `.gitignore` exclusion and re-inclusion rule not targeting `dist/` in effect.
 - **DES-171**: MUST accept `--output-dir <path>` in `scripts/build.sh`, optionally combined with `--clean`, selecting the release output directory; `dist/` in DES-139 through DES-150 denotes this directory, defaulting to `dist/`.
 - **DES-172**: MUST require an absolute `--output-dir` path in `scripts/build.sh` and reject any other value with exit code 2 and a usage diagnostic.
-- **DES-173**: MUST NOT create, modify, or remove any `dist/` entry in `scripts/pre-release-check.sh`.
+- **DES-173**: MUST NOT read, verify, create, modify, or remove any `dist/` entry in `scripts/pre-release-check.sh`.
 - **DES-174**: MUST verify the `dist/` re-inclusion rules and the absence of `dist/`-targeting exclusion rules through a unit test that parses `.gitignore`.
 - **DES-175**: MUST verify the `--output-dir` argument contract of `scripts/build.sh` through a unit test that statically checks its argument parser.
 - **DES-186**: MUST remove the repository-root `build/` entry, every `*.egg-info` directory under `src/`, and every `__pycache__` directory under `src/` and `tests/` before the build phase.
@@ -246,6 +246,7 @@ Assumptions:
 - **DES-191**: MUST NOT execute build-preparatory toolchain setup or unit-test steps in `release-pypi.yml`.
 - **DES-192**: MUST verify that the release workflow `dist/` contains exactly one sdist and one wheel embedding `project.version` before attestation, release, and PyPI publication.
 - **DES-193**: MUST verify the release-workflow artifact reuse and the absence of build, `scripts/build.sh`, `scripts/pre-release-check.sh`, and build-preparatory steps through a unit test that parses `release-pypi.yml`.
+- **DES-198**: MUST verify through a unit test that `scripts/pre-release-check.sh` performs no `dist/` filesystem operation and builds into a temporary directory outside the repository.
 
 Canonical skill support layout; support subdirectories are optional and `SKILL.md` is the only file at the skill root:
 
