@@ -1,12 +1,16 @@
 # Changelog
 
-## [0.10.9](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.9) - 2026-11-13
+## [0.10.10](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.10) - 2026-11-13
 ### ⛰️  Features
 - Update gitalias config.
 - add release artifact clean script [useReq] *(clean.sh)*
   Requirements: add PRJ-020 and DES-176..DES-185 for scripts/clean.sh.; clean.sh: remove generated sdist, wheel, SHA256SUMS, and staging directories from the release output directory (--output-dir, default dist/).; clean.sh: remove build/ and src *.egg-info directories; preserve foreign dist/ entries; refuse symlinked release output directory.; tests: add static Level 0 suite tests/test_clean_script.py (DES-185).
 
 ### 🐛  Bug Fixes
+- correct dangling requirement citations and guard traceability [useReq] *(tests)*
+  Replace retired DES-040/DES-083 @satisfies citations in tests/test_cli.py with declared REQ-010 and REQ-061.
+  Add tests/test_requirements_traceability.py: Level 0 static suite failing on any requirement ID cited by src/ or tests/ that is absent from usereq/docs/REQUIREMENTS.md.
+  Requirements unchanged; verification 99/99 tests green, static-check clean.
 - request latest PyPI release on --upgrade [useReq] *(core)*
   Use the explicit cli-skills@latest specifier together with uv --upgrade so uv
   cannot report an older installed release as already installed and leave it
@@ -28,6 +32,10 @@
   scripts/build.sh: egg-info cleanup now recurses under src/ (DES-147); removed -maxdepth 1.; scripts/build.sh: new sanitize_sdist phase drops setuptools-generated setup.cfg and src/*.egg-info sdist members.; MANIFEST.in: prune tests/, src/cli_skills.egg-info, and exclude MANIFEST.in from the sdist; .gitignore re-includes it.; tests/test_build_script.py: HDT Level 0 reproducer for recursive egg-info cleanup scope (DES-147).; Wheel content and entry points unchanged; sdist keeps DES-159 members; no src/ or REQUIREMENTS.md change.
 
 ### 🚜  Changes
+- BREAKING CHANGE: remove astra-uv-project skill and support files [useReq] *(skills)*
+  Requirements: delete PRJ-008, CTN-009, DES-001..007, DES-025..046, DES-074..076, DES-081, DES-083; rewording CTN-001..005 and the help template without scaffold tokens.
+  Source: delete src/resources/skills/astra-uv-project (SKILL.md, assets/skell.tgz); regenerate manifest.json with prompt-skill-architect only; drop stale @satisfies IDs in core.py.
+  Docs: remove the skill from the README bundled-skills list; regenerate REFERENCES.md; WORKFLOW.md unchanged (no runtime structural change).
 - drop the negative release-check notice [useReq] *(core)*
   Requirements: REQ-077 now forbids any message when no newer release is
   found, DES-046 specifies no negative-outcome message, and the scoped
@@ -369,7 +377,7 @@
 - \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.0
 - \[0.10.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.0
-- \[0.10.9\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.9
+- \[0.10.10\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.10
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -381,4 +389,4 @@
 [0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0
 [0.10.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.10.0
-[0.10.9]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.9
+[0.10.10]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.10
