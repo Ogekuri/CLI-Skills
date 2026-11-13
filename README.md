@@ -62,7 +62,6 @@ Manage user-level skills for <code>antigravity</code>, <code>claude</code>, <cod
 
 Bundled skills:
 
-- `astra-uv-project` - create a new Astral uv Python CLI project from scratch.
 - `prompt-skill-architect` - create, review, and optimize LLM agent prompts and skills.
 
 All bundled skills are listed in the packaged manifest `src/resources/manifest.json`.

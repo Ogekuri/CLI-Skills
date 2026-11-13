@@ -20,7 +20,7 @@ from .show import build_show
 from .targets import TARGETS, resolve_target
 
 ## @brief PyPI JSON API endpoint for the newest published version.
-## @satisfies DES-042
+## @satisfies REQ-002
 PYPI_ENDPOINT = "https://pypi.org/pypi/cli-skills/json"
 ENDPOINT = "https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest"
 ## @brief Standard upgrade argv upgrading to the newest PyPI release without force.
@@ -30,7 +30,7 @@ ENDPOINT = "https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest"
 ##          replace the installed distribution. An unpinned `cli-skills`
 ##          argument reports the installed release as already installed and
 ##          leaves it unchanged.
-## @satisfies DES-040 REQ-010
+## @satisfies REQ-010
 UPGRADE = ["uv", "tool", "install", "cli-skills@latest", "--upgrade"]
 ## @brief Forced-upgrade argv forcing download and complete reinstallation from PyPI.
 ## @details Executed for `--upgrade --force`; appends the uv tool install
@@ -40,7 +40,7 @@ UPGRADE_FORCE = ["uv", "tool", "install", "cli-skills", "--force", "--reinstall"
 ## @brief Git source of the GitHub release upgrade.
 ## @details Append `@<tag>` to pin the download to one release tag; the
 ##          unpinned form resolves the repository default branch only.
-## @satisfies DES-081 DES-082 DES-083 REQ-063
+## @satisfies DES-082 REQ-063
 GITHUB_GIT_URL = "git+https://github.com/Ogekuri/CLI-Skills.git"
 
 
@@ -53,7 +53,7 @@ def _develop_argv(force: bool, revision: str | None = None) -> list[str]:
     @param force {bool} When `True`, append `--force --reinstall --refresh`.
     @param revision {str | None} Raw release tag pinning the git source.
     @return {list[str]} Upgrade argv for `uv tool install`.
-    @satisfies DES-081 DES-082 DES-103 REQ-063 REQ-067 REQ-068
+    @satisfies DES-082 DES-103 REQ-063 REQ-067 REQ-068
     @post The returned source is `GITHUB_GIT_URL` or
           `GITHUB_GIT_URL@<revision>`.
     """
@@ -65,7 +65,7 @@ def _develop_argv(force: bool, revision: str | None = None) -> list[str]:
 ## @brief Upgrade command argv installing the latest tagged GitHub release via git.
 ## @details Fallback form used when the latest release tag cannot be resolved;
 ##          resolves the repository default branch instead.
-## @satisfies DES-081 REQ-063
+## @satisfies REQ-063
 UPGRADE_DEVELOP = _develop_argv(False)
 ## @brief Forced-upgrade argv forcing download and complete reinstallation from GitHub.
 ## @details Fallback form used when the latest release tag cannot be resolved;
@@ -152,7 +152,7 @@ def _http_json(url: str, accept: str) -> dict:
     @return {Dict} Decoded top-level JSON object.
     @throws {OSError} On transport or HTTP errors, including 429 and 503.
     @throws {ValueError} When the response body is not valid JSON.
-    @satisfies CTN-006 DES-042 DES-083
+    @satisfies CTN-006 REQ-002 REQ-061
     """
     request = Request(url, headers={"Accept": accept, "User-Agent": "cli-skills"})
     with urlopen(request, timeout=2) as response:
@@ -169,7 +169,7 @@ def fetch_pypi_latest() -> str:
     @throws {ValueError} When the payload is not valid JSON or omits a
             non-empty string `info.version`.
     @throws {KeyError} When the payload omits `info.version`.
-    @satisfies DES-042 REQ-002 REQ-003 REQ-059
+    @satisfies REQ-002 REQ-003 REQ-059
     """
     version = _http_json(PYPI_ENDPOINT, "application/json")["info"]["version"]
     if not isinstance(version, str) or not version.strip():
@@ -187,7 +187,7 @@ def _github_tag() -> str:
     @throws {OSError} On transport or HTTP errors, including 429 and 503.
     @throws {ValueError} When the payload omits or holds an empty `tag_name`.
     @throws {KeyError} When the payload omits `tag_name`.
-    @satisfies DES-083 REQ-061 REQ-062
+    @satisfies REQ-061 REQ-062
     """
     tag = _http_json(ENDPOINT, "application/vnd.github+json")["tag_name"]
     if not isinstance(tag, str) or not tag.strip():
@@ -207,7 +207,7 @@ def fetch_github_latest() -> str:
     @throws {ValueError} When the payload omits or holds an invalid
             `tag_name`.
     @throws {KeyError} When the payload omits `tag_name`.
-    @satisfies DES-083 REQ-061 REQ-062 REQ-063
+    @satisfies REQ-061 REQ-062 REQ-063
     """
     tag = _github_tag()
     match = re.fullmatch(r"v?(\d+\.\d+\.\d+)", tag)
@@ -248,7 +248,7 @@ def _latest_release_ref() -> str | None:
              upgrade falls back to the unpinned source instead of installing
              an unresolved revision.
     @return {str | None} Raw release tag such as `v0.10.3`; `None` on failure.
-    @satisfies DES-082 DES-083 REQ-062 REQ-066
+    @satisfies DES-082 REQ-062 REQ-066
     @note Never raises; failures are reported on stderr.
     """
     try:
@@ -293,8 +293,8 @@ def check_version(force: bool = False) -> None:
           not raise.
     @satisfies REQ-001 REQ-002 REQ-003 REQ-004 REQ-005 REQ-016 REQ-017 REQ-018
                REQ-019 REQ-020 REQ-021 REQ-022 REQ-023 REQ-059 REQ-077
-               CTN-006 CTN-007 CTN-008 DES-042 DES-043 DES-044 DES-045
-               DES-046
+               CTN-006 CTN-007 CTN-008 DES-009 DES-010 DES-011 DES-012
+               DES-013
     """
     path = cache_path()
     cache = {}
@@ -535,7 +535,7 @@ def _upgrade_command(options: list[str], revision: str | None = None) -> list[st
             source; `None` leaves the source unpinned.
     @return {list[str]} Matching upgrade argv; `None` when the options are
             invalid.
-    @satisfies DES-040 DES-081 DES-082 DES-103 REQ-010 REQ-063 REQ-067 REQ-068
+    @satisfies DES-082 DES-103 REQ-010 REQ-063 REQ-067 REQ-068
     """
     allowed = ("--dev", "--develop", "--force")
     if any(option not in allowed for option in options):

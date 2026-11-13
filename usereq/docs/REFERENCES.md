@@ -511,7 +511,7 @@ from .targets import TARGETS, resolve_target
 
 - var `PYPI_ENDPOINT = "https://pypi.org/pypi/cli-skills/json"` (L24)
 - @brief PyPI JSON API endpoint for the newest published version.
-- @satisfies DES-042
+- @satisfies REQ-002
 - var `ENDPOINT = "https://api.github.com/repos/Ogekuri/CLI-Skills/releases/latest"` (L25)
 - var `UPGRADE = ["uv", "tool", "install", "cli-skills@latest", "--upgrade"]` (L34)
 - @brief Standard upgrade argv upgrading to the newest PyPI release without force.
@@ -521,7 +521,7 @@ requirement, and the `--upgrade` option allows the resolver to
 replace the installed distribution. An unpinned `cli-skills`
 argument reports the installed release as already installed and
 leaves it unchanged.
-- @satisfies DES-040 REQ-010
+- @satisfies REQ-010
 - var `UPGRADE_FORCE = ["uv", "tool", "install", "cli-skills", "--force", "--reinstall", "--refresh"]` (L39)
 - @brief Forced-upgrade argv forcing download and complete reinstallation from PyPI.
 - @details Executed for `--upgrade --force`; appends the uv tool install
@@ -531,21 +531,21 @@ reinstallation options `--force --reinstall --refresh`.
 - @brief Git source of the GitHub release upgrade.
 - @details Append `@<tag>` to pin the download to one release tag; the
 unpinned form resolves the repository default branch only.
-- @satisfies DES-081 DES-082 DES-083 REQ-063
+- @satisfies DES-082 REQ-063
 ### fn `def _develop_argv(force: bool, revision: str | None = None) -> list[str]` `priv` (L47-64)
 - @brief Build the GitHub upgrade argv, optionally pinned to one release tag.
 - @details `revision` is the raw release tag such as `v0.10.3`; `None` selects the unpinned git source. `force` appends the uv reinstallation options before `--from`.
 - @param force {bool} When `True`, append `--force --reinstall --refresh`.
 - @param revision {str | None} Raw release tag pinning the git source.
 - @return {list[str]} Upgrade argv for `uv tool install`.
-- @satisfies DES-081 DES-082 DES-103 REQ-063 REQ-067 REQ-068
+- @satisfies DES-082 DES-103 REQ-063 REQ-067 REQ-068
 - @post The returned source is `GITHUB_GIT_URL` or `GITHUB_GIT_URL@<revision>`.
 
 - var `UPGRADE_DEVELOP = _develop_argv(False)` (L69)
 - @brief Upgrade command argv installing the latest tagged GitHub release via git.
 - @details Fallback form used when the latest release tag cannot be resolved;
 resolves the repository default branch instead.
-- @satisfies DES-081 REQ-063
+- @satisfies REQ-063
 - var `UPGRADE_DEVELOP_FORCE = _develop_argv(True)` (L74)
 - @brief Forced-upgrade argv forcing download and complete reinstallation from GitHub.
 - @details Fallback form used when the latest release tag cannot be resolved;
@@ -572,7 +572,7 @@ documented order.
 - @return {Dict} Decoded top-level JSON object.
 - @throws {OSError} On transport or HTTP errors, including 429 and 503.
 - @throws {ValueError} When the response body is not valid JSON.
-- @satisfies CTN-006 DES-042 DES-083
+- @satisfies CTN-006 REQ-002 REQ-061
 
 ### fn `def fetch_pypi_latest() -> str` (L162-179)
 - @brief Fetch the newest published version from the PyPI JSON API.
@@ -581,7 +581,7 @@ documented order.
 - @throws {OSError} On transport or HTTP errors, including 429 and 503.
 - @throws {ValueError} When the payload is not valid JSON or omits a non-empty string `info.version`.
 - @throws {KeyError} When the payload omits `info.version`.
-- @satisfies DES-042 REQ-002 REQ-003 REQ-059
+- @satisfies REQ-002 REQ-003 REQ-059
 
 ### fn `def _github_tag() -> str` `priv` (L180-197)
 - @brief Fetch the raw `tag_name` of the newest GitHub release.
@@ -590,7 +590,7 @@ documented order.
 - @throws {OSError} On transport or HTTP errors, including 429 and 503.
 - @throws {ValueError} When the payload omits or holds an empty `tag_name`.
 - @throws {KeyError} When the payload omits `tag_name`.
-- @satisfies DES-083 REQ-061 REQ-062
+- @satisfies REQ-061 REQ-062
 
 ### fn `def fetch_github_latest() -> str` (L198-218)
 - @brief Fetch the newest GitHub release version in `x.y.z` form.
@@ -599,7 +599,7 @@ documented order.
 - @throws {OSError} On transport or HTTP errors, including 429 and 503.
 - @throws {ValueError} When the payload omits or holds an invalid `tag_name`.
 - @throws {KeyError} When the payload omits `tag_name`.
-- @satisfies DES-083 REQ-061 REQ-062 REQ-063
+- @satisfies REQ-061 REQ-062 REQ-063
 
 ### fn `def _failure_reason(exc: Exception) -> str` `priv` (L219-242)
 - @brief Normalize one release-fetch failure to a concise reason string.
@@ -613,7 +613,7 @@ documented order.
 - @details Returns the raw release tag for the `--upgrade --dev` git source. Fetch failures print a stderr warning and yield `None`, so the upgrade falls back to the unpinned source instead of installing an unresolved revision.
 - @return {str | None} Raw release tag such as `v0.10.3`; `None` on failure.
 - @note Never raises; failures are reported on stderr.
-- @satisfies DES-082 DES-083 REQ-062 REQ-066
+- @satisfies DES-082 REQ-062 REQ-066
 
 ### fn `def _report_line(label: str, value: str) -> str` `priv` (L264-278)
 - @brief Format one aligned `--ver`/`--version` report line.
@@ -629,7 +629,7 @@ documented order.
 - @param force {bool} Bypass the cached idle-time and perform the request.
 - @return {None}
 - @note Cache read/write and network failures are reported to stderr and do not raise.
-- @satisfies REQ-001 REQ-002 REQ-003 REQ-004 REQ-005 REQ-016 REQ-017 REQ-018 REQ-019 REQ-020 REQ-021 REQ-022 REQ-023 REQ-059 REQ-077 CTN-006 CTN-007 CTN-008 DES-042 DES-043 DES-044 DES-045 DES-046
+- @satisfies REQ-001 REQ-002 REQ-003 REQ-004 REQ-005 REQ-016 REQ-017 REQ-018 REQ-019 REQ-020 REQ-021 REQ-022 REQ-023 REQ-059 REQ-077 CTN-006 CTN-007 CTN-008 DES-009 DES-010 DES-011 DES-012 DES-013
 
 ### fn `def _manage(command: list[str]) -> int` `priv` (L341-351)
 
@@ -701,7 +701,7 @@ documented order.
 - @param options {list[str]} Option tokens following `--upgrade`; empty for the plain `--upgrade` form.
 - @param revision {str | None} Raw latest-release tag pinning the GitHub source; `None` leaves the source unpinned.
 - @return {list[str]} Matching upgrade argv; `None` when the options are invalid.
-- @satisfies DES-040 DES-081 DES-082 DES-103 REQ-010 REQ-063 REQ-067 REQ-068
+- @satisfies DES-082 DES-103 REQ-010 REQ-063 REQ-067 REQ-068
 
 ### fn `def _configure(args: list[str], home: Path | None = None) -> int` `priv` (L550-612)
 - @brief Execute one configuration display or mutation command.
