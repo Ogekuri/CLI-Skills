@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.10.8](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.8) - 2026-11-13
+## [0.10.9](https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.9) - 2026-11-13
 ### ⛰️  Features
 - Update gitalias config.
 - add release artifact clean script [useReq] *(clean.sh)*
@@ -28,6 +28,20 @@
   scripts/build.sh: egg-info cleanup now recurses under src/ (DES-147); removed -maxdepth 1.; scripts/build.sh: new sanitize_sdist phase drops setuptools-generated setup.cfg and src/*.egg-info sdist members.; MANIFEST.in: prune tests/, src/cli_skills.egg-info, and exclude MANIFEST.in from the sdist; .gitignore re-includes it.; tests/test_build_script.py: HDT Level 0 reproducer for recursive egg-info cleanup scope (DES-147).; Wheel content and entry points unchanged; sdist keeps DES-159 members; no src/ or REQUIREMENTS.md change.
 
 ### 🚜  Changes
+- drop the negative release-check notice [useReq] *(core)*
+  Requirements: REQ-077 now forbids any message when no newer release is
+  found, DES-046 specifies no negative-outcome message, and the scoped
+  negative-outcome assumption drops the notification.
+  Source: check_version prints only the bright-green newer-version message and
+  the bright-red failure/cache diagnostics; the 86400-second negative delay is
+  unchanged.
+  Docs: README release-check bullet and astra-uv-project SKILL.md flow updated.
+- print negative release-check outcome without ANSI color [useReq] *(core)*
+  Requirements: split REQ-018 (red failure message only), add REQ-077
+  (uncolored negative-outcome message), update DES-046 skill-template spec.
+  Source: check_version prints the no-newer-version notice without ANSI escape
+  codes; bright-green positive and bright-red failure messages unchanged.
+  Docs: README release-check bullets and astra-uv-project SKILL.md flow updated.
 - empty dist/ before building the new release [useReq] *(build)*
   Requirements: PRJ-021 and DES-143 updated; DES-148 retargeted; DES-199 added.
   Source code:
@@ -355,7 +369,7 @@
 - \[0.8.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.9.0
 - \[0.10.0\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.0
-- \[0.10.8\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.8
+- \[0.10.9\]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.10.9
 
 [0.1.0]: https://github.com/Ogekuri/CLI-Skills/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.1.0..v0.2.0
@@ -367,4 +381,4 @@
 [0.8.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.8.0..v0.9.0
 [0.10.0]: https://github.com/Ogekuri/CLI-Skills/compare/v0.9.0..v0.10.0
-[0.10.8]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.8
+[0.10.9]: https://github.com/Ogekuri/CLI-Skills/compare/v0.10.0..v0.10.9
