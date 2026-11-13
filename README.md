@@ -255,7 +255,7 @@ cli-skills --unset Global
 - The check is skipped while the cached idle time is valid.
 - A newer release prints a bright-green available-versus-installed message and sets a 3600-second idle delay.
 - A failed check prints a bright-red error message and sets an 86400-second idle delay.
-- A check that finds no newer release prints a message without ANSI color codes and sets an 86400-second idle delay.
+- A check that finds no newer release prints nothing and sets an 86400-second idle delay.
 - `--ver` and `--version` force a check and print three aligned lines:
 
   ```text

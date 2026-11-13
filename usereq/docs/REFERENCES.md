@@ -484,7 +484,7 @@ from .render import Node, render_table, render_tree
 
 ---
 
-# core.py | Python | 714L | 34 symbols | 16 imports | 54 comments
+# core.py | Python | 712L | 34 symbols | 16 imports | 54 comments
 > Path: `src/cli_skills/core.py`
 
 ## Imports
@@ -623,17 +623,17 @@ documented order.
 - @return {str} Aligned report line without trailing newline.
 - @satisfies REQ-006 REQ-060 REQ-061 REQ-070
 
-### fn `def check_version(force: bool = False) -> None` (L279-342)
+### fn `def check_version(force: bool = False) -> None` (L279-340)
 - @brief Run the cached automatic release check against PyPI.
-- @details Skips while the cached idle-time is valid unless `force` is set; otherwise fetches the newest PyPI version via `fetch_pypi_latest`, compares it with `__version__`, prints a bright-green available-versus-installed message when a newer version exists, an ANSI-colorless message for a negative outcome, or a bright-red message for a failed check, records last-success timestamps on success only, and writes the cache with a 3600-second (positive) or 86400-second (negative or failed) expiration.
+- @details Skips while the cached idle-time is valid unless `force` is set; otherwise fetches the newest PyPI version via `fetch_pypi_latest`, compares it with `__version__`, prints a bright-green available-versus-installed message when a newer version exists, prints no message for a negative outcome, and a bright-red message for a failed check, records last-success timestamps on success only, and writes the cache with a 3600-second (positive) or 86400-second (negative or failed) expiration.
 - @param force {bool} Bypass the cached idle-time and perform the request.
 - @return {None}
 - @note Cache read/write and network failures are reported to stderr and do not raise.
 - @satisfies REQ-001 REQ-002 REQ-003 REQ-004 REQ-005 REQ-016 REQ-017 REQ-018 REQ-019 REQ-020 REQ-021 REQ-022 REQ-023 REQ-059 REQ-077 CTN-006 CTN-007 CTN-008 DES-042 DES-043 DES-044 DES-045 DES-046
 
-### fn `def _manage(command: list[str]) -> int` `priv` (L343-353)
+### fn `def _manage(command: list[str]) -> int` `priv` (L341-351)
 
-### fn `def _post_upgrade_install(home: Path | None = None) -> int` `priv` (L354-378)
+### fn `def _post_upgrade_install(home: Path | None = None) -> int` `priv` (L352-376)
 - @brief Install bundled resources through `cli-skills install` after a successful upgrade.
 - @details Loads the user configuration and, when at least one CLI is enabled, spawns `cli-skills install` as a child process so the freshly upgraded package synchronizes its bundled skills into every enabled CLI. Skips the child process when the enabled configuration is empty. The child reads the upgraded package resources, not the running process ones. The child inherits stdout, so its per-CLI count and installed-name report surfaces as visible `--upgrade` output.
 - @param home {Path | None} Optional home-directory override used only for the configuration read; the child process inherits the real environment.
@@ -641,21 +641,21 @@ documented order.
 - @throws {OSError} When reading the configuration file fails.
 - @satisfies REQ-043 REQ-044 REQ-046 REQ-058
 
-### fn `def _run_upgrade(command: list[str]) -> int` `priv` (L379-399)
+### fn `def _run_upgrade(command: list[str]) -> int` `priv` (L377-397)
 - @brief Execute one upgrade command and chain the post-upgrade install.
 - @details Delegates to `_manage` and, on a zero exit code under Linux, chains `_post_upgrade_install` so the freshly upgraded package installs bundled resources into every enabled CLI. Used by the PyPI `--upgrade` form (with or without `--force`) and the GitHub `--upgrade --dev` form (with or without `--force`).
 - @param command {list[str]} Upgrade command argv executed on Linux and printed as the manual command on other operating systems.
 - @return {int} Upgrade exit code, or the chained `cli-skills install` exit code when the chained install executes.
 - @satisfies REQ-010 REQ-011 REQ-012 REQ-043 REQ-044 REQ-045 REQ-046 REQ-063 REQ-067 REQ-068 REQ-069
 
-### fn `def _unsupported(name: str) -> str` `priv` (L400-411)
+### fn `def _unsupported(name: str) -> str` `priv` (L398-409)
 - @brief Build an unsupported-CLI diagnostic message.
 - @details Lists the canonical CLI names accepted by the adapter registry in alphabetical order.
 - @param name {str} Unsupported CLI name from the command line.
 - @return {str} Human-readable diagnostic message.
 - @satisfies REQ-026 DES-092
 
-### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L412-437)
+### fn `def _enable(name: str, home: Path | None = None) -> int` `priv` (L410-435)
 - @brief Enable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, appends the canonical CLI name when absent, and persists the configuration. Re-enabling an enabled CLI leaves configuration unchanged.
 - @param name {str} CLI name from the command line.
@@ -664,7 +664,7 @@ documented order.
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-024 REQ-026 REQ-027 REQ-028
 
-### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L438-464)
+### fn `def _disable(name: str, home: Path | None = None) -> int` `priv` (L436-462)
 - @brief Disable resource installation for one supported CLI.
 - @details Resolves the CLI adapter, loads the user configuration, removes the canonical CLI name when present, and persists the configuration. Disabling an already disabled CLI is a successful no-op.
 - @param name {str} CLI name from the command line.
@@ -673,21 +673,21 @@ documented order.
 - @throws {OSError} When saving the configuration file fails.
 - @satisfies REQ-025 REQ-026 REQ-027 REQ-028
 
-### fn `def _install(home: Path | None = None) -> int` `priv` (L465-488)
+### fn `def _install(home: Path | None = None) -> int` `priv` (L463-486)
 - @brief Install bundled resources for all enabled CLIs.
 - @details Delegates installation to `install_enabled`, prints per-CLI installed skill counts plus the installed skill names, prints an informational message when no CLI is enabled, and reports collected failures.
 - @param home {Path | None} Optional home-directory override.
 - @return {int} Exit code: 0 when no failure occurs; 1 when any failure occurs.
 - @satisfies REQ-029 REQ-030 REQ-031 REQ-032 REQ-057
 
-### fn `def _uninstall(home: Path | None = None) -> int` `priv` (L489-510)
+### fn `def _uninstall(home: Path | None = None) -> int` `priv` (L487-508)
 - @brief Remove installed bundled resources for all enabled CLIs.
 - @details Delegates uninstallation to `uninstall_enabled`, prints per-CLI removed skill counts, prints an informational message when no CLI is enabled, and reports collected failures.
 - @param home {Path | None} Optional home-directory override.
 - @return {int} Exit code: 0 when no failure occurs; 1 when any failure occurs.
 - @satisfies REQ-047 REQ-054 REQ-055 REQ-056
 
-### fn `def _show(home: Path | None = None) -> int` `priv` (L511-523)
+### fn `def _show(home: Path | None = None) -> int` `priv` (L509-521)
 - @brief Print packaged resources, CLI configuration, and installation status.
 - @details Delegates report rendering to `build_show` and prints the result.
 - @param home {Path | None} Optional home-directory override.
@@ -695,7 +695,7 @@ documented order.
 - @throws {OSError} When bundled resources or the configuration cannot be read.
 - @satisfies REQ-037 REQ-038 REQ-039 REQ-042
 
-### fn `def _upgrade_command(options: list[str], revision: str | None = None) -> list[str] | None` `priv` (L524-551)
+### fn `def _upgrade_command(options: list[str], revision: str | None = None) -> list[str] | None` `priv` (L522-549)
 - @brief Resolve the upgrade argv for the options following `--upgrade`.
 - @details Accepts any order of the auxiliary options `--dev`, `--develop`, and `--force`; returns `None` for unknown options, duplicate options, and the redundant `--dev` plus `--develop` combination. `--force` selects the `--force --reinstall --refresh` reinstallation argv; `--dev` or `--develop` selects the GitHub `--from` argv, pinned to `revision` when supplied. Complexity O(n) where n is the option count.
 - @param options {list[str]} Option tokens following `--upgrade`; empty for the plain `--upgrade` form.
@@ -703,7 +703,7 @@ documented order.
 - @return {list[str]} Matching upgrade argv; `None` when the options are invalid.
 - @satisfies DES-040 DES-081 DES-082 DES-103 REQ-010 REQ-063 REQ-067 REQ-068
 
-### fn `def _configure(args: list[str], home: Path | None = None) -> int` `priv` (L552-614)
+### fn `def _configure(args: list[str], home: Path | None = None) -> int` `priv` (L550-612)
 - @brief Execute one configuration display or mutation command.
 - @details Dispatches `--print`, `--info`, `--print-raw`, `--get`, `--set`, and `--unset` against the canonical schema. Valid output goes to stdout; every diagnostic goes to stderr with exit status 1 and no partial success output. `--print-raw` writes the stored bytes unchanged and never applies tree formatting.
 - @param args {list[str]} Command token followed by its canonical path and value.
@@ -711,7 +711,7 @@ documented order.
 - @return {int} Exit code: 0 on success; 1 on any configuration failure.
 - @satisfies DES-105 DES-106 DES-111 DES-115 DES-116 DES-117 DES-130
 
-### fn `def main(argv: list[str] | None = None) -> int` (L615-715)
+### fn `def main(argv: list[str] | None = None) -> int` (L613-713)
 - @brief Run the automatic release check and dispatch one CLI command.
 - @details Executes `check_version` before argument parsing (forced by `--ver` or `--version`), then routes to help, version, management, enable/disable, install, uninstall, show, or configuration handlers. Configuration commands dispatch through `_configure` against the canonical schema. The `--upgrade` branch, for any accepted `--dev`/`--develop`/`--force` combination, pins the GitHub git source to the latest release tag resolved by `_latest_release_ref` and chains `cli-skills install` after a successful Linux upgrade when the enabled configuration is non-empty and returns the chained exit code. The `--ver` and `--version` branch prints the installed, PyPI, and GitHub versions on the aligned `Current Installed`, `Latest @ PyPI`, and `Latest @ GitHub` lines built by `_report_line`, printing `unavailable (<reason>)` and `unknown (<reason>)` values when the PyPI or GitHub request fails.
 - @param argv {list[str] | None} Command-line arguments; defaults to `sys.argv[1:]`.
@@ -742,19 +742,19 @@ documented order.
 |`_failure_reason`|fn|priv|219-242|def _failure_reason(exc: Exception) -> str|
 |`_latest_release_ref`|fn|priv|243-263|def _latest_release_ref() -> str | None|
 |`_report_line`|fn|priv|264-278|def _report_line(label: str, value: str) -> str|
-|`check_version`|fn|pub|279-342|def check_version(force: bool = False) -> None|
-|`_manage`|fn|priv|343-353|def _manage(command: list[str]) -> int|
-|`_post_upgrade_install`|fn|priv|354-378|def _post_upgrade_install(home: Path | None = None) -> int|
-|`_run_upgrade`|fn|priv|379-399|def _run_upgrade(command: list[str]) -> int|
-|`_unsupported`|fn|priv|400-411|def _unsupported(name: str) -> str|
-|`_enable`|fn|priv|412-437|def _enable(name: str, home: Path | None = None) -> int|
-|`_disable`|fn|priv|438-464|def _disable(name: str, home: Path | None = None) -> int|
-|`_install`|fn|priv|465-488|def _install(home: Path | None = None) -> int|
-|`_uninstall`|fn|priv|489-510|def _uninstall(home: Path | None = None) -> int|
-|`_show`|fn|priv|511-523|def _show(home: Path | None = None) -> int|
-|`_upgrade_command`|fn|priv|524-551|def _upgrade_command(options: list[str], revision: str | ...|
-|`_configure`|fn|priv|552-614|def _configure(args: list[str], home: Path | None = None)...|
-|`main`|fn|pub|615-715|def main(argv: list[str] | None = None) -> int|
+|`check_version`|fn|pub|279-340|def check_version(force: bool = False) -> None|
+|`_manage`|fn|priv|341-351|def _manage(command: list[str]) -> int|
+|`_post_upgrade_install`|fn|priv|352-376|def _post_upgrade_install(home: Path | None = None) -> int|
+|`_run_upgrade`|fn|priv|377-397|def _run_upgrade(command: list[str]) -> int|
+|`_unsupported`|fn|priv|398-409|def _unsupported(name: str) -> str|
+|`_enable`|fn|priv|410-435|def _enable(name: str, home: Path | None = None) -> int|
+|`_disable`|fn|priv|436-462|def _disable(name: str, home: Path | None = None) -> int|
+|`_install`|fn|priv|463-486|def _install(home: Path | None = None) -> int|
+|`_uninstall`|fn|priv|487-508|def _uninstall(home: Path | None = None) -> int|
+|`_show`|fn|priv|509-521|def _show(home: Path | None = None) -> int|
+|`_upgrade_command`|fn|priv|522-549|def _upgrade_command(options: list[str], revision: str | ...|
+|`_configure`|fn|priv|550-612|def _configure(args: list[str], home: Path | None = None)...|
+|`main`|fn|pub|613-713|def main(argv: list[str] | None = None) -> int|
 
 
 ---

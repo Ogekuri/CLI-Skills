@@ -283,7 +283,7 @@ def check_version(force: bool = False) -> None:
              otherwise fetches the newest PyPI version via `fetch_pypi_latest`,
              compares it with `__version__`, prints a bright-green
              available-versus-installed message when a newer version exists,
-             an ANSI-colorless message for a negative outcome, or a bright-red
+             prints no message for a negative outcome, and a bright-red
              message for a failed check, records last-success timestamps on
              success only, and writes the cache with a 3600-second (positive)
              or 86400-second (negative or failed) expiration.
@@ -322,8 +322,6 @@ def check_version(force: bool = False) -> None:
         if newer:
             delay = 3600
             print(f"\033[92mAvailable Version: {available} | Installed Version: {__version__}\033[0m", file=sys.stderr)
-        else:
-            print("Version check: no newer version available.", file=sys.stderr)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         now = time.time()
         print(f"\033[91mVersion check error: {exc}\033[0m", file=sys.stderr)

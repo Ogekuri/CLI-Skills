@@ -133,7 +133,7 @@ Implement an automatic new-version check that runs before parsing incoming param
 
 1. **Initial decision.** Perform the HTTP call when the cache file does not exist, cannot be read, cannot be parsed, holds an expired `idle-time` (current time greater than or equal to the stored expiration epoch), or `--ver`/`--version` was passed; otherwise skip the check.
 2. **Positive outcome (newer version found).** Print a message in BRIGHT GREEN color reporting "Available Version" versus "Installed Version". Record the attempt time `t` in both `last-success` fields and set the `idle-time` expiration to `t + 3600` seconds.
-3. **Negative outcome, valid response (no newer version).** Print a message without ANSI color codes reporting that no newer version is available. Record the attempt time `t` in both `last-success` fields and set the `idle-time` expiration to `t + 86400` seconds.
+3. **Negative outcome, valid response (no newer version).** Print no message. Record the attempt time `t` in both `last-success` fields and set the `idle-time` expiration to `t + 86400` seconds.
 4. **Negative outcome, failed check (HTTP errors such as 429 or 503, transport errors, or an unparseable response).** Print a BRIGHT RED message reporting the encountered error. Preserve the stored `last-success` fields unchanged when a prior successful check exists; keep them `null` when none exists. Set the `idle-time` expiration to the failed attempt time `t + 86400` seconds in both forms.
 
 ## 7. Verification
