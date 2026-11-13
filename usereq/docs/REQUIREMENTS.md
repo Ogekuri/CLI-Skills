@@ -117,7 +117,7 @@ Assumptions:
 - **DES-043**: MUST specify the release-check cache file `$HOME/.cache/%PROGRAM%/check_version_idle-time.json` storing last-success and idle-time timestamps in epoch and human-readable forms.
 - **DES-044**: MUST specify the automatic release check before parameter parsing, forced by `--ver` and `--version` and skipped while the cached idle-time is valid.
 - **DES-045**: MUST specify a bright-green available-versus-installed message and a 3600-second cache expiration when a newer version is found.
-- **DES-046**: MUST specify a bright-red error message and an 86400-second cache expiration when a release check fails or finds no newer version.
+- **DES-046**: MUST specify a bright-red failure message, a message without ANSI color codes for a negative outcome, and an 86400-second cache expiration for failed or negative release checks.
 - **DES-047**: MUST store user configuration in `$HOME/.config/cli-skills/config.json` as a JSON object.
 - **DES-048**: MUST store enabled CLI names as a JSON array under the `enabled` key in the user configuration.
 - **DES-049**: MUST implement one CLI adapter per supported CLI in a dedicated module exposing skill destinations.
@@ -304,7 +304,7 @@ Logical structure after initialization; archive-provided additional files are no
 - **REQ-015**: MUST print a warning and the manual uninstall command for `--uninstall` on non-Linux operating systems.
 - **REQ-016**: MUST print a bright-green message identifying the available and installed versions when a newer version is found.
 - **REQ-017**: MUST create or update the cache with an expiration 3600 seconds after a successful check that finds a newer version.
-- **REQ-018**: MUST print a bright-red message identifying the error or negative outcome when a release check fails or finds no newer version.
+- **REQ-018**: MUST print a bright-red message identifying the error when a release check fails.
 - **REQ-019**: MUST create or update the cache with an expiration 86400 seconds after a failed or negative check.
 - **REQ-020**: MUST treat HTTP errors, including 429 and 503, as failed release checks.
 - **REQ-021**: MUST preserve the last successful check timestamps in the cache after a failed check when prior successful timestamps exist.
@@ -398,3 +398,4 @@ Commands:
 - **REQ-074**: MUST verify table rectangularity and aligned borders for every rendered table, including wide characters and escaped newlines.
 - **REQ-075**: MUST verify `--get`, `--set`, `--unset`, `--print`, `--info`, and `--print-raw` behavior, exit codes, stream separation, and failure atomicity.
 - **REQ-076**: MUST verify every published command example is shell-parseable and resolves to a schema-valid canonical path.
+- **REQ-077**: MUST print a message without ANSI color codes identifying the negative outcome when a release check finds no newer version.

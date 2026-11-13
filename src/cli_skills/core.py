@@ -282,18 +282,19 @@ def check_version(force: bool = False) -> None:
     @details Skips while the cached idle-time is valid unless `force` is set;
              otherwise fetches the newest PyPI version via `fetch_pypi_latest`,
              compares it with `__version__`, prints a bright-green
-             available-versus-installed message when a newer version exists or
-             a bright-red message for a failed or negative check, records
-             last-success timestamps on success only, and writes the cache
-             with a 3600-second (positive) or 86400-second (negative or
-             failed) expiration.
+             available-versus-installed message when a newer version exists,
+             an ANSI-colorless message for a negative outcome, or a bright-red
+             message for a failed check, records last-success timestamps on
+             success only, and writes the cache with a 3600-second (positive)
+             or 86400-second (negative or failed) expiration.
     @param force {bool} Bypass the cached idle-time and perform the request.
     @return {None}
     @note Cache read/write and network failures are reported to stderr and do
           not raise.
     @satisfies REQ-001 REQ-002 REQ-003 REQ-004 REQ-005 REQ-016 REQ-017 REQ-018
-               REQ-019 REQ-020 REQ-021 REQ-022 REQ-023 REQ-059 CTN-006 CTN-007
-               CTN-008 DES-042 DES-043 DES-044 DES-045 DES-046
+               REQ-019 REQ-020 REQ-021 REQ-022 REQ-023 REQ-059 REQ-077
+               CTN-006 CTN-007 CTN-008 DES-042 DES-043 DES-044 DES-045
+               DES-046
     """
     path = cache_path()
     cache = {}
@@ -322,7 +323,7 @@ def check_version(force: bool = False) -> None:
             delay = 3600
             print(f"\033[92mAvailable Version: {available} | Installed Version: {__version__}\033[0m", file=sys.stderr)
         else:
-            print("\033[91mVersion check: no newer version available.\033[0m", file=sys.stderr)
+            print("Version check: no newer version available.", file=sys.stderr)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         now = time.time()
         print(f"\033[91mVersion check error: {exc}\033[0m", file=sys.stderr)

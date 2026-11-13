@@ -254,7 +254,8 @@ cli-skills --unset Global
 - Cache file: `~/.cache/cli-skills/check_version_idle-time.json`, storing last-success and idle-time timestamps in epoch and human-readable form.
 - The check is skipped while the cached idle time is valid.
 - A newer release prints a bright-green available-versus-installed message and sets a 3600-second idle delay.
-- A failed check or no newer release prints a bright-red message and sets an 86400-second idle delay.
+- A failed check prints a bright-red error message and sets an 86400-second idle delay.
+- A check that finds no newer release prints a message without ANSI color codes and sets an 86400-second idle delay.
 - `--ver` and `--version` force a check and print three aligned lines:
 
   ```text
