@@ -107,7 +107,7 @@ class CliTests(unittest.TestCase):
         @return {None}
         @expected_output Exit code 0 and `subprocess.run` called with
                  `["uv", "tool", "install", "cli-skills@latest", "--upgrade"]`.
-        @satisfies REQ-010 DES-040
+        @satisfies REQ-010
         """
         with patch.object(core, "check_version"), patch.object(core, "load_config", return_value={"enabled": []}), patch.object(core.sys, "platform", "linux"), patch.object(core.subprocess, "run") as run:
             run.return_value.returncode = 0
@@ -193,7 +193,7 @@ class CliTests(unittest.TestCase):
         @return {None}
         @expected_output Exit code 7 from the chained install and
                  `subprocess.run` called with the release-tag-pinned source.
-        @satisfies REQ-062 REQ-063 DES-082 DES-083
+        @satisfies REQ-061 REQ-062 REQ-063 DES-082
         """
         with patch.object(core, "check_version"), patch.object(core.sys, "platform", "linux"), patch.object(core, "_latest_release_ref", return_value="v9.9.9"), patch.object(core.subprocess, "run") as run:
             run.return_value.returncode = 0
